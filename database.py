@@ -341,4 +341,97 @@ def import_excel_schedule(file_path):
         con.close()
 
 
+def get_subtasks_for_task(conn, task_id):
+    """Lấy danh sách subtasks cho một task cụ thể."""
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id, content, is_completed FROM subtasks WHERE task_id = ?",
+        (task_id,),
+    )
+    # Vì conn.row_factory đã là sqlite3.Row, nên dùng map(dict) để chuyển về dict dễ dùng
+    return list(map(dict, cursor.fetchall()))
+
+
+def export_planner_data(threshold_date_str: str, date_format: str = "%Y-%m-%d"):
+    """
+    Trích xuất dữ liệu lịch trình (Schedule) và nhiệm vụ (Tasks) chưa hoàn thành/tương lai.
+    Ngày mốc (threshold_date_str) phải có định dạng YYYY-MM-DD (ISO format).
+    """
+
+    # OUTPUT_FILE phải nằm trong thư mục DATA_DIR cố định
+    OUTPUT_FILE = os.path.join(DATA_DIR, "export_planner_data.json")
+
+    try:
+        # Sử dụng hàm get_connection đã có sẵn trong database.py
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        # 1. LẤY SCHEDULE (Lịch cố định)
+        # Chỉ lấy các sự kiện có ngày >= ngày mốc
+        cursor.execute(
+            "SELECT subject, time_start, time_end, location, date_str FROM schedule WHERE date_str >= ?",
+            (threshold_date_str,),
+        )
+        schedules = list(map(dict, cursor.fetchall()))
+
+        # 2. LẤY TASKS (Nhiệm vụ)
+        # Logic: (date_str >= ngày mốc) OR (is_completed = 0)
+        # Điều này đảm bảo:
+        #   - Tất cả tasks TƯƠNG LAI đều được lấy
+        #   - Tất cả tasks QUÁ HẠN/CHƯA HOÀN THÀNH cũng được lấy
+        cursor.execute(
+            "SELECT id, title, is_completed, priority, date_str, note FROM tasks WHERE date_str >= ? OR is_completed = 0",
+            (threshold_date_str,),
+        )
+        tasks = list(map(dict, cursor.fetchall()))
+
+        # 3. GẮN SUBTASK VÀ TẠO NGỮ CẢNH (Context Note)
+        tasks_with_subs = []
+        for task in tasks:
+            subtasks = get_subtasks_for_task(conn, task["id"])
+            task["subtasks_list"] = subtasks
+
+            total_sub = len(subtasks)
+            done_sub = sum(1 for s in subtasks if s["is_completed"] == 1)
+
+            # Tạo context_note (như trong truy_van.py)
+            if task["date_str"] < threshold_date_str and task["is_completed"] == 0:
+                task["context_note"] = (
+                    f"OVERDUE (Quá hạn). Tiến độ: {done_sub}/{total_sub}"
+                )
+            else:
+                task["context_note"] = f"UPCOMING. Tiến độ: {done_sub}/{total_sub}"
+
+            tasks_with_subs.append(task)
+
+        conn.close()
+
+        # 4. GOM DỮ LIỆU VÀO CẤU TRÚC JSON CUỐI CÙNG
+        final_data = {
+            "metadata": {
+                "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "threshold_date": datetime.strptime(
+                    threshold_date_str, date_format
+                ).strftime(
+                    "%d/%m/%Y"
+                ),  # Chuyển lại định dạng dễ đọc
+                "description": "Dữ liệu lập kế hoạch cho AI (microSchedule).",
+            },
+            "schedule_events": schedules,
+            "todo_tasks": tasks_with_subs,
+        }
+
+        # Xuất file JSON
+        with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+            # Dùng indent=2 để JSON dễ đọc hơn khi AI đọc
+            json.dump(final_data, f, ensure_ascii=False, indent=2)
+
+        # Trả về nội dung JSON dưới dạng string để main.py có thể copy vào clipboard
+        return json.dumps(final_data, ensure_ascii=False, indent=2)
+
+    except Exception as e:
+        print(f"Lỗi khi export dữ liệu: {e}")
+        return None
+
+
 init_environment()
