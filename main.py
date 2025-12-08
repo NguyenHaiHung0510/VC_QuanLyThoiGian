@@ -77,7 +77,11 @@ def main(page: ft.Page):
     current_date = datetime.now()
     current_month_view = datetime.now()
     file_picker = ft.FilePicker()
-    page.overlay.append(file_picker)
+    date_picker = ft.DatePicker(
+        first_date=datetime(2023, 1, 1),
+        last_date=datetime(2030, 12, 31),
+    )
+    page.overlay.extend([file_picker, date_picker])
 
     # --- UI REFS ---
     lbl_current_date = ft.Text(size=20, weight="bold", color=THEME["primary"])
@@ -159,30 +163,141 @@ def main(page: ft.Page):
         load_month_view()
         page.update()
 
-    # --- IMPORT HANDLER (GỌI DATABASE.PY) ---
+    # --- EXPORT/IMPORT HANDLERS ---
+    def generate_planner_data():
+        """Fetches and structures planner data based on the current date."""
+        # Use the global `current_date` and `cur`
+        threshold_dt = current_date
+        threshold_iso = threshold_dt.strftime("%Y-%m-%d")
+
+        # Helper to convert sqlite rows to dicts
+        def rows_to_dicts(cursor, rows):
+            columns = [column[0] for column in cursor.description]
+            return [dict(zip(columns, row)) for row in rows]
+
+        # 1. GET SCHEDULE
+        query_schedule = """
+            SELECT subject, time_start, time_end, location, date_str
+            FROM schedule
+            WHERE date_str >= ?
+            ORDER BY date_str ASC, time_start ASC
+        """
+        cur.execute(query_schedule, (threshold_iso,))
+        schedules = rows_to_dicts(cur, cur.fetchall())
+
+        # 2. GET TASKS
+        query_tasks = """
+            SELECT id, title, is_completed, priority, date_str, note
+            FROM tasks
+            WHERE date_str >= ?
+               OR (date_str < ? AND is_completed = 0)
+            ORDER BY date_str ASC
+        """
+        cur.execute(query_tasks, (threshold_iso, threshold_iso))
+        tasks_raw = rows_to_dicts(cur, cur.fetchall())
+
+        # 3. GET SUBTASKS and combine
+        tasks_with_subs = []
+        for task in tasks_raw:
+            task_id = task["id"]
+            query_sub = """
+                SELECT content, is_completed
+                FROM subtasks
+                WHERE task_id = ?
+            """
+            cur.execute(query_sub, (task_id,))
+            subtasks = rows_to_dicts(cur, cur.fetchall())
+
+            task["subtasks_list"] = subtasks
+            total_sub = len(subtasks)
+            done_sub = sum(1 for s in subtasks if s["is_completed"] == 1)
+
+            task_dt = datetime.strptime(task["date_str"], "%Y-%m-%d")
+
+            if task_dt.date() < threshold_dt.date():
+                task["context_note"] = f"OVERDUE (Quá hạn). Tiến độ: {done_sub}/{total_sub}"
+            else:
+                task["context_note"] = f"UPCOMING. Tiến độ: {done_sub}/{total_sub}"
+
+            tasks_with_subs.append(task)
+
+        # 4. Final data structure
+        final_data = {
+            "metadata": {
+                "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "threshold_date": threshold_dt.strftime("%d/%m/%Y"),
+                "date_format": "YYYY-MM-DD",
+                "description": "Dữ liệu dùng để lập kế hoạch ôn thi.",
+            },
+            "schedule_events": schedules,
+            "todo_tasks": tasks_with_subs,
+        }
+        return final_data
+
+    def export_data_to_json(e):
+        def handle_save_to_file(e):
+            page.close(dlg)
+            file_picker.save_file(
+                dialog_title="Lưu file JSON",
+                file_name="planner_data.json",
+                allowed_extensions=["json"],
+            )
+
+        def handle_copy_to_clipboard(e):
+            try:
+                data = generate_planner_data()
+                json_string = json.dumps(data, ensure_ascii=False, indent=2)
+                page.set_clipboard(json_string)
+                page.close(dlg)
+                page.open(ft.SnackBar(ft.Text("Đã copy dữ liệu vào clipboard!"), bgcolor="green"))
+            except Exception as ex:
+                page.close(dlg)
+                page.open(ft.SnackBar(ft.Text(f"Lỗi khi tạo dữ liệu: {ex}"), bgcolor="red"))
+
+        dlg = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Tùy chọn xuất dữ liệu"),
+            content=ft.Text("Bạn muốn lưu dữ liệu ra file hay copy vào clipboard?"),
+            actions=[
+                ft.TextButton("Lưu vào File", on_click=handle_save_to_file),
+                ft.ElevatedButton("Copy", on_click=handle_copy_to_clipboard),
+                ft.TextButton("Hủy", on_click=lambda e: page.close(dlg)),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        page.open(dlg)
+
     def handle_file_picker_result(e: ft.FilePickerResultEvent):
-        if not e.files:
+        # Handle file open for import
+        if e.files:
+            filepath = e.files[0].path
+            filename = e.files[0].name
+            success = False
+            msg = ""
+
+            if filename.endswith(".ics"):
+                success, msg = db.import_ics_schedule(filepath)
+            elif filename.endswith(".xlsx"):
+                success, msg = db.import_excel_schedule(filepath)
+            else:
+                msg = "Định dạng file không hỗ trợ! (Chỉ nhận .ics hoặc .xlsx)"
+
+            if success:
+                refresh_all()
+                page.open(ft.SnackBar(ft.Text(msg, color="white"), bgcolor="green"))
+            else:
+                page.open(ft.SnackBar(ft.Text(f"Lỗi: {msg}", color="white"), bgcolor="red"))
             return
 
-        filepath = e.files[0].path
-        filename = e.files[0].name
-
-        success = False
-        msg = ""
-
-        # Gọi hàm xử lý từ database.py
-        if filename.endswith(".ics"):
-            success, msg = db.import_ics_schedule(filepath)
-        elif filename.endswith(".xlsx"):
-            success, msg = db.import_excel_schedule(filepath)
-        else:
-            msg = "Định dạng file không hỗ trợ! (Chỉ nhận .ics hoặc .xlsx)"
-
-        if success:
-            refresh_all()
-            page.open(ft.SnackBar(ft.Text(msg, color="white"), bgcolor="green"))
-        else:
-            page.open(ft.SnackBar(ft.Text(f"Lỗi: {msg}", color="white"), bgcolor="red"))
+        # Handle file save for export
+        if e.path:
+            try:
+                data = generate_planner_data()
+                with open(e.path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                page.open(ft.SnackBar(ft.Text("Đã xuất dữ liệu thành công!"), bgcolor="green"))
+            except Exception as ex:
+                page.open(ft.SnackBar(ft.Text(f"Lỗi khi xuất file: {ex}", color="white"), bgcolor="red"))
 
     file_picker.on_result = handle_file_picker_result
 
@@ -222,7 +337,7 @@ def main(page: ft.Page):
         # Schedule
         container_schedule.controls.clear()
         cur.execute(
-            "SELECT * FROM schedule WHERE date_str = ? ORDER BY time_start", (date_str,)
+            "SELECT id, subject, time_start, time_end, location, date_str, is_cancelled FROM schedule WHERE date_str = ? ORDER BY time_start", (date_str,)
         )
         schedules = cur.fetchall()
 
@@ -617,6 +732,17 @@ def main(page: ft.Page):
             )
         )
 
+        today_dt = datetime.now()
+        today_str = get_date_str(today_dt)
+
+        # Pre-fetch total overdue for "today" badge and tooltip
+        cur.execute(
+            "SELECT title, date_str FROM tasks WHERE date_str < ? AND is_completed = 0 ORDER BY date_str",
+            (today_str,),
+        )
+        all_overdue_tasks = cur.fetchall()
+        total_overdue_count = len(all_overdue_tasks)
+
         for week in cal:
             week_row = ft.Row(expand=True, spacing=2)
             for day in week:
@@ -625,8 +751,55 @@ def main(page: ft.Page):
                         ft.Container(expand=True, bgcolor=ft.Colors.GREY_50)
                     )
                 else:
-                    this_date_str = f"{year}-{month:02d}-{day:02d}"
-                    is_today = this_date_str == get_date_str(datetime.now())
+                    this_dt = datetime(year, month, day)
+                    this_date_str = get_date_str(this_dt)
+                    is_today = this_date_str == today_str
+                    is_past = this_dt.date() < today_dt.date()
+
+                    # --- Init UI Vars ---
+                    day_bgcolor = ft.Colors.WHITE
+                    overdue_indicator = ft.Container()
+
+                    # --- Overdue Logic per day ---
+                    cur.execute(
+                        "SELECT count(*) FROM tasks WHERE date_str = ? AND is_completed = 0",
+                        (this_date_str,),
+                    )
+                    uncompleted_on_day_count = cur.fetchone()[0]
+
+                    if is_past and uncompleted_on_day_count > 0:
+                        day_bgcolor = ft.Colors.RED_50
+                        overdue_indicator = ft.Row(
+                            [
+                                ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, color="red", size=12),
+                                ft.Text(
+                                    str(uncompleted_on_day_count),
+                                    size=11,
+                                    weight="bold",
+                                    color="red",
+                                ),
+                            ],
+                            spacing=2,
+                        )
+                    
+                    # --- "Today" overdue summary indicator ---
+                    if is_today:
+                        day_bgcolor = THEME["today_bg"]
+                        if total_overdue_count > 0:
+                            overdue_indicator = ft.Row(
+                                [
+                                    ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, color="orange", size=12),
+                                    ft.Text(
+                                        str(total_overdue_count),
+                                        size=11,
+                                        weight="bold",
+                                        color="orange",
+                                    ),
+                                ],
+                                spacing=2,
+                            )
+                    
+                    # --- Get Schedules & Tasks for the day ---
                     cur.execute(
                         "SELECT subject, location FROM schedule WHERE date_str = ? AND is_cancelled = 0",
                         (this_date_str,),
@@ -638,13 +811,23 @@ def main(page: ft.Page):
                     )
                     tasks = cur.fetchall()
 
-                    tooltip_lines = [f"📅 {x[0]}" for x in schedules]
+                    # --- Tooltip Logic ---
+                    tooltip_lines = [f"📅 {s[0]}" for s in schedules]
                     if tasks:
                         tooltip_lines.append("--- Việc cần làm ---")
-                    tooltip_lines.extend(
-                        [f"{'✅' if t[2] else '▫️'} {t[0]}" for t in tasks]
-                    )
+                        for t in tasks:
+                            is_task_overdue = is_past and not t[2]
+                            prefix = "⚠️" if is_task_overdue else ("✅" if t[2] else "▫️")
+                            tooltip_lines.append(f"{prefix} {t[0]}")
+                    
+                    if is_today and all_overdue_tasks:
+                        tooltip_lines.append("--- Việc trễ hạn ---")
+                        for ov_task in all_overdue_tasks:
+                             # ov_task is (title, date_str)
+                            task_dt = datetime.strptime(ov_task[1], "%Y-%m-%d")
+                            tooltip_lines.append(f"⚠️ {ov_task[0]} ({task_dt.day}/{task_dt.month})")
 
+                    # --- Build Day Cell UI ---
                     content_col = ft.Column(
                         spacing=1, alignment=ft.MainAxisAlignment.START
                     )
@@ -666,59 +849,41 @@ def main(page: ft.Page):
                                     ),
                                 ),
                                 ft.Container(expand=True),
+                                overdue_indicator,
                             ]
                         )
                     )
+                    
                     max_items = 3
                     count = 0
+                    # Display schedules
                     for s in schedules:
                         if count < max_items:
                             smart_icon = get_location_icon(s[1])
                             content_col.controls.append(
                                 ft.Container(
-                                    padding=2,
-                                    border_radius=2,
-                                    bgcolor=ft.Colors.BLUE_50,
-                                    content=ft.Row(
-                                        [
-                                            ft.Icon(
-                                                smart_icon,
-                                                size=10,
-                                                color=ft.Colors.BLUE_900,
-                                            ),
-                                            ft.Text(
-                                                s[0],
-                                                size=9,
-                                                no_wrap=True,
-                                                overflow=ft.TextOverflow.ELLIPSIS,
-                                                color=ft.Colors.BLUE_900,
-                                            ),
-                                        ],
-                                        spacing=2,
-                                    ),
+                                    padding=2, border_radius=2, bgcolor=ft.Colors.BLUE_50,
+                                    content=ft.Row([
+                                        ft.Icon(smart_icon, size=10, color=ft.Colors.BLUE_900),
+                                        ft.Text(s[0], size=9, no_wrap=True, overflow=ft.TextOverflow.ELLIPSIS, color=ft.Colors.BLUE_900),
+                                    ], spacing=2),
                                 )
                             )
                             count += 1
-                    for t in tasks:  # Show all tasks (todo + done)
+                    # Display tasks for the day
+                    for t in tasks:
                         if count < max_items:
                             p_cfg = get_prio_config(t[1])
-                            bg_c = ft.Colors.GREY_100 if t[2] else ft.Colors.GREY_50
-                            txt_c = ft.Colors.GREY if t[2] else ft.Colors.BLACK87
+                            is_task_overdue_style = is_past and not t[2]
+                            bg_c = ft.Colors.RED_100 if is_task_overdue_style else (ft.Colors.GREY_100 if t[2] else ft.Colors.GREY_50)
+                            txt_c = ft.Colors.RED_900 if is_task_overdue_style else (ft.Colors.GREY if t[2] else ft.Colors.BLACK87)
+                            
                             content_col.controls.append(
                                 ft.Container(
-                                    padding=2,
-                                    border_radius=2,
-                                    border=ft.border.only(
-                                        left=ft.border.BorderSide(3, p_cfg["color"])
-                                    ),
+                                    padding=2, border_radius=2,
+                                    border=ft.border.only(left=ft.border.BorderSide(3, p_cfg["color"])),
                                     bgcolor=bg_c,
-                                    content=ft.Text(
-                                        t[0],
-                                        size=9,
-                                        no_wrap=True,
-                                        overflow=ft.TextOverflow.ELLIPSIS,
-                                        color=txt_c,
-                                    ),
+                                    content=ft.Text(t[0], size=9, no_wrap=True, overflow=ft.TextOverflow.ELLIPSIS, color=txt_c),
                                 )
                             )
                             count += 1
@@ -726,20 +891,16 @@ def main(page: ft.Page):
                     total_hidden = (len(schedules) + len(tasks)) - max_items
                     if total_hidden > 0:
                         content_col.controls.append(
-                            ft.Text(
-                                f"+ {total_hidden}...",
-                                size=9,
-                                color="grey",
-                                italic=True,
-                            )
+                            ft.Text(f"+ {total_hidden}...", size=9, color="grey", italic=True)
                         )
+                    
                     week_row.controls.append(
                         ft.Container(
                             content=content_col,
                             expand=True,
                             height=110,
                             padding=4,
-                            bgcolor=ft.Colors.WHITE,
+                            bgcolor=day_bgcolor,
                             border=ft.border.all(
                                 1 if is_today else 0.5,
                                 (
@@ -761,6 +922,11 @@ def main(page: ft.Page):
         nonlocal current_date
         current_date = datetime(y, m, d)
         tabs_control.selected_index = 0
+        refresh_all()
+
+    def change_day(delta):
+        nonlocal current_date
+        current_date += timedelta(days=delta)
         refresh_all()
 
     def change_month(delta):
@@ -1005,6 +1171,20 @@ def main(page: ft.Page):
         if tid:
             cur.execute("SELECT * FROM tasks WHERE id = ?", (tid,))
             task_data = cur.fetchone()
+
+        # State for the dialog's date
+        current_task_date_str = task_data[4] if task_data else get_date_str(current_date)
+
+        def handle_date_change(e):
+            nonlocal current_task_date_str
+            new_date = e.control.value.strftime("%Y-%m-%d")
+            current_task_date_str = new_date
+            # Update the UI text
+            date_display_row.controls[1].value = f"Ngày: {datetime.strptime(new_date, '%Y-%m-%d').strftime('%d/%m/%Y')}"
+            date_display_row.update()
+
+        date_picker.on_change = handle_date_change
+
         title_tf = ft.TextField(
             label="Tên công việc",
             value=task_data[1] if task_data else "",
@@ -1026,6 +1206,19 @@ def main(page: ft.Page):
                 for p in APP_CONFIG["priorities"]
             ],
         )
+
+        date_display_row = ft.Row(
+            [
+                ft.IconButton(
+                    icon=ft.Icons.CALENDAR_MONTH,
+                    on_click=lambda _: page.open(date_picker),
+                    tooltip="Đổi ngày"
+                ),
+                ft.Text(f"Ngày: {datetime.strptime(current_task_date_str, '%Y-%m-%d').strftime('%d/%m/%Y')}")
+            ],
+            alignment=ft.MainAxisAlignment.START,
+        )
+        
         subtasks_col = ft.Column(spacing=5)
         new_sub_tf = ft.TextField(
             hint_text="Thêm mục nhỏ...",
@@ -1080,8 +1273,8 @@ def main(page: ft.Page):
                 return
             if tid:
                 cur.execute(
-                    "UPDATE tasks SET title=?, priority=?, note=? WHERE id=?",
-                    (title_tf.value, prio_dd.value, note_tf.value, tid),
+                    "UPDATE tasks SET title=?, priority=?, note=?, date_str=? WHERE id=?",
+                    (title_tf.value, prio_dd.value, note_tf.value, current_task_date_str, tid),
                 )
             else:
                 cur.execute(
@@ -1090,7 +1283,7 @@ def main(page: ft.Page):
                         title_tf.value,
                         prio_dd.value,
                         note_tf.value,
-                        get_date_str(current_date),
+                        current_task_date_str,
                     ),
                 )
                 tid = cur.lastrowid
@@ -1137,6 +1330,7 @@ def main(page: ft.Page):
                     [
                         title_tf,
                         prio_dd,
+                        date_display_row,
                         note_tf,
                         ft.Divider(),
                         ft.Text("Việc nhỏ:"),
@@ -1287,11 +1481,7 @@ def main(page: ft.Page):
                             [
                                 ft.IconButton(
                                     ft.Icons.CHEVRON_LEFT,
-                                    on_click=lambda e: select_date_from_calendar(
-                                        current_date.year,
-                                        current_date.month,
-                                        current_date.day - 1,
-                                    ),
+                                    on_click=lambda e: change_day(-1),
                                 ),
                                 ft.OutlinedButton(
                                     "VỀ HÔM NAY",
@@ -1302,11 +1492,7 @@ def main(page: ft.Page):
                                 lbl_current_date,
                                 ft.IconButton(
                                     ft.Icons.CHEVRON_RIGHT,
-                                    on_click=lambda e: select_date_from_calendar(
-                                        current_date.year,
-                                        current_date.month,
-                                        current_date.day + 1,
-                                    ),
+                                    on_click=lambda e: change_day(1),
                                 ),
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
@@ -1322,6 +1508,13 @@ def main(page: ft.Page):
                                         text="Import",
                                         bgcolor=ft.Colors.BLUE_GREY,
                                         on_click=open_import_dialog,
+                                    ),
+                                    ft.FloatingActionButton(
+                                        icon=ft.Icons.SAVE,
+                                        text="Export JSON",
+                                        tooltip="Xuất dữ liệu cho AI",
+                                        bgcolor=ft.Colors.PURPLE,
+                                        on_click=export_data_to_json,
                                     ),
                                     ft.FloatingActionButton(
                                         icon=ft.Icons.ADD,

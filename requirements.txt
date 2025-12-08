@@ -1,3 +1,4 @@
 flet
 schedule
 openpyxl
+pyinstaller
