@@ -77,7 +77,11 @@ def main(page: ft.Page):
     current_date = datetime.now()
     current_month_view = datetime.now()
     file_picker = ft.FilePicker()
-    page.overlay.append(file_picker)
+    date_picker = ft.DatePicker(
+        first_date=datetime(2023, 1, 1),
+        last_date=datetime(2030, 12, 31),
+    )
+    page.overlay.extend([file_picker, date_picker])
 
     # --- UI REFS ---
     lbl_current_date = ft.Text(size=20, weight="bold", color=THEME["primary"])
@@ -1116,6 +1120,20 @@ def main(page: ft.Page):
         if tid:
             cur.execute("SELECT * FROM tasks WHERE id = ?", (tid,))
             task_data = cur.fetchone()
+
+        # State for the dialog's date
+        current_task_date_str = task_data[4] if task_data else get_date_str(current_date)
+
+        def handle_date_change(e):
+            nonlocal current_task_date_str
+            new_date = e.control.value.strftime("%Y-%m-%d")
+            current_task_date_str = new_date
+            # Update the UI text
+            date_display_row.controls[1].value = f"Ngày: {datetime.strptime(new_date, '%Y-%m-%d').strftime('%d/%m/%Y')}"
+            date_display_row.update()
+
+        date_picker.on_change = handle_date_change
+
         title_tf = ft.TextField(
             label="Tên công việc",
             value=task_data[1] if task_data else "",
@@ -1137,6 +1155,19 @@ def main(page: ft.Page):
                 for p in APP_CONFIG["priorities"]
             ],
         )
+
+        date_display_row = ft.Row(
+            [
+                ft.IconButton(
+                    icon=ft.Icons.CALENDAR_MONTH,
+                    on_click=lambda _: page.open(date_picker),
+                    tooltip="Đổi ngày"
+                ),
+                ft.Text(f"Ngày: {datetime.strptime(current_task_date_str, '%Y-%m-%d').strftime('%d/%m/%Y')}")
+            ],
+            alignment=ft.MainAxisAlignment.START,
+        )
+        
         subtasks_col = ft.Column(spacing=5)
         new_sub_tf = ft.TextField(
             hint_text="Thêm mục nhỏ...",
@@ -1191,8 +1222,8 @@ def main(page: ft.Page):
                 return
             if tid:
                 cur.execute(
-                    "UPDATE tasks SET title=?, priority=?, note=? WHERE id=?",
-                    (title_tf.value, prio_dd.value, note_tf.value, tid),
+                    "UPDATE tasks SET title=?, priority=?, note=?, date_str=? WHERE id=?",
+                    (title_tf.value, prio_dd.value, note_tf.value, current_task_date_str, tid),
                 )
             else:
                 cur.execute(
@@ -1201,7 +1232,7 @@ def main(page: ft.Page):
                         title_tf.value,
                         prio_dd.value,
                         note_tf.value,
-                        get_date_str(current_date),
+                        current_task_date_str,
                     ),
                 )
                 tid = cur.lastrowid
@@ -1248,6 +1279,7 @@ def main(page: ft.Page):
                     [
                         title_tf,
                         prio_dd,
+                        date_display_row,
                         note_tf,
                         ft.Divider(),
                         ft.Text("Việc nhỏ:"),
