@@ -732,6 +732,17 @@ def main(page: ft.Page):
             )
         )
 
+        today_dt = datetime.now()
+        today_str = get_date_str(today_dt)
+
+        # Pre-fetch total overdue for "today" badge and tooltip
+        cur.execute(
+            "SELECT title, date_str FROM tasks WHERE date_str < ? AND is_completed = 0 ORDER BY date_str",
+            (today_str,),
+        )
+        all_overdue_tasks = cur.fetchall()
+        total_overdue_count = len(all_overdue_tasks)
+
         for week in cal:
             week_row = ft.Row(expand=True, spacing=2)
             for day in week:
@@ -740,8 +751,55 @@ def main(page: ft.Page):
                         ft.Container(expand=True, bgcolor=ft.Colors.GREY_50)
                     )
                 else:
-                    this_date_str = f"{year}-{month:02d}-{day:02d}"
-                    is_today = this_date_str == get_date_str(datetime.now())
+                    this_dt = datetime(year, month, day)
+                    this_date_str = get_date_str(this_dt)
+                    is_today = this_date_str == today_str
+                    is_past = this_dt.date() < today_dt.date()
+
+                    # --- Init UI Vars ---
+                    day_bgcolor = ft.Colors.WHITE
+                    overdue_indicator = ft.Container()
+
+                    # --- Overdue Logic per day ---
+                    cur.execute(
+                        "SELECT count(*) FROM tasks WHERE date_str = ? AND is_completed = 0",
+                        (this_date_str,),
+                    )
+                    uncompleted_on_day_count = cur.fetchone()[0]
+
+                    if is_past and uncompleted_on_day_count > 0:
+                        day_bgcolor = ft.Colors.RED_50
+                        overdue_indicator = ft.Row(
+                            [
+                                ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, color="red", size=12),
+                                ft.Text(
+                                    str(uncompleted_on_day_count),
+                                    size=11,
+                                    weight="bold",
+                                    color="red",
+                                ),
+                            ],
+                            spacing=2,
+                        )
+                    
+                    # --- "Today" overdue summary indicator ---
+                    if is_today:
+                        day_bgcolor = THEME["today_bg"]
+                        if total_overdue_count > 0:
+                            overdue_indicator = ft.Row(
+                                [
+                                    ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, color="orange", size=12),
+                                    ft.Text(
+                                        str(total_overdue_count),
+                                        size=11,
+                                        weight="bold",
+                                        color="orange",
+                                    ),
+                                ],
+                                spacing=2,
+                            )
+                    
+                    # --- Get Schedules & Tasks for the day ---
                     cur.execute(
                         "SELECT subject, location FROM schedule WHERE date_str = ? AND is_cancelled = 0",
                         (this_date_str,),
@@ -753,13 +811,23 @@ def main(page: ft.Page):
                     )
                     tasks = cur.fetchall()
 
-                    tooltip_lines = [f"📅 {x[0]}" for x in schedules]
+                    # --- Tooltip Logic ---
+                    tooltip_lines = [f"📅 {s[0]}" for s in schedules]
                     if tasks:
                         tooltip_lines.append("--- Việc cần làm ---")
-                    tooltip_lines.extend(
-                        [f"{'✅' if t[2] else '▫️'} {t[0]}" for t in tasks]
-                    )
+                        for t in tasks:
+                            is_task_overdue = is_past and not t[2]
+                            prefix = "⚠️" if is_task_overdue else ("✅" if t[2] else "▫️")
+                            tooltip_lines.append(f"{prefix} {t[0]}")
+                    
+                    if is_today and all_overdue_tasks:
+                        tooltip_lines.append("--- Việc trễ hạn ---")
+                        for ov_task in all_overdue_tasks:
+                             # ov_task is (title, date_str)
+                            task_dt = datetime.strptime(ov_task[1], "%Y-%m-%d")
+                            tooltip_lines.append(f"⚠️ {ov_task[0]} ({task_dt.day}/{task_dt.month})")
 
+                    # --- Build Day Cell UI ---
                     content_col = ft.Column(
                         spacing=1, alignment=ft.MainAxisAlignment.START
                     )
@@ -781,59 +849,41 @@ def main(page: ft.Page):
                                     ),
                                 ),
                                 ft.Container(expand=True),
+                                overdue_indicator,
                             ]
                         )
                     )
+                    
                     max_items = 3
                     count = 0
+                    # Display schedules
                     for s in schedules:
                         if count < max_items:
                             smart_icon = get_location_icon(s[1])
                             content_col.controls.append(
                                 ft.Container(
-                                    padding=2,
-                                    border_radius=2,
-                                    bgcolor=ft.Colors.BLUE_50,
-                                    content=ft.Row(
-                                        [
-                                            ft.Icon(
-                                                smart_icon,
-                                                size=10,
-                                                color=ft.Colors.BLUE_900,
-                                            ),
-                                            ft.Text(
-                                                s[0],
-                                                size=9,
-                                                no_wrap=True,
-                                                overflow=ft.TextOverflow.ELLIPSIS,
-                                                color=ft.Colors.BLUE_900,
-                                            ),
-                                        ],
-                                        spacing=2,
-                                    ),
+                                    padding=2, border_radius=2, bgcolor=ft.Colors.BLUE_50,
+                                    content=ft.Row([
+                                        ft.Icon(smart_icon, size=10, color=ft.Colors.BLUE_900),
+                                        ft.Text(s[0], size=9, no_wrap=True, overflow=ft.TextOverflow.ELLIPSIS, color=ft.Colors.BLUE_900),
+                                    ], spacing=2),
                                 )
                             )
                             count += 1
-                    for t in tasks:  # Show all tasks (todo + done)
+                    # Display tasks for the day
+                    for t in tasks:
                         if count < max_items:
                             p_cfg = get_prio_config(t[1])
-                            bg_c = ft.Colors.GREY_100 if t[2] else ft.Colors.GREY_50
-                            txt_c = ft.Colors.GREY if t[2] else ft.Colors.BLACK87
+                            is_task_overdue_style = is_past and not t[2]
+                            bg_c = ft.Colors.RED_100 if is_task_overdue_style else (ft.Colors.GREY_100 if t[2] else ft.Colors.GREY_50)
+                            txt_c = ft.Colors.RED_900 if is_task_overdue_style else (ft.Colors.GREY if t[2] else ft.Colors.BLACK87)
+                            
                             content_col.controls.append(
                                 ft.Container(
-                                    padding=2,
-                                    border_radius=2,
-                                    border=ft.border.only(
-                                        left=ft.border.BorderSide(3, p_cfg["color"])
-                                    ),
+                                    padding=2, border_radius=2,
+                                    border=ft.border.only(left=ft.border.BorderSide(3, p_cfg["color"])),
                                     bgcolor=bg_c,
-                                    content=ft.Text(
-                                        t[0],
-                                        size=9,
-                                        no_wrap=True,
-                                        overflow=ft.TextOverflow.ELLIPSIS,
-                                        color=txt_c,
-                                    ),
+                                    content=ft.Text(t[0], size=9, no_wrap=True, overflow=ft.TextOverflow.ELLIPSIS, color=txt_c),
                                 )
                             )
                             count += 1
@@ -841,20 +891,16 @@ def main(page: ft.Page):
                     total_hidden = (len(schedules) + len(tasks)) - max_items
                     if total_hidden > 0:
                         content_col.controls.append(
-                            ft.Text(
-                                f"+ {total_hidden}...",
-                                size=9,
-                                color="grey",
-                                italic=True,
-                            )
+                            ft.Text(f"+ {total_hidden}...", size=9, color="grey", italic=True)
                         )
+                    
                     week_row.controls.append(
                         ft.Container(
                             content=content_col,
                             expand=True,
                             height=110,
                             padding=4,
-                            bgcolor=ft.Colors.WHITE,
+                            bgcolor=day_bgcolor,
                             border=ft.border.all(
                                 1 if is_today else 0.5,
                                 (
