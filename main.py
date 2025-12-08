@@ -160,7 +160,8 @@ def main(page: ft.Page):
         page.update()
 
     # --- EXPORT/IMPORT HANDLERS ---
-    def generate_and_save_json(output_path):
+    def generate_planner_data():
+        """Fetches and structures planner data based on the current date."""
         # Use the global `current_date` and `cur`
         threshold_dt = current_date
         threshold_iso = threshold_dt.strftime("%Y-%m-%d")
@@ -226,17 +227,40 @@ def main(page: ft.Page):
             "schedule_events": schedules,
             "todo_tasks": tasks_with_subs,
         }
-
-        # 5. Write to file
-        with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(final_data, f, ensure_ascii=False, indent=2)
+        return final_data
 
     def export_data_to_json(e):
-        file_picker.save_file(
-            dialog_title="Lưu file JSON",
-            file_name="planner_data.json",
-            allowed_extensions=["json"]
+        def handle_save_to_file(e):
+            page.close(dlg)
+            file_picker.save_file(
+                dialog_title="Lưu file JSON",
+                file_name="planner_data.json",
+                allowed_extensions=["json"],
+            )
+
+        def handle_copy_to_clipboard(e):
+            try:
+                data = generate_planner_data()
+                json_string = json.dumps(data, ensure_ascii=False, indent=2)
+                page.set_clipboard(json_string)
+                page.close(dlg)
+                page.open(ft.SnackBar(ft.Text("Đã copy dữ liệu vào clipboard!"), bgcolor="green"))
+            except Exception as ex:
+                page.close(dlg)
+                page.open(ft.SnackBar(ft.Text(f"Lỗi khi tạo dữ liệu: {ex}"), bgcolor="red"))
+
+        dlg = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Tùy chọn xuất dữ liệu"),
+            content=ft.Text("Bạn muốn lưu dữ liệu ra file hay copy vào clipboard?"),
+            actions=[
+                ft.TextButton("Lưu vào File", on_click=handle_save_to_file),
+                ft.ElevatedButton("Copy", on_click=handle_copy_to_clipboard),
+                ft.TextButton("Hủy", on_click=lambda e: page.close(dlg)),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
         )
+        page.open(dlg)
 
     def handle_file_picker_result(e: ft.FilePickerResultEvent):
         # Handle file open for import
@@ -263,8 +287,10 @@ def main(page: ft.Page):
         # Handle file save for export
         if e.path:
             try:
-                generate_and_save_json(e.path)
-                page.open(ft.SnackBar(ft.Text("Đã xuất dữ liệu thành công!", color="white"), bgcolor="green"))
+                data = generate_planner_data()
+                with open(e.path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                page.open(ft.SnackBar(ft.Text("Đã xuất dữ liệu thành công!"), bgcolor="green"))
             except Exception as ex:
                 page.open(ft.SnackBar(ft.Text(f"Lỗi khi xuất file: {ex}", color="white"), bgcolor="red"))
 
