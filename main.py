@@ -222,6 +222,7 @@ def main(page: ft.Page):
             "metadata": {
                 "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "threshold_date": threshold_dt.strftime("%d/%m/%Y"),
+                "date_format": "YYYY-MM-DD",
                 "description": "Dữ liệu dùng để lập kế hoạch ôn thi.",
             },
             "schedule_events": schedules,
