@@ -1,1 +1,13 @@
-__pycache__/database.cpython-313.pyc
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build artifacts
+build/
+dist/
+*.spec
+
+# Virtual environment
+venv/
