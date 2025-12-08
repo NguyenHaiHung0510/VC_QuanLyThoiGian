@@ -878,6 +878,11 @@ def main(page: ft.Page):
         tabs_control.selected_index = 0
         refresh_all()
 
+    def change_day(delta):
+        nonlocal current_date
+        current_date += timedelta(days=delta)
+        refresh_all()
+
     def change_month(delta):
         nonlocal current_month_view
         m = current_month_view.month + delta
@@ -1430,11 +1435,7 @@ def main(page: ft.Page):
                             [
                                 ft.IconButton(
                                     ft.Icons.CHEVRON_LEFT,
-                                    on_click=lambda e: select_date_from_calendar(
-                                        current_date.year,
-                                        current_date.month,
-                                        current_date.day - 1,
-                                    ),
+                                    on_click=lambda e: change_day(-1),
                                 ),
                                 ft.OutlinedButton(
                                     "VỀ HÔM NAY",
@@ -1445,11 +1446,7 @@ def main(page: ft.Page):
                                 lbl_current_date,
                                 ft.IconButton(
                                     ft.Icons.CHEVRON_RIGHT,
-                                    on_click=lambda e: select_date_from_calendar(
-                                        current_date.year,
-                                        current_date.month,
-                                        current_date.day + 1,
-                                    ),
+                                    on_click=lambda e: change_day(1),
                                 ),
                             ],
                             alignment=ft.MainAxisAlignment.CENTER,
