@@ -159,30 +159,114 @@ def main(page: ft.Page):
         load_month_view()
         page.update()
 
-    # --- IMPORT HANDLER (GỌI DATABASE.PY) ---
+    # --- EXPORT/IMPORT HANDLERS ---
+    def generate_and_save_json(output_path):
+        # Use the global `current_date` and `cur`
+        threshold_dt = current_date
+        threshold_iso = threshold_dt.strftime("%Y-%m-%d")
+
+        # Helper to convert sqlite rows to dicts
+        def rows_to_dicts(cursor, rows):
+            columns = [column[0] for column in cursor.description]
+            return [dict(zip(columns, row)) for row in rows]
+
+        # 1. GET SCHEDULE
+        query_schedule = """
+            SELECT subject, time_start, time_end, location, date_str
+            FROM schedule
+            WHERE date_str >= ?
+            ORDER BY date_str ASC, time_start ASC
+        """
+        cur.execute(query_schedule, (threshold_iso,))
+        schedules = rows_to_dicts(cur, cur.fetchall())
+
+        # 2. GET TASKS
+        query_tasks = """
+            SELECT id, title, is_completed, priority, date_str, note
+            FROM tasks
+            WHERE date_str >= ?
+               OR (date_str < ? AND is_completed = 0)
+            ORDER BY date_str ASC
+        """
+        cur.execute(query_tasks, (threshold_iso, threshold_iso))
+        tasks_raw = rows_to_dicts(cur, cur.fetchall())
+
+        # 3. GET SUBTASKS and combine
+        tasks_with_subs = []
+        for task in tasks_raw:
+            task_id = task["id"]
+            query_sub = """
+                SELECT content, is_completed
+                FROM subtasks
+                WHERE task_id = ?
+            """
+            cur.execute(query_sub, (task_id,))
+            subtasks = rows_to_dicts(cur, cur.fetchall())
+
+            task["subtasks_list"] = subtasks
+            total_sub = len(subtasks)
+            done_sub = sum(1 for s in subtasks if s["is_completed"] == 1)
+
+            task_dt = datetime.strptime(task["date_str"], "%Y-%m-%d")
+
+            if task_dt.date() < threshold_dt.date():
+                task["context_note"] = f"OVERDUE (Quá hạn). Tiến độ: {done_sub}/{total_sub}"
+            else:
+                task["context_note"] = f"UPCOMING. Tiến độ: {done_sub}/{total_sub}"
+
+            tasks_with_subs.append(task)
+
+        # 4. Final data structure
+        final_data = {
+            "metadata": {
+                "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "threshold_date": threshold_dt.strftime("%d/%m/%Y"),
+                "description": "Dữ liệu dùng để lập kế hoạch ôn thi.",
+            },
+            "schedule_events": schedules,
+            "todo_tasks": tasks_with_subs,
+        }
+
+        # 5. Write to file
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(final_data, f, ensure_ascii=False, indent=2)
+
+    def export_data_to_json(e):
+        file_picker.save_file(
+            dialog_title="Lưu file JSON",
+            file_name="planner_data.json",
+            allowed_extensions=["json"]
+        )
+
     def handle_file_picker_result(e: ft.FilePickerResultEvent):
-        if not e.files:
+        # Handle file open for import
+        if e.files:
+            filepath = e.files[0].path
+            filename = e.files[0].name
+            success = False
+            msg = ""
+
+            if filename.endswith(".ics"):
+                success, msg = db.import_ics_schedule(filepath)
+            elif filename.endswith(".xlsx"):
+                success, msg = db.import_excel_schedule(filepath)
+            else:
+                msg = "Định dạng file không hỗ trợ! (Chỉ nhận .ics hoặc .xlsx)"
+
+            if success:
+                refresh_all()
+                page.open(ft.SnackBar(ft.Text(msg, color="white"), bgcolor="green"))
+            else:
+                page.open(ft.SnackBar(ft.Text(f"Lỗi: {msg}", color="white"), bgcolor="red"))
             return
 
-        filepath = e.files[0].path
-        filename = e.files[0].name
-
-        success = False
-        msg = ""
-
-        # Gọi hàm xử lý từ database.py
-        if filename.endswith(".ics"):
-            success, msg = db.import_ics_schedule(filepath)
-        elif filename.endswith(".xlsx"):
-            success, msg = db.import_excel_schedule(filepath)
-        else:
-            msg = "Định dạng file không hỗ trợ! (Chỉ nhận .ics hoặc .xlsx)"
-
-        if success:
-            refresh_all()
-            page.open(ft.SnackBar(ft.Text(msg, color="white"), bgcolor="green"))
-        else:
-            page.open(ft.SnackBar(ft.Text(f"Lỗi: {msg}", color="white"), bgcolor="red"))
+        # Handle file save for export
+        if e.path:
+            try:
+                generate_and_save_json(e.path)
+                page.open(ft.SnackBar(ft.Text("Đã xuất dữ liệu thành công!", color="white"), bgcolor="green"))
+            except Exception as ex:
+                page.open(ft.SnackBar(ft.Text(f"Lỗi khi xuất file: {ex}", color="white"), bgcolor="red"))
 
     file_picker.on_result = handle_file_picker_result
 
@@ -1322,6 +1406,13 @@ def main(page: ft.Page):
                                         text="Import",
                                         bgcolor=ft.Colors.BLUE_GREY,
                                         on_click=open_import_dialog,
+                                    ),
+                                    ft.FloatingActionButton(
+                                        icon=ft.Icons.SAVE,
+                                        text="Export JSON",
+                                        tooltip="Xuất dữ liệu cho AI",
+                                        bgcolor=ft.Colors.PURPLE,
+                                        on_click=export_data_to_json,
                                     ),
                                     ft.FloatingActionButton(
                                         icon=ft.Icons.ADD,
