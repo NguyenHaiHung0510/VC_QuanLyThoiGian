@@ -222,7 +222,7 @@ def main(page: ft.Page):
         # Schedule
         container_schedule.controls.clear()
         cur.execute(
-            "SELECT * FROM schedule WHERE date_str = ? ORDER BY time_start", (date_str,)
+            "SELECT id, subject, time_start, time_end, location, date_str, is_cancelled FROM schedule WHERE date_str = ? ORDER BY time_start", (date_str,)
         )
         schedules = cur.fetchall()
 
