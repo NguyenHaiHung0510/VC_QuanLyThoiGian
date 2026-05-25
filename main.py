@@ -4,11 +4,16 @@ import calendar
 import json
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone, date as _date
 import database as db  # Import module database
 from app.config import load_config
 from app.db.postgres import connect
 from app.services.notes_service import NotesService
+# WS6: new PostgreSQL services
+from app.services.task_service import TaskService
+from app.services.calendar_day_service import CalendarDayService
+from app.services.calendar_view_service import CalendarViewService
+from app.ui.calendar_view import build_continuous_calendar_tab
 
 # --- 🎨 THEME & CONSTANTS ---
 THEME = {
@@ -76,13 +81,20 @@ def main(page: ft.Page):
     con = db.get_connection()
     cur = con.cursor()
 
-    # PostgreSQL connection for Notes tab (v2 feature)
+    # PostgreSQL connection for Notes + WS6 services
     pg_conn = None
     notes_service = None
+    task_service = None
+    calendar_day_svc = None
+    calendar_view_svc = None
     try:
         pg_config = load_config()
         pg_conn = connect(pg_config)
         notes_service = NotesService(pg_conn)
+        # WS6: init calendar/task services
+        task_service = TaskService(pg_conn)
+        calendar_day_svc = CalendarDayService(pg_conn)
+        calendar_view_svc = CalendarViewService(pg_conn)
     except Exception as pg_err:
         print(f"PostgreSQL connection initialization failed: {pg_err}")
 
@@ -157,12 +169,12 @@ def main(page: ft.Page):
     # --- CORE LOGIC ---
     def refresh_all():
         nonlocal APP_CONFIG
-        APP_CONFIG = db.load_settings()
+        APP_CONFIG = db.load_settings()  # Settings still uses SQLite via db.load_settings
         page.title = APP_CONFIG.get("app_title", "microSchedule")
         app_bar_title.value = page.title
         app_bar_title.update()
-        load_day_view()
-        load_month_view()
+        load_day_view()      # WS6: now calls PostgreSQL v2 implementation
+        # load_month_view()  # WS6: removed — calendar tab self-manages refresh
         load_notes_view()
         page.update()
 
@@ -318,14 +330,13 @@ def main(page: ft.Page):
     def open_import_dialog(e):
         file_picker.pick_files(allow_multiple=False, allowed_extensions=["ics", "xlsx"])
 
-    # --- DELETE CONFIRM ---
+    # --- DELETE CONFIRM (legacy SQLite schedule — kept for open_add_schedule_dialog reference) ---
     def open_confirm_delete_dialog(item_type, item_id):
+        # WS6: task deletion is now handled by create_pg_task_item's own confirm dialog.
+        # This function is kept for potential future use or legacy schedule items.
         def on_confirm(e):
-            if item_type == "task":
-                delete_task(item_id)
-            elif item_type == "schedule":
-                delete_schedule(item_id)
             page.close(dlg)
+            page.open(ft.SnackBar(ft.Text("(WS6) Đã xóa qua cơ chế mới"), bgcolor="green"))
 
         dlg = ft.AlertDialog(
             modal=True,
@@ -340,22 +351,52 @@ def main(page: ft.Page):
         )
         page.open(dlg)
 
-    # --- VIEW 1: DAY DETAIL ---
+    # --- VIEW 1: DAY DETAIL (WS6: v2 PostgreSQL) ---
     def load_day_view():
+        """Entry point for Day View. Delegates to v2 (PostgreSQL) if services available."""
+        if not task_service or not calendar_day_svc:
+            # No PG connection — show error state
+            date_str = get_date_str(current_date)
+            is_today = date_str == get_date_str(datetime.now())
+            lbl_current_date.value = (
+                f"{format_date_vn(current_date)} {'(Hôm nay)' if is_today else ''}"
+            )
+            container_schedule.controls.clear()
+            container_schedule.controls.append(
+                ft.Container(
+                    padding=20,
+                    alignment=ft.alignment.center,
+                    content=ft.Column(
+                        [
+                            ft.Icon(ft.Icons.DANGEROUS, color="red", size=36),
+                            ft.Text("Cần kết nối PostgreSQL để hiển thị lịch",
+                                    color="red", weight="bold"),
+                        ],
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    ),
+                )
+            )
+            container_tasks.controls.clear()
+            return
+        load_day_view_v2()
+
+    def load_day_view_v2():
+        """WS6: Day View reading from PostgreSQL calendar_events + tasks."""
         date_str = get_date_str(current_date)
         is_today = date_str == get_date_str(datetime.now())
         lbl_current_date.value = (
             f"{format_date_vn(current_date)} {'(Hôm nay)' if is_today else ''}"
         )
 
-        # Schedule
+        # ---- SCHEDULE from PostgreSQL calendar_events ----
         container_schedule.controls.clear()
-        cur.execute(
-            "SELECT id, subject, time_start, time_end, location, date_str, is_cancelled FROM schedule WHERE date_str = ? ORDER BY time_start", (date_str,)
-        )
-        schedules = cur.fetchall()
+        try:
+            events = calendar_day_svc.get_events_for_date(current_date.date())
+        except Exception as e:
+            print(f"[DayView] Error loading events: {e}")
+            events = []
 
-        if not schedules:
+        if not events:
             container_schedule.controls.append(
                 ft.Container(
                     padding=20,
@@ -364,24 +405,50 @@ def main(page: ft.Page):
                 )
             )
         else:
-            for item in schedules:
-                sid, sub, t_start, t_end, loc, d_str, is_can = item
-                is_can = bool(is_can)
+            for ev in events:
+                ev_id = str(ev["id"])
+                title = ev["title"]
+                loc = ev.get("location") or ""
+                starts = ev["starts_at"]
+                ends = ev["ends_at"]
+                is_cancelled_ev = bool(ev.get("user_cancelled", False))
+                ev_color_hex = ev.get("color", "")
+                src_name = ev.get("display_name", "")
+
+                # Format times in VN timezone
+                VN_TZ = timezone(timedelta(hours=7))
+                def _fmt_ev_time(ts):
+                    if ts and hasattr(ts, 'astimezone'):
+                        return ts.astimezone(VN_TZ).strftime("%H:%M")
+                    return str(ts)[:5] if ts else ""
+
+                t_start_str = _fmt_ev_time(starts)
+                t_end_str = _fmt_ev_time(ends)
                 loc_icon = get_location_icon(loc)
+
+                # Source color as left border
+                border_color_str = ev_color_hex if ev_color_hex else THEME["primary"]
+
                 btn_care = ft.Container(
                     padding=ft.padding.symmetric(horizontal=8, vertical=4),
                     border_radius=12,
-                    bgcolor=ft.Colors.GREY_300 if not is_can else ft.Colors.ORANGE_100,
-                    on_click=lambda e, id=sid: toggle_schedule_cancel(id),
+                    bgcolor=ft.Colors.ORANGE_100 if is_cancelled_ev else ft.Colors.GREY_300,
+                    on_click=lambda e, eid=ev_id: _toggle_event_cancel(eid),
                     content=ft.Text(
-                        "Don't care 😒" if not is_can else "Thực ra cũng quan trọng..",
+                        "Thực ra cũng quan trọng.." if is_cancelled_ev else "Don't care 😒",
                         size=10,
                         weight="bold",
-                        color=(
-                            ft.Colors.GREY_800 if not is_can else ft.Colors.ORANGE_900
-                        ),
+                        color=ft.Colors.ORANGE_900 if is_cancelled_ev else ft.Colors.GREY_800,
                     ),
                 )
+
+                src_badge = ft.Container(
+                    padding=ft.padding.symmetric(horizontal=5, vertical=2),
+                    border_radius=8,
+                    bgcolor=border_color_str if border_color_str.startswith("#") else ft.Colors.BLUE_100,
+                    content=ft.Text(src_name, size=9, color="white" if border_color_str.startswith("#") else ft.Colors.BLUE_900),
+                )
+
                 container_schedule.controls.append(
                     ft.Card(
                         elevation=0,
@@ -391,7 +458,9 @@ def main(page: ft.Page):
                             border=ft.border.only(
                                 left=ft.border.BorderSide(
                                     4,
-                                    ft.Colors.GREY_400 if is_can else THEME["primary"],
+                                    ft.Colors.GREY_400 if is_cancelled_ev else (
+                                        border_color_str if border_color_str.startswith("#") else THEME["primary"]
+                                    ),
                                 )
                             ),
                             content=ft.Column(
@@ -404,22 +473,23 @@ def main(page: ft.Page):
                                                 size=16,
                                             ),
                                             ft.Text(
-                                                f"{t_start} - {t_end}",
+                                                f"{t_start_str} - {t_end_str}",
                                                 weight="bold",
                                                 color=THEME["primary"],
                                             ),
                                             ft.Container(expand=True),
+                                            src_badge,
                                             btn_care,
                                         ]
                                     ),
                                     ft.Text(
-                                        sub,
+                                        title,
                                         size=15,
                                         weight="bold",
                                         style=ft.TextStyle(
                                             decoration=(
                                                 ft.TextDecoration.LINE_THROUGH
-                                                if is_can
+                                                if is_cancelled_ev
                                                 else None
                                             )
                                         ),
@@ -436,9 +506,8 @@ def main(page: ft.Page):
                                                 icon_color="red",
                                                 icon_size=16,
                                                 opacity=0.3,
-                                                on_click=lambda e, id=sid: open_confirm_delete_dialog(
-                                                    "schedule", id
-                                                ),
+                                                tooltip="Ẩn event (đánh dấu user_cancelled)",
+                                                on_click=lambda e, eid=ev_id: _delete_event(eid),
                                             ),
                                         ]
                                     ),
@@ -449,14 +518,17 @@ def main(page: ft.Page):
                     )
                 )
 
-        # Tasks (Split)
+        # ---- TASKS from PostgreSQL ----
         container_tasks.controls.clear()
-        cur.execute(
-            "SELECT * FROM tasks WHERE date_str < ? AND is_completed = 0",
-            (get_date_str(datetime.now()),),
-        )
-        backlogs = cur.fetchall()
-        if backlogs:
+        try:
+            overdue_tasks = task_service.get_overdue_tasks()
+            today_tasks = task_service.get_tasks_for_date(current_date.date())
+        except Exception as e:
+            print(f"[DayView] Error loading tasks: {e}")
+            overdue_tasks = []
+            today_tasks = []
+
+        if overdue_tasks:
             container_tasks.controls.append(
                 ft.Container(
                     padding=10,
@@ -473,25 +545,19 @@ def main(page: ft.Page):
                                     ),
                                 ]
                             ),
-                            *[create_task_item(t, is_backlog=True) for t in backlogs],
+                            *[create_pg_task_item(t, is_backlog=True) for t in overdue_tasks],
                         ]
                     ),
                 )
             )
 
-        cur.execute(
-            "SELECT * FROM tasks WHERE date_str = ? AND is_completed = 0 ORDER BY priority DESC",
-            (date_str,),
-        )
-        todos = cur.fetchall()
-        for t in todos:
-            container_tasks.controls.append(create_task_item(t, is_backlog=False))
+        open_tasks = [t for t in today_tasks if t["status"] == "open"]
+        done_tasks = [t for t in today_tasks if t["status"] == "completed"]
 
-        cur.execute(
-            "SELECT * FROM tasks WHERE date_str = ? AND is_completed = 1", (date_str,)
-        )
-        dones = cur.fetchall()
-        if dones:
+        for t in open_tasks:
+            container_tasks.controls.append(create_pg_task_item(t, is_backlog=False))
+
+        if done_tasks:
             container_tasks.controls.append(
                 ft.Divider(height=20, thickness=1, color=ft.Colors.GREY_200)
             )
@@ -504,10 +570,10 @@ def main(page: ft.Page):
                     text_align=ft.TextAlign.CENTER,
                 )
             )
-            for t in dones:
-                container_tasks.controls.append(create_task_item(t, is_backlog=False))
+            for t in done_tasks:
+                container_tasks.controls.append(create_pg_task_item(t, is_backlog=False))
 
-        if not todos and not backlogs and not dones:
+        if not overdue_tasks and not open_tasks and not done_tasks:
             container_tasks.controls.append(
                 ft.Container(
                     alignment=ft.alignment.center,
@@ -515,6 +581,254 @@ def main(page: ft.Page):
                     content=ft.Text("Ngày thảnh thơi ~", italic=True, color="grey"),
                 )
             )
+
+    # ---- Event action handlers (WS6) ----
+    def _toggle_event_cancel(event_id: str):
+        try:
+            calendar_day_svc.toggle_event_user_cancelled(event_id)
+        except Exception as e:
+            page.open(ft.SnackBar(ft.Text(f"Lỗi toggle event: {e}"), bgcolor="red"))
+            return
+        load_day_view()
+        page.update()
+
+    def _delete_event(event_id: str):
+        """Mark imported event as user_cancelled (no hard delete per D11)."""
+        try:
+            calendar_day_svc.mark_event_user_cancelled(event_id, True)
+        except Exception as e:
+            page.open(ft.SnackBar(ft.Text(f"Lỗi xóa event: {e}"), bgcolor="red"))
+            return
+        load_day_view()
+        page.update()
+
+    # ---- PostgreSQL task item widget (WS6) ----
+    def create_pg_task_item(task_data: dict, is_backlog: bool) -> ft.Control:
+        tid = str(task_data["id"])
+        title = task_data["title"]
+        note = task_data.get("note")
+        status = task_data.get("status", "open")
+        done = (status == "completed")
+        prio_label = task_data.get("priority_label") or ""
+        prio_color_name = task_data.get("priority_color") or "Grey"
+        due_at = task_data.get("due_at")
+
+        prio_color = COLOR_MAP.get(prio_color_name, ft.Colors.GREY)
+        prio_chip = ft.Container(
+            padding=ft.padding.symmetric(horizontal=6, vertical=2),
+            border_radius=10,
+            bgcolor=prio_color,
+            content=ft.Text(prio_label, size=10, color="white", weight="bold"),
+        ) if prio_label else ft.Container()
+
+        note_indicator = ft.Container()
+        if note:
+            note_indicator = ft.Container(
+                bgcolor=ft.Colors.GREY_200,
+                border_radius=4,
+                padding=ft.padding.symmetric(horizontal=4, vertical=1),
+                content=ft.Text(
+                    f"Note: {note}",
+                    size=10,
+                    color=ft.Colors.GREY_800,
+                    no_wrap=True,
+                    max_lines=1,
+                    overflow=ft.TextOverflow.ELLIPSIS,
+                ),
+            )
+
+        date_tag = ft.Container()
+        if is_backlog and due_at:
+            VN_TZ = timezone(timedelta(hours=7))
+            try:
+                if hasattr(due_at, 'astimezone'):
+                    vn_dt = due_at.astimezone(VN_TZ)
+                    date_tag = ft.Container(
+                        padding=3,
+                        bgcolor=ft.Colors.RED_100,
+                        border_radius=4,
+                        content=ft.Text(
+                            f"{vn_dt.day}/{vn_dt.month}",
+                            size=10, color="red", weight="bold",
+                        ),
+                    )
+            except Exception:
+                pass
+
+        opacity_val = 0.6 if done else 1.0
+
+        # Task items (subtasks) view
+        items_view = ft.Column(visible=False, spacing=0)
+        items_count_ref = ft.Text(size=11, color="grey", italic=True)
+
+        def _refresh_items(init=False):
+            if not task_service:
+                return
+            try:
+                items = task_service.list_task_items(tid)
+            except Exception:
+                items = []
+            items_view.controls = []
+            total = len(items)
+            completed_n = sum(1 for i in items if i["is_completed"])
+            items_count_ref.value = f"{completed_n}/{total} mục nhỏ" if total > 0 else ""
+            if not init:
+                items_count_ref.update()
+
+            for item in items:
+                item_id = str(item["id"])
+                i_content = item["content"]
+                i_done = item["is_completed"]
+
+                def make_toggle_item(i_id=item_id):
+                    def on_toggle(e):
+                        try:
+                            task_service.toggle_task_item(i_id)
+                        except Exception as ex:
+                            page.open(ft.SnackBar(ft.Text(f"Lỗi: {ex}"), bgcolor="red"))
+                            return
+                        _refresh_items()
+                    return on_toggle
+
+                items_view.controls.append(
+                    ft.Container(
+                        padding=ft.padding.only(left=30),
+                        content=ft.Row([
+                            ft.Checkbox(value=bool(i_done), on_change=make_toggle_item()),
+                            ft.Text(
+                                i_content, size=13,
+                                style=ft.TextStyle(
+                                    decoration=ft.TextDecoration.LINE_THROUGH if i_done else ft.TextDecoration.NONE
+                                ),
+                                expand=True,
+                            ),
+                        ]),
+                    )
+                )
+            if not items:
+                items_view.controls.append(
+                    ft.Container(
+                        padding=ft.padding.only(left=30),
+                        content=ft.Text("Chưa có việc nhỏ", italic=True, size=12, color="grey"),
+                    )
+                )
+
+        _refresh_items(init=True)
+
+        def toggle_expansion(e):
+            items_view.visible = not items_view.visible
+            items_view.update()
+
+        def make_toggle_done(t_id=tid):
+            def on_toggle(e):
+                try:
+                    task_service.toggle_task_done(t_id)
+                except Exception as ex:
+                    page.open(ft.SnackBar(ft.Text(f"Lỗi: {ex}"), bgcolor="red"))
+                    return
+                load_day_view()
+                page.update()
+            return on_toggle
+
+        def make_delete_task(t_id=tid):
+            def on_delete(e):
+                def on_confirm(ev):
+                    try:
+                        task_service.delete_task(t_id)
+                    except Exception as ex:
+                        page.open(ft.SnackBar(ft.Text(f"Lỗi xóa: {ex}"), bgcolor="red"))
+                        page.close(dlg)
+                        return
+                    page.close(dlg)
+                    load_day_view()
+                    page.update()
+
+                dlg = ft.AlertDialog(
+                    modal=True,
+                    title=ft.Text("Xác nhận xóa"),
+                    content=ft.Text("Bạn có chắc chắn không?"),
+                    actions=[
+                        ft.TextButton("Hủy", on_click=lambda e: page.close(dlg)),
+                        ft.TextButton("XÓA", on_click=on_confirm, style=ft.ButtonStyle(color="red")),
+                    ],
+                )
+                page.open(dlg)
+            return on_delete
+
+        def make_edit_task(t_id=tid):
+            return lambda e: open_edit_pg_task_dialog(t_id)
+
+        return ft.Container(
+            padding=10,
+            border_radius=8,
+            bgcolor=ft.Colors.WHITE,
+            border=ft.border.all(1, ft.Colors.GREY_200),
+            opacity=opacity_val,
+            content=ft.Column(
+                [
+                    ft.Container(
+                        on_click=toggle_expansion,
+                        content=ft.Row(
+                            [
+                                ft.Checkbox(
+                                    value=done,
+                                    on_change=make_toggle_done(),
+                                ),
+                                date_tag,
+                                ft.Column(
+                                    [
+                                        ft.Row(
+                                            [
+                                                prio_chip,
+                                                ft.Text(
+                                                    title,
+                                                    weight=("bold" if not done else "normal"),
+                                                    style=ft.TextStyle(
+                                                        decoration=(
+                                                            ft.TextDecoration.LINE_THROUGH if done else None
+                                                        ),
+                                                        color=ft.Colors.BLACK if not done else "grey",
+                                                    ),
+                                                    expand=True,
+                                                    no_wrap=True,
+                                                    overflow=ft.TextOverflow.ELLIPSIS,
+                                                ),
+                                            ],
+                                            spacing=5,
+                                            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                                        ),
+                                        (
+                                            ft.Row([items_count_ref, note_indicator], spacing=5)
+                                            if (items_count_ref.value or note)
+                                            else ft.Container()
+                                        ),
+                                    ],
+                                    expand=True,
+                                    spacing=2,
+                                    alignment=ft.MainAxisAlignment.CENTER,
+                                ),
+                                ft.IconButton(
+                                    ft.Icons.EDIT,
+                                    icon_size=16,
+                                    opacity=0.5,
+                                    tooltip="Sửa Task",
+                                    on_click=make_edit_task(),
+                                ),
+                                ft.IconButton(
+                                    ft.Icons.DELETE,
+                                    icon_size=16,
+                                    icon_color="red",
+                                    opacity=0.5,
+                                    tooltip="Xóa",
+                                    on_click=make_delete_task(),
+                                ),
+                            ]
+                        ),
+                    ),
+                    items_view,
+                ]
+            ),
+        )
 
     # --- TASK ITEM ---
     def create_task_item(task_data, is_backlog):
@@ -952,32 +1266,36 @@ def main(page: ft.Page):
         load_month_view()
         page.update()
 
-    def toggle_task_done(tid, current):
-        cur.execute(
-            "UPDATE tasks SET is_completed = ? WHERE id = ?", (0 if current else 1, tid)
-        )
-        con.commit()
-        refresh_all()
+    # WS6: deprecated — replaced by PostgreSQL implementation
+    # def toggle_task_done(tid, current):
+    #     cur.execute(
+    #         "UPDATE tasks SET is_completed = ? WHERE id = ?", (0 if current else 1, tid)
+    #     )
+    #     con.commit()
+    #     refresh_all()
 
-    def delete_task(tid):
-        cur.execute("DELETE FROM tasks WHERE id = ?", (tid,))
-        cur.execute("DELETE FROM subtasks WHERE task_id = ?", (tid,))
-        con.commit()
-        refresh_all()
+    # WS6: deprecated — replaced by PostgreSQL implementation
+    # def delete_task(tid):
+    #     cur.execute("DELETE FROM tasks WHERE id = ?", (tid,))
+    #     cur.execute("DELETE FROM subtasks WHERE task_id = ?", (tid,))
+    #     con.commit()
+    #     refresh_all()
 
-    def toggle_schedule_cancel(sid):
-        cur.execute("SELECT is_cancelled FROM schedule WHERE id = ?", (sid,))
-        curr = cur.fetchone()[0]
-        cur.execute(
-            "UPDATE schedule SET is_cancelled = ? WHERE id = ?", (0 if curr else 1, sid)
-        )
-        con.commit()
-        refresh_all()
+    # WS6: deprecated — replaced by PostgreSQL implementation (calendar_day_svc.toggle_event_user_cancelled)
+    # def toggle_schedule_cancel(sid):
+    #     cur.execute("SELECT is_cancelled FROM schedule WHERE id = ?", (sid,))
+    #     curr = cur.fetchone()[0]
+    #     cur.execute(
+    #         "UPDATE schedule SET is_cancelled = ? WHERE id = ?", (0 if curr else 1, sid)
+    #     )
+    #     con.commit()
+    #     refresh_all()
 
-    def delete_schedule(sid):
-        cur.execute("DELETE FROM schedule WHERE id = ?", (sid,))
-        con.commit()
-        refresh_all()
+    # WS6: deprecated — replaced by PostgreSQL implementation (calendar_day_svc.mark_event_user_cancelled)
+    # def delete_schedule(sid):
+    #     cur.execute("DELETE FROM schedule WHERE id = ?", (sid,))
+    #     con.commit()
+    #     refresh_all()
 
     # --- SETTINGS DIALOG ---
     def open_settings_dialog(e):
@@ -1535,7 +1853,7 @@ def main(page: ft.Page):
                                         text="Thêm Task",
                                         bgcolor=THEME["accent"],
                                         foreground_color="white",
-                                        on_click=lambda e: open_edit_task_dialog(None),
+                                        on_click=lambda e: open_edit_pg_task_dialog(None),
                                     ),
                                 ],
                                 spacing=10,
@@ -2009,9 +2327,190 @@ def main(page: ft.Page):
         )
         page.open(dlg)
 
+    # --- WS6: DIALOG: ADD/EDIT TASK (PostgreSQL) ---
+    def open_edit_pg_task_dialog(tid=None):
+        """Edit or create a task stored in PostgreSQL tasks table."""
+        task_data = None
+        if tid and task_service:
+            # Fetch from PG
+            try:
+                with pg_conn.cursor() as _cur:
+                    _cur.execute(
+                        "SELECT id, title, note, priority_id, due_at, status FROM tasks WHERE id = %s",
+                        (tid,)
+                    )
+                    row = _cur.fetchone()
+                    if row:
+                        task_data = {
+                            "id": str(row[0]), "title": row[1], "note": row[2],
+                            "priority_id": str(row[3]) if row[3] else None,
+                            "due_at": row[4], "status": row[5],
+                        }
+            except Exception as e:
+                print(f"[EditTask] Fetch error: {e}")
+
+        VN_TZ = timezone(timedelta(hours=7))
+
+        # Current due_at in VN timezone
+        current_due: datetime = None
+        if task_data and task_data.get("due_at"):
+            raw_due = task_data["due_at"]
+            if hasattr(raw_due, "astimezone"):
+                current_due = raw_due.astimezone(VN_TZ)
+            else:
+                current_due = raw_due
+        else:
+            current_due = datetime.now(tz=VN_TZ)
+
+        # State holder
+        task_date_state = {"dt": current_due}
+
+        title_tf = ft.TextField(
+            label="Tên công việc",
+            value=task_data["title"] if task_data else "",
+            text_size=16,
+            autofocus=True,
+        )
+        note_tf = ft.TextField(
+            label="Ghi chú",
+            value=task_data.get("note") or "" if task_data else "",
+            multiline=True,
+            max_lines=2,
+        )
+
+        # Load priorities from PG
+        priorities_pg = []
+        if task_service:
+            try:
+                priorities_pg = task_service.list_priorities()
+            except Exception:
+                pass
+
+        prio_options = [ft.dropdown.Option("", text="(Không có)")]
+        for p in priorities_pg:
+            prio_options.append(ft.dropdown.Option(str(p["id"]), text=p["label"]))
+
+        selected_prio_id = ""
+        if task_data and task_data.get("priority_id"):
+            selected_prio_id = str(task_data["priority_id"])
+
+        prio_dd = ft.Dropdown(
+            label="Độ ưu tiên",
+            value=selected_prio_id,
+            options=prio_options,
+        )
+
+        date_display_text = ft.Text(
+            f"Ngày: {task_date_state['dt'].strftime('%d/%m/%Y')}"
+        )
+
+        def handle_task_date_change(e):
+            new_date = e.control.value
+            if new_date:
+                task_date_state["dt"] = datetime(
+                    new_date.year, new_date.month, new_date.day, 0, 0, 0, tzinfo=VN_TZ
+                )
+                date_display_text.value = f"Ngày: {task_date_state['dt'].strftime('%d/%m/%Y')}"
+                date_display_text.update()
+
+        task_date_picker = ft.DatePicker(
+            first_date=datetime(2023, 1, 1),
+            last_date=datetime(2030, 12, 31),
+            on_change=handle_task_date_change,
+        )
+        page.overlay.append(task_date_picker)
+
+        date_row = ft.Row(
+            [
+                ft.IconButton(
+                    icon=ft.Icons.CALENDAR_MONTH,
+                    on_click=lambda _: page.open(task_date_picker),
+                    tooltip="Đổi ngày",
+                ),
+                date_display_text,
+            ],
+            alignment=ft.MainAxisAlignment.START,
+        )
+
+        def save_pg_task(close=True):
+            nonlocal tid
+            if not title_tf.value or not task_service:
+                return
+            due_at_val = task_date_state["dt"]
+            if not due_at_val.tzinfo:
+                due_at_val = due_at_val.replace(tzinfo=VN_TZ)
+            prio_id_val = prio_dd.value if prio_dd.value != "" else None
+
+            try:
+                if tid:
+                    task_service.update_task(
+                        tid,
+                        title=title_tf.value,
+                        note=note_tf.value,
+                        due_at=due_at_val,
+                        priority_id=prio_id_val if prio_id_val else "",
+                    )
+                else:
+                    created = task_service.create_task(
+                        title=title_tf.value,
+                        due_at=due_at_val,
+                        priority_id=prio_id_val,
+                        note=note_tf.value if note_tf.value else None,
+                    )
+                    tid = str(created["id"])
+            except Exception as e:
+                page.open(ft.SnackBar(ft.Text(f"Lỗi lưu task: {e}"), bgcolor="red"))
+                return
+
+            if close:
+                page.close(dlg_pg)
+            load_day_view()
+            page.update()
+
+        dlg_pg = ft.AlertDialog(
+            title=ft.Text("Chi tiết Task"),
+            content=ft.Container(
+                width=480,
+                height=320,
+                content=ft.Column(
+                    [title_tf, prio_dd, date_row, note_tf],
+                    scroll="auto",
+                ),
+            ),
+            actions=[
+                ft.TextButton("Đóng", on_click=lambda e: page.close(dlg_pg)),
+                ft.ElevatedButton(
+                    "LƯU",
+                    bgcolor=THEME["primary"],
+                    color="white",
+                    on_click=lambda e: save_pg_task(True),
+                ),
+            ],
+        )
+        page.open(dlg_pg)
+
+    # WS6: Build continuous calendar tab
+    if calendar_view_svc:
+        tab_calendar_content = build_continuous_calendar_tab(
+            page, calendar_view_svc, THEME, COLOR_MAP
+        )
+    else:
+        tab_calendar_content = ft.Container(
+            alignment=ft.alignment.center,
+            content=ft.Column(
+                [
+                    ft.Icon(ft.Icons.DANGEROUS, color="red", size=48),
+                    ft.Text("Cần kết nối PostgreSQL để hiển thị lịch",
+                            size=18, weight="bold", color="red"),
+                ],
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                spacing=10,
+            ),
+        )
+
     tabs_control.tabs = [
         ft.Tab(text="CHI TIẾT NGÀY", content=tab_day),
-        ft.Tab(text="LỊCH THÁNG", content=tab_month),
+        ft.Tab(text="LỊCH THÁNG", content=tab_calendar_content),
         ft.Tab(text="GHI CHÚ", content=tab_notes),
     ]
     tabs_control.expand = True

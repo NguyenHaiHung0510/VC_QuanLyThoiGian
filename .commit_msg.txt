@@ -1,0 +1,10 @@
+feat: WS6 continuous calendar va migrate Day View sang PostgreSQL
+
+- Them user_cancelled column vao calendar_events (schema change da approve)
+- Them TaskService: CRUD tasks tu PostgreSQL
+- Them CalendarDayService: doc events theo ngay tu PostgreSQL
+- Them CalendarViewService: query events theo date range cho calendar
+- Them app/ui/calendar_view.py: sidebar + continuous week scroll
+- Migrate load_day_view sang PostgreSQL (schedule + tasks)
+- Tich hop vao main.py, replace tab LICH THANG va Day View
+- Cap nhat UI_GUIDE.md trang thai WS6

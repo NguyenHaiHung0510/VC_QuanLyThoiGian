@@ -1,55 +1,44 @@
-# UI_GUIDE.md - Flet Component Breakdown
+﻿# UI_GUIDE.md - Flet Component Breakdown
 
-Tài liệu này mô tả cấu trúc UI của microSchedule, các component Flet được sử dụng, và cách thức layout/interaction.
+Tai lieu nay mo ta cau truc UI cua microSchedule, cac component Flet duoc su dung, va cach thuc layout/interaction.
 
-## 0. Trạng Thái UI
+## 0. Trang Thai UI
 
-Tài liệu này mô tả Flet shell hiện tại trong `main.py` trên nhánh `develop`. V2 đã có PostgreSQL foundation và Notes tab; các phần calendar/task/settings vẫn đang được refactor dần khỏi legacy SQLite path.
+### WS6 Status (2026-05-25) - DONE
 
-Không coi các tính năng sau là đã có trong UI nếu chưa có workstream riêng merge:
+| Workstream | Thanh phan | Trang thai |
+|---|---|---|
+| WS6 | calendar_events.user_cancelled schema change | DONE |
+| WS6 | TaskService (PostgreSQL CRUD) | NEW |
+| WS6 | CalendarDayService (events theo ngay) | NEW |
+| WS6 | CalendarViewService (range query + source toggle) | NEW |
+| WS6 | app/ui/calendar_view.py (continuous calendar tab) | NEW |
+| WS6 | Day View migrate sang PostgreSQL | DONE |
+| WS6 | Tab LICH THANG replace bang continuous calendar | DONE |
+| WS5 | Notes tab (PostgreSQL) | DONE |
 
-- Continuous multi-week calendar thay month grid.
-- Sidebar source filters đọc `calendar_sources`.
-- AI agent/chat/tools UI.
+Ke tu WS6, Day View va Calendar tab deu doc tu PostgreSQL. SQLite chi con duoc dung boi Settings tab.
 
-Khi implement WS6/WS7, Tier 2 phải đọc `docs/V2_CURRENT_STATE.md`, `docs/V2_DECISION_BRIEF.md`, và contract/schema v2 trước; không tự đổi schema/API để tiện UI.
+---
 
 ## 1. Architecture Overview
 
 ```
 main(page: ft.Page)
     ├── Page Config
-    │   ├── title, theme_mode, window_size
-    │   └── overlay (file_picker, date_picker)
-    │
-    ├── State Management
-    │   ├── current_date
-    │   ├── current_month_view
-    │   └── APP_CONFIG (settings)
-    │
-    ├── Helper Functions
-    │   ├── get_date_str(), format_date_vn()
-    │   ├── get_prio_config(), calculate_end_time()
-    │   └── ...
-    │
-    ├── UI Components (Refs)
-    │   ├── App Bar
-    │   ├── Main Content Area
-    │   │   ├── tabs_control
-    │   │   │   ├── Tab 1: Day View
-    │   │   │   ├── Tab 2: Month View
-    │   │   │   ├── Tab 3: Settings
-    │   │   │   └── Tab 4: Ghi chú (PostgreSQL Notes)
-    │   │   └── containers (tasks, schedule, calendar_grid)
-    │   └── Footer
-    │
-    └── Main Loop (page.run())
+    ├── PostgreSQL Services (WS6)
+    │   ├── task_service: TaskService
+    │   ├── calendar_day_svc: CalendarDayService
+    │   └── calendar_view_svc: CalendarViewService
+    └── tabs_control
+        ├── Tab 1: CHI TIET NGAY (PostgreSQL events + tasks) [WS6]
+        ├── Tab 2: LICH THANG (continuous calendar, sidebar) [WS6]
+        └── Tab 3: GHI CHU (PostgreSQL notes) [WS5]
 ```
 
 ## 2. Theme & Color System
 
 ### 2.1 Theme Dictionary
-
 ```python
 THEME = {
     "primary": ft.Colors.PINK_600,
@@ -127,7 +116,7 @@ def main(page: ft.Page):
 ```python
 # Labels
 lbl_current_date = ft.Text(size=20, weight="bold", color=THEME["primary"])
-    # Displays: "Thứ 2, 25/05"
+    # Displays: "Thá»© 2, 25/05"
 
 lbl_month_title = ft.Text(size=24, weight="bold", color=THEME["primary"])
     # Displays: "May 2025"
@@ -155,28 +144,28 @@ tabs_control = ft.Tabs()
 ## 4. Main Layout (Top-Down)
 
 ```
-┌─ AppBar (Top) ─────────────────────────────────────────┐
-│  [Menu] microSchedule                    [?] [Settings] │
-└─────────────────────────────────────────────────────────┘
+â”Œâ”€ AppBar (Top) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  [Menu] microSchedule                    [?] [Settings] â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
-┌─ Content Area ──────────────────────────────────────────┐
-│                                                          │
-│  Tabs:  [📅 Day]  [📊 Month]  [⚙️ Settings]            │
-│                                                          │
-│  ┌──── Tab Content ──────────────────────────────────┐  │
-│  │                                                   │  │
-│  │  Current Date:  Thứ 2, 25/05                     │  │
-│  │                                                   │  │
-│  │  [Month/Day Navigation]                          │  │
-│  │                                                   │  │
-│  │  Content (varies by tab):                        │  │
-│  │  - Day Tab: Task list + Schedule for day        │  │
-│  │  - Month Tab: Calendar grid + Legend            │  │
-│  │  - Settings Tab: Config options                  │  │
-│  │                                                   │  │
-│  └───────────────────────────────────────────────────┘  │
-│                                                          │
-└─────────────────────────────────────────────────────────┘
+â”Œâ”€ Content Area â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                                                          â”‚
+â”‚  Tabs:  [ðŸ“… Day]  [ðŸ“Š Month]  [âš™ï¸ Settings]            â”‚
+â”‚                                                          â”‚
+â”‚  â”Œâ”€â”€â”€â”€ Tab Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚
+â”‚  â”‚                                                   â”‚  â”‚
+â”‚  â”‚  Current Date:  Thá»© 2, 25/05                     â”‚  â”‚
+â”‚  â”‚                                                   â”‚  â”‚
+â”‚  â”‚  [Month/Day Navigation]                          â”‚  â”‚
+â”‚  â”‚                                                   â”‚  â”‚
+â”‚  â”‚  Content (varies by tab):                        â”‚  â”‚
+â”‚  â”‚  - Day Tab: Task list + Schedule for day        â”‚  â”‚
+â”‚  â”‚  - Month Tab: Calendar grid + Legend            â”‚  â”‚
+â”‚  â”‚  - Settings Tab: Config options                  â”‚  â”‚
+â”‚  â”‚                                                   â”‚  â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚
+â”‚                                                          â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ---
@@ -189,31 +178,31 @@ tabs_control = ft.Tabs()
 
 **Layout**:
 ```
-┌─ Day View ─────────────────────┐
-│  Date: Thứ 2, 25/05             │
-│  [< Prev] [Today] [Next >]      │
-│                                  │
-│  📅 Schedule Events:             │
-│  ┌──────────────────────────┐   │
-│  │ 07:00-09:00 Math Midterm │   │
-│  │ Room A2, Priority: High  │   │
-│  │ [✓] [✎] [✗]             │   │
-│  └──────────────────────────┘   │
-│  ┌──────────────────────────┐   │
-│  │ 13:00-14:30 Physics      │   │
-│  │ Online                   │   │
-│  │ [✓] [✎] [✗]             │   │
-│  └──────────────────────────┘   │
-│                                  │
-│  ✅ Tasks:                       │
-│  ┌──────────────────────────┐   │
-│  │ ☑ Review Chapter 3-5     │   │
-│  │ Priority: Phải làm       │   │
-│  │ Progress: 1/2 subtasks   │   │
-│  │ [✓] [✎] [✗]             │   │
-│  └──────────────────────────┘   │
-│                                  │
-└────────────────────────────────┘
+â”Œâ”€ Day View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  Date: Thá»© 2, 25/05             â”‚
+â”‚  [< Prev] [Today] [Next >]      â”‚
+â”‚                                  â”‚
+â”‚  ðŸ“… Schedule Events:             â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”‚
+â”‚  â”‚ 07:00-09:00 Math Midterm â”‚   â”‚
+â”‚  â”‚ Room A2, Priority: High  â”‚   â”‚
+â”‚  â”‚ [âœ“] [âœŽ] [âœ—]             â”‚   â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜   â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”‚
+â”‚  â”‚ 13:00-14:30 Physics      â”‚   â”‚
+â”‚  â”‚ Online                   â”‚   â”‚
+â”‚  â”‚ [âœ“] [âœŽ] [âœ—]             â”‚   â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜   â”‚
+â”‚                                  â”‚
+â”‚  âœ… Tasks:                       â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”‚
+â”‚  â”‚ â˜‘ Review Chapter 3-5     â”‚   â”‚
+â”‚  â”‚ Priority: Pháº£i lÃ m       â”‚   â”‚
+â”‚  â”‚ Progress: 1/2 subtasks   â”‚   â”‚
+â”‚  â”‚ [âœ“] [âœŽ] [âœ—]             â”‚   â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜   â”‚
+â”‚                                  â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Components**:
@@ -230,27 +219,27 @@ tabs_control = ft.Tabs()
 
 **Layout**:
 ```
-┌─ Month View ───────────────────────────┐
-│  May 2025                               │
-│  [< Prev Month] [Today] [Next Month >] │
-│                                         │
-│  ┌─────────────────────────────────┐  │
-│  │ Mo Tu We Th Fr Sa Su            │  │
-│  │  4  5  6  7  8  9 10            │  │
-│  │ 11 12 13 14 15 16 17            │  │
-│  │ 18 19 20 21 22 23 24            │  │
-│  │ 25*26 27 28 29 30 31            │  │
-│  │                                  │  │
-│  │ * = Today (highlighted)          │  │
-│  │ Bold number = has events         │  │
-│  └─────────────────────────────────┘  │
-│                                         │
-│  Legend:                                │
-│  ☰ = Schedule events                   │
-│  ✓ = Tasks                             │
-│  ⚠ = OVERDUE tasks                     │
-│                                         │
-└─────────────────────────────────────────┘
+â”Œâ”€ Month View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  May 2025                               â”‚
+â”‚  [< Prev Month] [Today] [Next Month >] â”‚
+â”‚                                         â”‚
+â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚
+â”‚  â”‚ Mo Tu We Th Fr Sa Su            â”‚  â”‚
+â”‚  â”‚  4  5  6  7  8  9 10            â”‚  â”‚
+â”‚  â”‚ 11 12 13 14 15 16 17            â”‚  â”‚
+â”‚  â”‚ 18 19 20 21 22 23 24            â”‚  â”‚
+â”‚  â”‚ 25*26 27 28 29 30 31            â”‚  â”‚
+â”‚  â”‚                                  â”‚  â”‚
+â”‚  â”‚ * = Today (highlighted)          â”‚  â”‚
+â”‚  â”‚ Bold number = has events         â”‚  â”‚
+â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚
+â”‚                                         â”‚
+â”‚  Legend:                                â”‚
+â”‚  â˜° = Schedule events                   â”‚
+â”‚  âœ“ = Tasks                             â”‚
+â”‚  âš  = OVERDUE tasks                     â”‚
+â”‚                                         â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Components**:
@@ -267,22 +256,22 @@ tabs_control = ft.Tabs()
 
 **Placeholder Structure**:
 ```
-┌─ Settings ─────────────────┐
-│  🔧 Configuration          │
-│                             │
-│  Locations:                 │
-│  + Add Location             │
-│  - A2, A3, Thư viện, ...   │
-│                             │
-│  Priorities:                │
-│  + Add Priority             │
-│  - Optional, Nên làm, ...   │
-│                             │
-│  [Export Data]              │
-│  [Import from ICS/Excel]    │
-│  [Backup & Restore]         │
-│                             │
-└─────────────────────────────┘
+â”Œâ”€ Settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚  ðŸ”§ Configuration          â”‚
+â”‚                             â”‚
+â”‚  Locations:                 â”‚
+â”‚  + Add Location             â”‚
+â”‚  - A2, A3, ThÆ° viá»‡n, ...   â”‚
+â”‚                             â”‚
+â”‚  Priorities:                â”‚
+â”‚  + Add Priority             â”‚
+â”‚  - Optional, NÃªn lÃ m, ...   â”‚
+â”‚                             â”‚
+â”‚  [Export Data]              â”‚
+â”‚  [Import from ICS/Excel]    â”‚
+â”‚  [Backup & Restore]         â”‚
+â”‚                             â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ---
@@ -380,9 +369,9 @@ ft.Card(
 
 ```python
 def format_date_vn(dt):
-    """Convert datetime to Vietnamese format: 'Thứ 2, 25/05'"""
+    """Convert datetime to Vietnamese format: 'Thá»© 2, 25/05'"""
     weekday = dt.weekday()
-    map_thu = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"]
+    map_thu = ["Thá»© 2", "Thá»© 3", "Thá»© 4", "Thá»© 5", "Thá»© 6", "Thá»© 7", "Chá»§ Nháº­t"]
     return f"{map_thu[weekday]}, {dt.strftime('%d/%m')}"
 
 def get_date_str(dt):
@@ -403,7 +392,7 @@ def get_location_icon(loc_name):
     # Fallback: check keywords
     if "online" in loc_name.lower():
         return ft.Icons.VIDEOCAM
-    if "home" in loc_name.lower() or "nhà" in loc_name.lower():
+    if "home" in loc_name.lower() or "nhÃ " in loc_name.lower():
         return ft.Icons.HOME
     return ft.Icons.EVENT
 
@@ -483,11 +472,11 @@ def export_data_to_json(e):
     """Dialog: Save to file OR Copy to clipboard"""
     dlg = ft.AlertDialog(
         modal=True,
-        title=ft.Text("Tùy chọn xuất dữ liệu"),
+        title=ft.Text("TÃ¹y chá»n xuáº¥t dá»¯ liá»‡u"),
         actions=[
-            ft.TextButton("Lưu vào File", on_click=handle_save_to_file),
+            ft.TextButton("LÆ°u vÃ o File", on_click=handle_save_to_file),
             ft.ElevatedButton("Copy", on_click=handle_copy_to_clipboard),
-            ft.TextButton("Hủy", on_click=lambda e: page.close(dlg)),
+            ft.TextButton("Há»§y", on_click=lambda e: page.close(dlg)),
         ],
     )
     page.open(dlg)
@@ -538,19 +527,19 @@ page.update()
 
 ## 10. Best Practices & Patterns
 
-### Do's ✅
-- ✅ Use containers (`ft.Column`, `ft.Row`) for layout
-- ✅ Keep components small and reusable
-- ✅ Use theme variables consistently
-- ✅ Call `page.update()` after state changes
-- ✅ Use `nonlocal` for global state modification
+### Do's âœ…
+- âœ… Use containers (`ft.Column`, `ft.Row`) for layout
+- âœ… Keep components small and reusable
+- âœ… Use theme variables consistently
+- âœ… Call `page.update()` after state changes
+- âœ… Use `nonlocal` for global state modification
 
-### Don'ts ❌
-- ❌ Hardcoding colors (use THEME dict)
-- ❌ Deeply nested layouts (max 4-5 levels)
-- ❌ Forgetting `page.update()` calls
-- ❌ Direct DOM manipulation (let Flet handle it)
-- ❌ Inline event handlers (define as separate functions)
+### Don'ts âŒ
+- âŒ Hardcoding colors (use THEME dict)
+- âŒ Deeply nested layouts (max 4-5 levels)
+- âŒ Forgetting `page.update()` calls
+- âŒ Direct DOM manipulation (let Flet handle it)
+- âŒ Inline event handlers (define as separate functions)
 
 ---
 
@@ -629,4 +618,4 @@ def show_edit_dialog(task):
 - [ ] Time block visualization (Gantt chart)
 
 ---
-*Tài liệu cập nhật ngày 25/05/2026.*
+*TÃ i liá»‡u cáº­p nháº­t ngÃ y 25/05/2026.*

@@ -178,3 +178,14 @@ CREATE TABLE IF NOT EXISTS agent_action_log (
     rollback_json jsonb NULL,
     created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- WS6: Add user_cancelled column to calendar_events (idempotent)
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'calendar_events' AND column_name = 'user_cancelled'
+    ) THEN
+        ALTER TABLE calendar_events ADD COLUMN user_cancelled boolean NOT NULL DEFAULT false;
+    END IF;
+END $$;
