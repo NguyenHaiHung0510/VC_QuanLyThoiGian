@@ -139,3 +139,66 @@ Trả lời ngắn:
 - 3-7 bullet findings.
 - Next action.
 ```
+
+## Prompt Restore Verification
+
+Dùng prompt này sau khi WS4 backup đã tạo `.dump`. Mục tiêu là kiểm tra backup có restore được thật không, không phải viết tính năng mới.
+
+```text
+Bạn là Tier 2 verification agent cho microSchedule v2.
+
+Task: Restore verification cho PostgreSQL backup.
+Repo: VC_QuanLyThoiGian.
+Branch gợi ý: verify/v2-backup-restore
+
+Mục tiêu:
+- Tìm file backup `.dump` mới nhất trong thư mục backup v2.
+- Tạo database tạm, restore dump vào đó.
+- So sánh các count quan trọng giữa DB chính `microschedule_v2` và DB tạm.
+- Drop database tạm sau khi verify.
+- Không sửa code nếu không cần. Nếu chỉ cập nhật report/docs thì commit docs.
+
+Đọc theo thứ tự:
+1. docs/V2_BACKUP_RESTORE.md
+2. docs/V2_MIGRATION_REPORT.md
+3. app/services/backup_service.py
+4. app/db/schema.sql
+5. .env chỉ để đọc biến cần thiết, không in secret.
+
+Luật bắt buộc:
+- Không đụng SQLite v1.
+- Không drop/truncate DB chính `microschedule_v2`.
+- Database tạm phải có tên rõ ràng, ví dụ `microschedule_v2_restore_test`.
+- Nếu database tạm đã tồn tại, hỏi user hoặc drop chỉ khi tên đúng chính xác `microschedule_v2_restore_test`.
+- Không in password/API key/full connection string.
+- Dù restore pass hay fail, cố gắng cleanup database tạm và report rõ.
+
+Các bước gợi ý:
+1. `git status --short --branch`
+2. Xác định backup dir từ `MICROSCHEDULE_DATA_DIR` hoặc mặc định `C:\Users\os\Desktop\Tools\VC_microSchedule_home_v2\backups`.
+3. Chọn file `backup_*.dump` mới nhất.
+4. Tạo DB tạm `microschedule_v2_restore_test`.
+5. Chạy `pg_restore` vào DB tạm.
+6. Query counts ở DB chính và DB tạm:
+   - tasks
+   - task_items
+   - notes
+   - note_items
+   - calendar_sources
+   - calendar_source_versions
+   - calendar_events
+   - app_settings
+   - backup_runs
+7. So sánh count.
+8. Drop DB tạm.
+9. Cập nhật hoặc tạo report ngắn ở `docs/V2_RESTORE_VERIFICATION_REPORT.md`.
+
+Report bắt buộc:
+## Summary
+## Backup File Tested
+## Commands Run
+## Count Comparison
+## Cleanup Result
+## Verdict
+## Risks/Follow-ups
+```
