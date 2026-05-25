@@ -21,10 +21,11 @@ File này dùng để mở chat mới cho Tier 1/Tier 2. Chỉ cần thay `<WS_I
 | WS2 | Done | Tier 2 | Import parser/source versioning |
 | WS3 | Done | Tier 2 | Export Markdown/JSON |
 | WS4 | Done | Tier 2 | PostgreSQL backup/restore |
-| WS5 | Next | Tier 2 sau WS1 | Notes UI |
+| Restore Verify | Done | Tier 2 verification | Restore latest PostgreSQL dump into temp DB and compare counts |
+| WS5 | Done | Tier 2 sau WS1 | Notes UI |
 | WS6 | Next | Strong Tier 2/Codex | Continuous calendar UI |
 | WS7 | Later | Tier 1/Codex strong | AI agent/tools safety |
-| WS8 | Partial | Tier 2 | Docs sync for merged v2 foundation; rerun after WS5/WS6/WS7 |
+| WS8 | Done | Tier 2 | Docs sync for merged v2 foundation; rerun after WS6/WS7 |
 
 ## Prompt Tier 1
 
