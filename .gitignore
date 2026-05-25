@@ -11,3 +11,15 @@ dist/
 
 # Virtual environment
 venv/
+
+# Local secrets/config
+.env
+.env.*
+!.env.example
+
+# Local database/export artifacts
+*.db
+*.sqlite
+*.sqlite3
+export_planner_data.json
+backups/
