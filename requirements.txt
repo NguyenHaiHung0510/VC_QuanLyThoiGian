@@ -2,3 +2,5 @@ flet
 schedule
 openpyxl
 pyinstaller
+python-dotenv
+psycopg[binary]
