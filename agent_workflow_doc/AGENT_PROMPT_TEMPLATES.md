@@ -14,17 +14,17 @@ File này dùng để mở chat mới cho Tier 1/Tier 2. Chỉ cần thay `<WS_I
 
 ## WS Map Ngắn
 
-| WS | Nên giao cho | Nội dung |
-|---|---|---|
-| WS0 | Tier 1 / Codex strong | Lock contract, chia task, review architecture |
-| WS1 | Tier 1 hoặc strong Tier 2 | PostgreSQL schema + migration |
-| WS2 | Tier 2 | Import parser/source versioning |
-| WS3 | Tier 2 | Export Markdown/JSON |
-| WS4 | Tier 2 | PostgreSQL backup/restore |
-| WS5 | Tier 2 sau WS1 | Notes UI |
-| WS6 | Strong Tier 2/Codex | Continuous calendar UI |
-| WS7 | Tier 1/Codex strong | AI agent/tools safety |
-| WS8 | Tier 2 | Docs sync |
+| WS | Trạng thái | Nên giao cho | Nội dung |
+|---|---|---|---|
+| WS0 | Done | Tier 1 / Codex strong | Lock contract, chia task, review architecture |
+| WS1 | Done | Tier 1 hoặc strong Tier 2 | PostgreSQL schema + migration |
+| WS2 | Done | Tier 2 | Import parser/source versioning |
+| WS3 | Done | Tier 2 | Export Markdown/JSON |
+| WS4 | Done | Tier 2 | PostgreSQL backup/restore |
+| WS5 | Next | Tier 2 sau WS1 | Notes UI |
+| WS6 | Next | Strong Tier 2/Codex | Continuous calendar UI |
+| WS7 | Later | Tier 1/Codex strong | AI agent/tools safety |
+| WS8 | Next | Tier 2 | Docs sync |
 
 ## Prompt Tier 1
 
