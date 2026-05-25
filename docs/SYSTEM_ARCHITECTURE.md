@@ -1,293 +1,108 @@
-# Kiến trúc hệ thống microSchedule
+# microSchedule v2 System Architecture
 
-Tài liệu này mô tả luồng hoạt động của microSchedule - một ứng dụng quản lý lịch học + to-do tối ưu cho ôn thi.
+Ngay cap nhat: 2026-05-25
 
-## 0. Trạng Thái Tài Liệu
+Tai lieu nay mo ta kien truc hien tai cua nhanh `develop`. Tu thoi diem nay, `develop` duoc xem la dong phat trien v2. Ban v1 duoc bao luu tren nhanh `main` va chi con duoc nhac trong archive/legacy docs.
 
-Tài liệu này vẫn mô tả **v1 runtime** đang chạy qua `main.py` và `database.py`. Sau commit v2 foundation, repo đã có thêm kiến trúc PostgreSQL/service layer trong `app/`, nhưng UI runtime chính chưa được refactor sang các service v2.
-
-Nguồn sự thật v2 hiện tại:
-
-- `docs/V2_CURRENT_STATE.md`
-- `docs/V2_DECISION_BRIEF.md`
-- `docs/v2_contracts/WS0_WS1_CONTRACT.md`
-- `app/db/schema.sql`
-
-## 0.1 Kiến Trúc v2 Foundation Đã Merge
+## 1. Kien Truc Tong Quan
 
 ```mermaid
 graph LR
-    subgraph "Legacy Runtime"
-      V1UI["main.py<br/>Flet UI v1"]
-      V1DB["database.py<br/>SQLite DAL"]
-      SQLITE["todo.db<br/>SQLite v1"]
-    end
+    UI["Flet Desktop UI<br/>main.py"]
+    CFG["app/config.py<br/>.env + safe config"]
+    PG["PostgreSQL<br/>microschedule_v2"]
+    SCHEMA["app/db/schema.sql<br/>v2 DDL"]
+    MIG["app/migration/*<br/>SQLite v1 -> PostgreSQL v2"]
+    IMPORT["app/importers + calendar services<br/>source-level versioning"]
+    EXPORT["app/exporters + export service<br/>DTO -> Markdown/JSON"]
+    NOTES["app/services/notes_service.py<br/>Notes CRUD"]
+    BACKUP["app/services/backup_service.py<br/>pg_dump backup"]
 
-    subgraph "v2 Foundation"
-      CFG["app/config.py<br/>.env + safety"]
-      PG["app/db/postgres.py<br/>PostgreSQL helpers"]
-      SCHEMA["app/db/schema.sql<br/>v2 DDL"]
-      MIG["app/migration/*<br/>SQLite -> PostgreSQL"]
-      IMP["app/importers + calendar services<br/>source versioning"]
-      EXP["app/exporters + export service<br/>DTO -> Markdown/JSON"]
-      BAK["app/services/backup_service.py<br/>pg_dump backup"]
-      PGDB["microschedule_v2<br/>PostgreSQL"]
-    end
-
-    V1UI --> V1DB --> SQLITE
-    MIG --> SQLITE
-    MIG --> PGDB
-    IMP --> PGDB
-    EXP --> PGDB
-    BAK --> PGDB
+    UI --> NOTES --> PG
+    UI -.legacy paths remain until WS6/refactor.-> PG
     CFG --> PG
-    SCHEMA --> PGDB
+    SCHEMA --> PG
+    MIG --> PG
+    IMPORT --> PG
+    EXPORT --> PG
+    BACKUP --> PG
 ```
 
-Các workstream UI v2 còn pending: Notes UI, continuous calendar, AI agent/tools. Không coi các phần này là đã có trong runtime nếu chỉ đọc `main.py`.
+Core decision:
+- PostgreSQL v2 la data store chinh tren `develop`.
+- Calendar event bat buoc thuoc `calendar_sources` va `calendar_source_versions`.
+- Notes tach khoi tasks; note khong co due date bat buoc.
+- Export tao DTO chung, render ra Markdown mac dinh hoac JSON.
+- Backup dung `pg_dump -Fc` vao thu muc v2 da sync Google Drive.
 
-## 1. Mô hình "Desktop Client" (Flet-Centered)
+## 2. Cac Subsystem Chinh
 
-microSchedule là **Standalone Desktop App** với mô hình self-contained: tất cả logic nằm trong app, database là local SQLite.
+### Database And Migration
 
-```mermaid
-graph LR
-    subgraph "User Layer"
-      UI["🎨 Flet UI<br/>(main.py)"]
-    end
+- `app/db/schema.sql` la DDL authoritative cho v2.
+- `app/migration/analyze_v1_sqlite.py` chi doc SQLite v1 o che do read-only.
+- `app/migration/migrate_sqlite_to_postgres.py` migrate one-shot vao `microschedule_v2`, co dry-run va guard `--reset-dev-db`.
+- Ket qua migration hien tai nam trong `docs/V2_MIGRATION_REPORT.md`.
 
-    subgraph "Application Layer"
-      IMPORT["📥 Import Logic<br/>(ICS/Excel Parser)"]
-      CALC["⚙️ Calculation<br/>(Time calc, Priority map)"]
-      EXPORT["📤 Export Logic<br/>(JSON generator)"]
-    end
+### Calendar Import
 
-    subgraph "Data Layer"
-      DB["🗄️ SQLite DB<br/>(todo.db)"]
-      BACKUP["💾 Backup System<br/>(smart_backup)"]
-    end
+- Calendar source dai dien cho nguon lich: lich hoc, lich thi, ngay le, lich khac.
+- Moi lan import/update tao mot `calendar_source_versions` moi.
+- Calendar chi doc active snapshot qua `calendar_sources.current_version_id`.
+- Import cung checksum cho cung source tra `duplicate_noop`, khong tao duplicate active events.
 
-    UI -->|"User actions"| IMPORT
-    UI -->|"Display"| CALC
-    UI -->|"Trigger"| EXPORT
+### Tasks And Notes
 
-    IMPORT --> DB
-    CALC --> DB
-    EXPORT --> DB
-    DB --> BACKUP
-```
+- `tasks` danh cho viec co han/action.
+- `notes` danh cho ghi chu/idea khong bi ep due date.
+- 29 incomplete overdue tasks cua v1 da duoc migrate thanh notes.
+- WS5 da them Notes UI vao `main.py`, backed by PostgreSQL `notes` va `note_items`.
 
-## 2. Luồng Ingestion (Import -> Parse -> Store)
+### Export
 
-### 2.1 ICS Import (Lịch từ Google Calendar/Outlook)
-```mermaid
-graph TD
-    A["📄 File: calendar.ics"] --> B["parse_ics_date<br/>(Handle timezone)"]
-    B --> C["unfold lines<br/>(RFC 5545 compliance)"]
-    C --> D["Extract VEVENT<br/>(BEGIN:VEVENT...END:VEVENT)"]
+- `PlannerExportDTO` la contract noi bo.
+- Markdown la format mac dinh cho AI/chat workflow.
+- JSON giu lai cho tool/agent va automation.
+- Export chi lay calendar events tu active source versions.
 
-    D --> E{"DTSTART +<br/>SUMMARY<br/>present?"}
-    E -->|Yes| F["Calculate time_end<br/>(Default +90min if missing)"]
-    E -->|No| G["Skip event"]
+### Backup And Restore
 
-    F --> H["INSERT schedule<br/>(subject, time_start, time_end, location, date_str)"]
-    G --> H
-    H --> I["✅ Success: count++"]
-```
+- `BackupService` chay `pg_dump -Fc`, ghi file tam roi atomic rename.
+- Backup logs ghi vao `backup_runs`.
+- Restore verification da duoc chay: restore latest dump vao DB tam, compare counts, drop DB tam.
+- Chi tiet xem `docs/V2_BACKUP_RESTORE.md` va `docs/V2_RESTORE_VERIFICATION_REPORT.md`.
 
-### 2.2 Excel Import (Lịch thi từ tệp lịch thi)
-```mermaid
-graph TD
-    A["📊 File: exam_schedule.xlsx"] --> B["Detect header<br/>(Find 'Môn', 'Ngày', etc)"]
-    B --> C{"Header found<br/>+ required cols?"}
+## 3. Runtime Status
 
-    C -->|No| D["❌ Abort"]
-    C -->|Yes| E["Parse each row"]
+Da co tren `develop`:
+- PostgreSQL schema + migration.
+- Import source versioning.
+- Export Markdown/JSON.
+- PostgreSQL backup/restore verification.
+- Notes service + Notes UI.
 
-    E --> F["Format Date<br/>(Handle: datetime, DD/MM/YYYY, ISO)"]
-    F --> G["Map Time Slot<br/>(Ca1→07:00, Ca2→13:00)"]
-    G --> H["Get Location<br/>(Default: 'Trường')"]
+Con lai:
+- WS6 continuous calendar UI thay month grid cu.
+- WS7 AI agent/tools voi permission, audit, backup checkpoint.
+- Refactor cac legacy UI path con lai trong `main.py` sang services v2.
 
-    H --> I["INSERT schedule<br/>(with [THI] prefix)"]
-    I --> J["✅ count++"]
-```
+## 4. Legacy v1 Preservation
 
-**Key Strategy**:
-- ICS = dùng cho lịch học cố định (import từ Google Cal)
-- Excel = dùng cho lịch thi (smart detect + format inference)
+Ban v1 duoc bao luu tren nhanh `main`. Khong xoa `main.py`/`database.py` trong buoc hien tai vi `main.py` van la Flet shell dang duoc refactor dan sang v2.
 
-## 3. Luồng Core Data Management
+Tai lieu legacy:
+- `docs/archive/v1_legacy/README.md`
 
-### 3.1 Task Lifecycle
-```
-📝 User creates task
-    ↓
-[task] table: (title, priority, date_str, note)
-    ↓
-User adds subtasks → [subtask] table: (task_id, content, is_completed)
-    ↓
-generate_planner_data() →
-    - Aggregate: All tasks + subtasks
-    - Add context: OVERDUE vs UPCOMING
-    - Add progress: done_sub / total_sub
-    ↓
-📊 Export JSON / Display in UI
-```
+Sau WS6 va UI v2 smoke test pass, co the lap task rieng de go bo SQLite runtime path khoi `develop`.
 
-### 3.2 Priority System (Settings-based)
-```
-settings["priorities"] = [
-  {name: "Optional", color: "Grey", icon: "Low"},
-  {name: "Nên làm", color: "Green", icon: "Check"},
-  {name: "Phải làm", color: "Amber", icon: "High"},
-  {name: "Bỏ là nhót", color: "Orange", icon: "Danger"},
-  {name: "Nguy hiểm", color: "Red", icon: "Warning"}
-]
+## 5. Source Of Truth
 
-UI queries get_prio_config(prio_name) → (color, icon, label)
-```
-
-## 4. Luồng Export (Generate Planner Data)
-
-**Target**: Tạo JSON structured để dùng với AI (ôn tập)
-
-```mermaid
-graph TD
-    A["🔔 User triggers export"] --> B["generate_planner_data()"]
-
-    B --> C["threshold_iso = current_date"]
-
-    C --> D["Query 1: GET SCHEDULE<br/>(WHERE date_str >= threshold)"]
-    D --> D1["schedules = [ ... ]"]
-
-    C --> E["Query 2: GET TASKS<br/>(date_str >= threshold OR is_completed=0)"]
-    E --> E1["tasks_raw = [ ... ]"]
-
-    E1 --> F["FOR each task<br/>Query subtasks"]
-    F --> F1["Attach subtasks_list<br/>Calculate progress<br/>Add context_note"]
-    F1 --> F2["tasks_with_subs = [ ... ]"]
-
-    D1 & F2 --> G["Assemble JSON<br/>{metadata, schedule_events, todo_tasks}"]
-
-    G --> H{"Export to:"}
-    H -->|File| I["save_file (JSON)"]
-    H -->|Clipboard| J["page.set_clipboard()"]
-
-    I & J --> K["✅ SnackBar notification"]
-```
-
-**JSON Structure**:
-```json
-{
-  "metadata": {
-    "generated_at": "2025-05-25 14:30:00",
-    "threshold_date": "25/05/2025",
-    "description": "..."
-  },
-  "schedule_events": [
-    {subject, time_start, time_end, location, date_str},
-    ...
-  ],
-  "todo_tasks": [
-    {
-      id, title, priority, date_str, note,
-      subtasks_list: [{content, is_completed}, ...],
-      context_note: "OVERDUE/UPCOMING. Tiến độ: X/Y"
-    },
-    ...
-  ]
-}
-```
-
-## 5. Thành phần chính (Core Components)
-
-### `database.py` - Data Access Layer
-| Hàm | Mục đích |
-|-----|---------|
-| `init_environment()` | Tạo DB + load default settings |
-| `load_settings()` | Lấy config từ settings table |
-| `save_single_setting()` | Cập nhật 1 setting |
-| `import_ics_schedule()` | Parse + store ICS |
-| `import_excel_schedule()` | Parse + store Excel |
-| `export_planner_data()` | Xuất JSON |
-| `perform_smart_backup()` | Auto-backup (max 15, interval 2h) |
-
-### `main.py` - UI Layer
-| Hàm | Mục đích |
-|-----|---------|
-| `main(page)` | Entry point, khởi tạo state + overlay |
-| `refresh_all()` | Reload settings + re-render |
-| `generate_planner_data()` | Frontend version của export (use global cur) |
-| `export_data_to_json()` | Dialog cho export option |
-| `handle_file_picker_result()` | Process import/export file |
-| `load_day_view()` | Render task list + schedule cho ngày |
-| `load_month_view()` | Render calendar grid |
-| `get_prio_config()` | Map priority → UI (color, icon) |
-
-### Cấu trúc State (trong main)
-```python
-# Global state
-current_date          # Ngày hiện tại view
-current_month_view    # Tháng đang xem
-APP_CONFIG           # Loaded từ settings table
-
-# UI Refs
-lbl_current_date, lbl_month_title  # Labels
-container_tasks, container_schedule, container_calendar_grid  # Containers
-tabs_control         # Tab switcher
-```
-
-## 6. Cấu hình & Data Paths
-
-**Hardcoded paths** (⚠️ Machine-specific):
-```python
-DATA_DIR = r"C:\Users\os\Desktop\Tools\VC_microSchedule_home"
-DB_PATH = os.path.join(DATA_DIR, "todo.db")
-BACKUP_DIR = os.path.join(DATA_DIR, "backups")
-```
-
-**Backup Policy**:
-- Max backups: 15 files
-- Interval: 2 hours (smart check, không backup nếu gần đây)
-- Format: `todo_backup_YYYYMMDD_HHMMSS.db`
-
-**Default Settings** (Seeded on init):
-```python
-locations = [A2, A3, Thư viện, Home, Học Online, ...]
-priorities = [Optional, Nên làm, Phải làm, Bỏ là nhót, Nguy hiểm]
-durations = [45p, 90p, 3h]
-```
-
-## 7. Chiến lược tổng thể
-
-| Giai đoạn | Mục đích | Input | Output |
-|-----------|---------|-------|--------|
-| **Import** | Lấy dữ liệu từ ngoài | ICS/Excel | Dữ liệu trong SQLite |
-| **Manage** | User tạo/edit task + subtask | UI input | Cập nhật DB |
-| **View** | Hiển thị lịch + to-do | DB query | UI render (calendar/list) |
-| **Export** | Chuẩn bị data cho AI | Query DB | JSON file/clipboard |
-| **Backup** | Bảo vệ data | Periodic timer | Backup files |
-
-**Key Design Decision**:
-- ✅ **Self-contained**: Mọi thứ local, không cần server
-- ✅ **Structured export**: JSON dễ tiêu thụ cho AI
-- ⚠️ **Tightly coupled**: UI + logic không tách rời
-- ⚠️ **Hardcoded config**: Path, priority names là magic strings
-
-## 8. Tài liệu liên quan
-- `docs/IMPORT_GUIDE.md` - Chi tiết parser ICS/Excel
-- `docs/EXPORT_GUIDE.md` - JSON schema + AI integration
-- `docs/UI_GUIDE.md` - Flet component breakdown
-- `docs/DATABASE_SCHEMA.md` - Table relationships, constraints
-
----
-
-**TL;DR**: microSchedule là một **desktop app tự chủ** với 3 stream chính:
-1. **Ingest** (ICS/Excel) → parse → DB
-2. **Manage** (UI interactions) → CRUD → DB
-3. **Export** (JSON generation) → clipboard/file
-
-Hiện tại chưa có abstraction layer (cực kì tight coupling UI + logic), phù hợp cho single-user, single-machine workflow.
-
----
-*Tài liệu cập nhật ngày 25/05/2026.*
+| Muc dich | Tai lieu/code |
+|---|---|
+| Trang thai v2 | `docs/V2_CURRENT_STATE.md` |
+| Quyet dinh kien truc | `docs/V2_DECISION_BRIEF.md` |
+| Contract schema/migration | `docs/v2_contracts/WS0_WS1_CONTRACT.md` |
+| PostgreSQL DDL | `app/db/schema.sql` |
+| Migration counts | `docs/V2_MIGRATION_REPORT.md` |
+| Backup/restore | `docs/V2_BACKUP_RESTORE.md`, `docs/V2_RESTORE_VERIFICATION_REPORT.md` |
+| Strategy docs | `docs/strategy/` |

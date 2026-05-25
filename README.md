@@ -4,25 +4,26 @@
 
 ## Trạng thái hiện tại
 
-Repo hiện đang ở trạng thái chuyển tiếp từ v1 sang v2:
+Repo `develop` hiện là dòng v2. Bản v1 được bảo lưu trên nhánh `main` và chỉ còn là legacy reference.
 
 | Track | Trạng thái | File chính |
 |---|---|---|
-| v1 desktop app | Vẫn là runtime chính khi chạy `python main.py` | `main.py`, `database.py`, SQLite `todo.db` |
-| v2 foundation | Đã có trong repo | `app/config.py`, `app/db`, `app/migration`, `app/importers`, `app/services`, `app/exporters` |
-| v2 UI | Chưa tích hợp runtime chính | Notes UI và continuous calendar còn là workstream sau |
-| v2 AI tools | Chưa implement | Chỉ mới khóa contract safety/audit trong docs/schema |
+| v2 foundation | Đã merge | PostgreSQL schema/migration, import source versioning, export Markdown/JSON, backup |
+| v2 UI | Đang refactor | Notes UI đã merge; continuous calendar là WS6 tiếp theo |
+| v2 AI tools | Chưa implement | Đã có audit/permission contract trong docs/schema |
+| v1 legacy | Bảo lưu | Nhánh `main`, SQLite `todo.db`, docs archive |
 
-Nếu cần trạng thái v2 mới nhất, đọc [docs/V2_CURRENT_STATE.md](docs/V2_CURRENT_STATE.md), [docs/V2_DECISION_BRIEF.md](docs/V2_DECISION_BRIEF.md), và [app/db/schema.sql](app/db/schema.sql). Các phần mô tả `main.py`/`database.py` bên dưới là tài liệu cho v1 runtime hiện tại.
+Nếu cần trạng thái v2 mới nhất, đọc [docs/V2_CURRENT_STATE.md](docs/V2_CURRENT_STATE.md), [docs/SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md), [docs/V2_DECISION_BRIEF.md](docs/V2_DECISION_BRIEF.md), và [app/db/schema.sql](app/db/schema.sql).
 
 ## 🎯 Giới thiệu
 
-**microSchedule** là một desktop app standalone giúp bạn:
-- 📅 **Quản lý lịch học cố định** (nhập từ Google Calendar, Outlook, hoặc file Excel)
-- ✅ **Tổ chức danh sách việc cần làm** (tasks + subtasks)
+**microSchedule v2** là một desktop app standalone giúp bạn:
+- 📅 **Quản lý lịch học/lịch thi có source versioning** (ICS/Excel fallback)
+- ✅ **Tổ chức việc cần làm** (tasks + task items)
+- 📝 **Ghi chú riêng** (notes + checklist, không bị ép deadline)
 - 🎯 **Phân ưu tiên công việc** (5 mức độ từ "Optional" đến "Đặc biệt nguy hiểm")
-- 📊 **Xuất dữ liệu JSON** cho AI ôn tập/lập kế hoạch
-- 💾 **Sao lưu tự động** (15 backup files, mỗi 2 giờ)
+- 📊 **Xuất Markdown mặc định + JSON tùy chọn** cho AI ôn tập/lập kế hoạch
+- 💾 **Sao lưu PostgreSQL bằng `pg_dump -Fc`**
 
 **Đặc biệt**: Được custom để dùng với các AI tools (ChatGPT, Claude, etc.) để tạo kế hoạch ôn thi tối ưu.
 
@@ -47,9 +48,9 @@ Nếu cần trạng thái v2 mới nhất, đọc [docs/V2_CURRENT_STATE.md](doc
 - **Settings**: Quản lý locations, priorities, durations
 
 ### 4. Xuất & Sao lưu
-- **Export JSON**: Copy to clipboard hoặc save file
-- **Structured data**: Kèm metadata, schedule, tasks, subtasks, progress
-- **Smart backup**: Tự động mỗi 2 giờ, giữ 15 file mới nhất
+- **Export Markdown**: format mặc định cho AI/chat
+- **Export JSON**: tùy chọn cho tool/agent
+- **PostgreSQL backup**: `pg_dump -Fc`, retention, restore verification
 
 ### 5. Hệ thống Ưu tiên
 5 mức độ tùy chỉnh:
@@ -69,14 +70,12 @@ Mỗi mức độ có icon + color riêng để dễ phân biệt.
 |-------|----------|
 | **Frontend** | Flet (Python UI framework) |
 | **Backend** | Python 3.8+ |
-| **Database v1 runtime** | SQLite local file |
-| **Database v2 foundation** | PostgreSQL `microschedule_v2` |
-| **Backup v1** | File system copy |
-| **Backup v2** | `pg_dump -Fc` qua `app/services/backup_service.py` |
+| **Database** | PostgreSQL `microschedule_v2` |
+| **Legacy v1** | SQLite local file trên nhánh `main` |
+| **Backup** | `pg_dump -Fc` qua `app/services/backup_service.py` |
 | **Packaging** | PyInstaller (→ .exe) |
 | **Import** | ICS (RFC 5545), openpyxl (Excel) |
-| **Export v1** | JSON native |
-| **Export v2** | Markdown default + JSON optional qua `PlannerExportDTO` |
+| **Export** | Markdown default + JSON optional qua `PlannerExportDTO` |
 
 ---
 

@@ -485,21 +485,21 @@ Sync README and docs with the code that has actually been merged, without changi
 
 ### Required Behavior
 
-- Distinguish v1 runtime from v2 foundation.
-- State clearly that `main.py`/`database.py` still power the current Flet runtime.
+- Treat `develop` as the v2 line and `main` as preserved v1 legacy.
+- State clearly which `main.py` paths have already moved to PostgreSQL v2 services and which paths remain legacy pending WS6/refactor.
 - Document implemented v2 foundation modules under `app/`.
-- Do not claim Notes UI, continuous calendar UI, or AI agent/tools are implemented until their workstreams merge.
+- Do not claim continuous calendar UI or AI agent/tools are implemented until their workstreams merge.
 - Treat `docs/V2_DECISION_BRIEF.md`, `docs/v2_contracts/WS0_WS1_CONTRACT.md`, and `app/db/schema.sql` as v2 contract sources.
 - Do not edit `.env`, SQLite v1, schema SQL, app code, or tests.
 
 ### Acceptance Criteria
 
 - README points readers to the correct v1/v2 current-state docs.
-- Architecture docs show the dual-track state.
+- Architecture docs are v2-first and mention v1 only as preserved legacy on `main`.
 - Database docs label SQLite as v1 legacy and link/summarize PostgreSQL v2 schema.
 - Import docs explain source/source_version versioning and duplicate no-op.
 - Export docs explain `PlannerExportDTO`, Markdown default, JSON optional.
-- UI docs say v2 UI workstreams are pending, not completed.
+- UI docs say Notes UI is done, while continuous calendar and AI UI remain pending.
 
 ### Verification
 
@@ -510,7 +510,7 @@ rg "SQLite|todo.db|JSON|15 backup|2 giờ|database.py|main.py|Month View|Export 
 rg "DATABASE_URL|NINE_ROUTER|password|secret|api_key" README.md docs -n
 ```
 
-Stale v1 references may remain only when clearly labeled as legacy/current v1 runtime.
+Stale v1 references may remain only when clearly labeled as legacy or archive.
 
 ## Reporting Template
 

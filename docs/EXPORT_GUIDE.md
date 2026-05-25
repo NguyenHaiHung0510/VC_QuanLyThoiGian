@@ -4,11 +4,11 @@ Tài liệu này mô tả cách thức export dữ liệu từ microSchedule san
 
 ## 0. Trạng Thái Export v1/v2
 
-Phần JSON schema bên dưới là mô tả v1 export từ `main.py`/`database.py`. V2 foundation đã thêm export pipeline mới:
+microSchedule v2 dùng export pipeline trong `app/exporters/` và `app/services/export_service.py`. Phần JSON schema v1 bên dưới chỉ là legacy reference cho bản đã bảo lưu trên `main`.
 
 | Track | File | Trạng thái |
 |---|---|---|
-| v1 runtime | `main.py`, `database.py` | JSON export cho UI hiện tại |
+| v1 legacy | `main.py`, `database.py` | JSON export cũ trên nhánh `main` |
 | v2 DTO | `app/exporters/planner_dto.py` | `PlannerExportDTO` canonical |
 | v2 Markdown | `app/exporters/markdown_exporter.py` | Markdown default cho AI/chat |
 | v2 JSON | `app/exporters/json_exporter.py` | JSON optional render từ cùng DTO |
@@ -34,7 +34,7 @@ Markdown v2 có các section chính:
 ## Suggested AI Instructions
 ```
 
-## 1. Export Flow
+## 1. Legacy Export Flow
 
 ### 1.1 Trigger Points
 

@@ -4,16 +4,15 @@ Tài liệu này mô tả cấu trúc UI của microSchedule, các component Fle
 
 ## 0. Trạng Thái UI
 
-Tài liệu này mô tả **UI v1 hiện tại** trong `main.py`. Sau khi v2 foundation được merge, các service PostgreSQL/import/export/backup đã có trong `app/`, nhưng runtime Flet chính chưa được refactor sang v2.
+Tài liệu này mô tả Flet shell hiện tại trong `main.py` trên nhánh `develop`. V2 đã có PostgreSQL foundation và Notes tab; các phần calendar/task/settings vẫn đang được refactor dần khỏi legacy SQLite path.
 
 Không coi các tính năng sau là đã có trong UI nếu chưa có workstream riêng merge:
 
-- Notes tab v2 CRUD.
 - Continuous multi-week calendar thay month grid.
 - Sidebar source filters đọc `calendar_sources`.
 - AI agent/chat/tools UI.
 
-Khi implement WS5/WS6/WS7, Tier 2 phải đọc `docs/V2_CURRENT_STATE.md`, `docs/V2_DECISION_BRIEF.md`, và contract/schema v2 trước; không tự đổi schema/API để tiện UI.
+Khi implement WS6/WS7, Tier 2 phải đọc `docs/V2_CURRENT_STATE.md`, `docs/V2_DECISION_BRIEF.md`, và contract/schema v2 trước; không tự đổi schema/API để tiện UI.
 
 ## 1. Architecture Overview
 
@@ -39,7 +38,8 @@ main(page: ft.Page)
     │   │   ├── tabs_control
     │   │   │   ├── Tab 1: Day View
     │   │   │   ├── Tab 2: Month View
-    │   │   │   └── Tab 3: Settings
+    │   │   │   ├── Tab 3: Settings
+    │   │   │   └── Tab 4: Ghi chú (PostgreSQL Notes)
     │   │   └── containers (tasks, schedule, calendar_grid)
     │   └── Footer
     │

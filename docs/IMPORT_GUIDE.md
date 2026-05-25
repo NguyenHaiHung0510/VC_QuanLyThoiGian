@@ -4,11 +4,11 @@ Tài liệu này giải thích chi tiết cách thức hoạt động của hai 
 
 ## 0. Trạng Thái Import v1/v2
 
-Phần parser trong tài liệu này ban đầu mô tả luồng v1 `database.py` insert thẳng vào SQLite `schedule`. V2 foundation đã tách parser và service:
+microSchedule v2 dùng parser/service trong `app/` và import vào PostgreSQL theo source versioning. Các mô tả về `database.py`/SQLite bên dưới chỉ là legacy reference của v1 trên nhánh `main`.
 
 | Track | File | Trạng thái |
 |---|---|---|
-| v1 runtime | `database.py` | Vẫn phục vụ UI hiện tại, import insert vào SQLite |
+| v1 legacy | `database.py` | Bản cũ được bảo lưu trên `main`, import insert vào SQLite |
 | v2 parser | `app/importers/ics_importer.py` | Parse ICS thành events normalized |
 | v2 parser | `app/importers/excel_exam_importer.py` | Parse Excel lịch thi fallback, có warning cho date format rủi ro |
 | v2 service | `app/services/calendar_import_service.py` | Import vào PostgreSQL theo source/source_version |
@@ -29,7 +29,7 @@ Kết quả hiện có theo `docs/V2_MIGRATION_REPORT.md`:
 - `LichThi-QLDT-20252.ics`: 8 active exam events.
 - Re-import hai file ICS trên trả `duplicate_noop`.
 
-## 1. ICS Parser (`import_ics_schedule()`)
+## 1. Legacy ICS Parser (`import_ics_schedule()`)
 
 ### 1.1 RFC 5545 - iCalendar Format
 

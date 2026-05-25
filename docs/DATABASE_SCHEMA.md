@@ -1,10 +1,10 @@
 # DATABASE_SCHEMA.md - Table Relationships & Constraints
 
-Tài liệu này mô tả chi tiết cấu trúc SQLite database của microSchedule, bao gồm table relationships, constraints, và quy tắc dữ liệu.
+Tài liệu này mô tả schema dữ liệu của microSchedule v2 trước, và giữ phần SQLite v1 ở bên dưới như legacy reference.
 
 ## 0. Trạng Thái Schema
 
-Phần lớn tài liệu bên dưới là **schema v1 legacy** của SQLite `todo.db`, vẫn đúng cho runtime hiện tại `main.py` + `database.py`.
+Schema v2 hiện là nguồn sự thật trên nhánh `develop`. Phần SQLite `todo.db` bên dưới chỉ là **v1 legacy reference** vì bản v1 đã được bảo lưu trên nhánh `main`.
 
 Schema v2 đã được merge riêng trong:
 
@@ -41,7 +41,7 @@ Các rule v2 đã khóa:
 - 29 incomplete overdue tasks của v1 migrate sang `notes`, không lưu `source_task_id`.
 - SQLite v1 tại `C:\Users\os\Desktop\Tools\VC_microSchedule_home\todo.db` không bị sửa/xóa.
 
-## 1. Database Overview
+## 1. Legacy SQLite v1 Reference
 
 ```
 SQLite Database: todo.db

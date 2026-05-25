@@ -13,45 +13,38 @@ Mục tiêu: chia v2 thành nhiều workstream có thể chạy song song, giả
 
 ## Recommended Parallel Split
 
-| Workstream | Suggested owner | Can start now? | Depends on | Branch | Scope |
+| Workstream | Status | Suggested owner | Depends on | Branch | Scope |
 |---|---|---:|---|---|---|
-| WS0 Architecture contract | Codex / strong Tier 1 | Yes | None | `docs/v2-contract-lock` | Lock schema, repository interfaces, shared DTOs |
-| WS1 PostgreSQL schema + migration | Codex / strong Tier 2 | Yes | WS0 draft | `feat/v2-postgres-migration` | Schema SQL, config, SQLite migration, migration report |
-| WS2 Import parser + source versioning | Gemini Flash 3.5 | Partial | WS0 schema names | `feat/v2-import-versioning` | ICS/Excel parser, source/version service, import tests |
-| WS3 Export Markdown/JSON | Gemini Flash 3.5 | Partial | WS0 DTO/repo interfaces | `feat/v2-export-markdown` | Export DTO, Markdown renderer, JSON renderer, tests |
-| WS4 PostgreSQL backup/restore | Gemini Flash 3.5 | Yes | `.env` path, DB name | `feat/v2-postgres-backup` | pg_dump, retention, restore docs, backup log |
-| WS5 Notes UI | Gemini Flash 3.5 or Sonnet | No | WS1 repositories | `feat/v2-notes-ui` | Notes tab CRUD, note items, no due date |
-| WS6 Continuous calendar UI | Sonnet / Codex / strong Tier 2 | No | WS1 + WS2 services | `feat/v2-continuous-calendar` | Outlook-style scrolling weeks + sidebar filters |
-| WS7 AI agent + safety | Codex / strong model in separate chat | Partial design only | WS0 + backup/audit contract | `feat/v2-ai-agent-tools` | LangGraph/LiteLLM, tools, permission gates, audit, rollback |
-| WS8 Docs reconciliation | Gemini Flash 3.5 | Yes for v2 foundation docs | WS1-WS4 merged code | `docs/v2-docs-sync` | README/docs sync for implemented v2 foundation; do not claim WS5/WS6/WS7 runtime features are done |
+| WS0 Architecture contract | Done | Codex / strong Tier 1 | None | merged | Lock schema, repository interfaces, shared DTOs |
+| WS1 PostgreSQL schema + migration | Done | Codex / strong Tier 2 | WS0 | merged | Schema SQL, config, SQLite migration, migration report |
+| WS2 Import parser + source versioning | Done | Gemini Flash 3.5 | WS0/WS1 | merged | ICS/Excel parser, source/version service, import tests |
+| WS3 Export Markdown/JSON | Done | Gemini Flash 3.5 | WS0/WS1 | merged | Export DTO, Markdown renderer, JSON renderer, tests |
+| WS4 PostgreSQL backup/restore | Done | Gemini Flash 3.5 | DB schema | merged | pg_dump, retention, restore docs, backup log |
+| Restore verification | Done | Tier 2 verification | WS4 backup | merged | Restore latest dump into temp DB, compare counts, cleanup |
+| WS5 Notes UI | Done | Gemini Flash 3.5 or Sonnet | WS1 repositories | merged | Notes tab CRUD, note items, no due date |
+| WS6 Continuous calendar UI | Next | Sonnet / Codex / strong Tier 2 | WS1 + WS2 services | `feat/v2-continuous-calendar` | Outlook-style scrolling weeks + sidebar filters |
+| WS7 AI agent + safety | Later | Codex / strong model in separate chat | WS0 + backup/audit contract | `feat/v2-ai-agent-tools` | LangGraph/LiteLLM, tools, permission gates, audit, rollback |
+| WS8 Docs reconciliation | Done | Gemini Flash 3.5 | Merged code | merged | README/docs sync for implemented v2 foundation and Notes UI |
 
-## What Can Run In Parallel Immediately
+## Current Next Work
 
-1. WS0 by Codex: lock shared contracts.
-2. WS1 by Codex/strong Tier 2: schema + migration.
-3. WS4 by Gemini Flash: backup service can be implemented against current `microschedule_v2` and `.env` path with minimal schema dependency.
-4. WS2 parser-only slice by Gemini Flash: parse ICS/Excel into normalized dataclasses without writing DB yet.
-5. WS3 formatter-only slice by Gemini Flash: Markdown/JSON renderers using fixture DTOs.
-6. WS7 design-only slice by Codex/strong model: permission matrix, audit schema, tool registry design.
+1. WS6 continuous calendar UI.
+2. WS7 AI agent/tools after WS6 or after a dedicated safety design pass.
+3. Final docs sync after WS6/WS7.
 
 ## Work That Should Wait
 
-- Notes UI waits until notes repository/service exists.
 - Continuous calendar UI waits until source/version query service exists.
 - AI write tools wait until backup, audit log, and permission policy are implemented.
 - Any destructive admin tool waits until restore has been tested on a temp DB.
 
 ## Suggested Merge Order
 
-1. WS0 contract doc/schema interface.
-2. WS1 schema + migration.
-3. WS2 import versioning.
-4. WS3 export service.
-5. WS4 backup service.
-6. WS5 Notes UI.
-7. WS6 continuous calendar UI.
-8. WS7 AI agent/tools.
-9. WS8 docs reconciliation.
+Completed through WS5 and restore verification. Remaining recommended order:
+
+1. WS6 continuous calendar UI.
+2. WS7 AI agent/tools.
+3. WS8 docs reconciliation rerun after WS6/WS7.
 
 ## Files By Ownership
 
