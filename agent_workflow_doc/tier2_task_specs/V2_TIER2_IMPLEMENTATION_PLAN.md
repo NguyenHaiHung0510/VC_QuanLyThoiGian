@@ -462,6 +462,56 @@ Do not let LangGraph or tool-calling bypass the permission/audit layer.
 - Confirmed write tools create audit records.
 - Bulk/destructive tools create a backup/checkpoint before mutation.
 
+## Phase 8 Task - Docs Reconciliation
+
+### Goal
+
+Sync README and docs with the code that has actually been merged, without changing schema/API/runtime behavior.
+
+### Suggested Branch
+
+`docs/v2-docs-sync`
+
+### Files To Modify
+
+- `README.md`
+- `docs/V2_CURRENT_STATE.md`
+- `docs/SYSTEM_ARCHITECTURE.md`
+- `docs/DATABASE_SCHEMA.md`
+- `docs/IMPORT_GUIDE.md`
+- `docs/EXPORT_GUIDE.md`
+- `docs/UI_GUIDE.md`
+- `docs/V2_BACKUP_RESTORE.md` only for clarification/consistency
+
+### Required Behavior
+
+- Distinguish v1 runtime from v2 foundation.
+- State clearly that `main.py`/`database.py` still power the current Flet runtime.
+- Document implemented v2 foundation modules under `app/`.
+- Do not claim Notes UI, continuous calendar UI, or AI agent/tools are implemented until their workstreams merge.
+- Treat `docs/V2_DECISION_BRIEF.md`, `docs/v2_contracts/WS0_WS1_CONTRACT.md`, and `app/db/schema.sql` as v2 contract sources.
+- Do not edit `.env`, SQLite v1, schema SQL, app code, or tests.
+
+### Acceptance Criteria
+
+- README points readers to the correct v1/v2 current-state docs.
+- Architecture docs show the dual-track state.
+- Database docs label SQLite as v1 legacy and link/summarize PostgreSQL v2 schema.
+- Import docs explain source/source_version versioning and duplicate no-op.
+- Export docs explain `PlannerExportDTO`, Markdown default, JSON optional.
+- UI docs say v2 UI workstreams are pending, not completed.
+
+### Verification
+
+```powershell
+git status --short --branch
+python -m pytest
+rg "SQLite|todo.db|JSON|15 backup|2 giờ|database.py|main.py|Month View|Export JSON" README.md docs -n
+rg "DATABASE_URL|NINE_ROUTER|password|secret|api_key" README.md docs -n
+```
+
+Stale v1 references may remain only when clearly labeled as legacy/current v1 runtime.
+
 ## Reporting Template
 
 Each Tier 2 task report must include:

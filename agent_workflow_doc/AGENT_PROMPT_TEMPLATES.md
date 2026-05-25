@@ -24,7 +24,7 @@ File này dùng để mở chat mới cho Tier 1/Tier 2. Chỉ cần thay `<WS_I
 | WS5 | Next | Tier 2 sau WS1 | Notes UI |
 | WS6 | Next | Strong Tier 2/Codex | Continuous calendar UI |
 | WS7 | Later | Tier 1/Codex strong | AI agent/tools safety |
-| WS8 | Next | Tier 2 | Docs sync |
+| WS8 | Partial | Tier 2 | Docs sync for merged v2 foundation; rerun after WS5/WS6/WS7 |
 
 ## Prompt Tier 1
 

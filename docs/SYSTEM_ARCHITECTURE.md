@@ -2,6 +2,50 @@
 
 Tài liệu này mô tả luồng hoạt động của microSchedule - một ứng dụng quản lý lịch học + to-do tối ưu cho ôn thi.
 
+## 0. Trạng Thái Tài Liệu
+
+Tài liệu này vẫn mô tả **v1 runtime** đang chạy qua `main.py` và `database.py`. Sau commit v2 foundation, repo đã có thêm kiến trúc PostgreSQL/service layer trong `app/`, nhưng UI runtime chính chưa được refactor sang các service v2.
+
+Nguồn sự thật v2 hiện tại:
+
+- `docs/V2_CURRENT_STATE.md`
+- `docs/V2_DECISION_BRIEF.md`
+- `docs/v2_contracts/WS0_WS1_CONTRACT.md`
+- `app/db/schema.sql`
+
+## 0.1 Kiến Trúc v2 Foundation Đã Merge
+
+```mermaid
+graph LR
+    subgraph "Legacy Runtime"
+      V1UI["main.py<br/>Flet UI v1"]
+      V1DB["database.py<br/>SQLite DAL"]
+      SQLITE["todo.db<br/>SQLite v1"]
+    end
+
+    subgraph "v2 Foundation"
+      CFG["app/config.py<br/>.env + safety"]
+      PG["app/db/postgres.py<br/>PostgreSQL helpers"]
+      SCHEMA["app/db/schema.sql<br/>v2 DDL"]
+      MIG["app/migration/*<br/>SQLite -> PostgreSQL"]
+      IMP["app/importers + calendar services<br/>source versioning"]
+      EXP["app/exporters + export service<br/>DTO -> Markdown/JSON"]
+      BAK["app/services/backup_service.py<br/>pg_dump backup"]
+      PGDB["microschedule_v2<br/>PostgreSQL"]
+    end
+
+    V1UI --> V1DB --> SQLITE
+    MIG --> SQLITE
+    MIG --> PGDB
+    IMP --> PGDB
+    EXP --> PGDB
+    BAK --> PGDB
+    CFG --> PG
+    SCHEMA --> PGDB
+```
+
+Các workstream UI v2 còn pending: Notes UI, continuous calendar, AI agent/tools. Không coi các phần này là đã có trong runtime nếu chỉ đọc `main.py`.
+
 ## 1. Mô hình "Desktop Client" (Flet-Centered)
 
 microSchedule là **Standalone Desktop App** với mô hình self-contained: tất cả logic nằm trong app, database là local SQLite.

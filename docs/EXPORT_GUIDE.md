@@ -2,6 +2,38 @@
 
 Tài liệu này mô tả cách thức export dữ liệu từ microSchedule sang JSON và cách integrate với AI systems.
 
+## 0. Trạng Thái Export v1/v2
+
+Phần JSON schema bên dưới là mô tả v1 export từ `main.py`/`database.py`. V2 foundation đã thêm export pipeline mới:
+
+| Track | File | Trạng thái |
+|---|---|---|
+| v1 runtime | `main.py`, `database.py` | JSON export cho UI hiện tại |
+| v2 DTO | `app/exporters/planner_dto.py` | `PlannerExportDTO` canonical |
+| v2 Markdown | `app/exporters/markdown_exporter.py` | Markdown default cho AI/chat |
+| v2 JSON | `app/exporters/json_exporter.py` | JSON optional render từ cùng DTO |
+| v2 service | `app/services/export_service.py` | Query PostgreSQL v2 và build DTO |
+
+Contract v2 đã khóa:
+
+- UX mặc định là Markdown.
+- JSON vẫn giữ như tùy chọn cho tools/agent.
+- Markdown và JSON phải render từ cùng canonical DTO để tránh drift.
+- Notes được export như notes, không bị coi là overdue tasks.
+- Completed tasks bị exclude mặc định theo setting, trừ khi cấu hình export yêu cầu.
+
+Markdown v2 có các section chính:
+
+```markdown
+# microSchedule Export
+
+## Metadata
+## Upcoming Schedule
+## Open Tasks
+## Notes
+## Suggested AI Instructions
+```
+
 ## 1. Export Flow
 
 ### 1.1 Trigger Points

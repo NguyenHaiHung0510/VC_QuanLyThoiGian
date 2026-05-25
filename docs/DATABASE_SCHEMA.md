@@ -2,6 +2,45 @@
 
 Tài liệu này mô tả chi tiết cấu trúc SQLite database của microSchedule, bao gồm table relationships, constraints, và quy tắc dữ liệu.
 
+## 0. Trạng Thái Schema
+
+Phần lớn tài liệu bên dưới là **schema v1 legacy** của SQLite `todo.db`, vẫn đúng cho runtime hiện tại `main.py` + `database.py`.
+
+Schema v2 đã được merge riêng trong:
+
+- DDL authoritative: `app/db/schema.sql`
+- Contract: `docs/v2_contracts/WS0_WS1_CONTRACT.md`
+- Migration/counts: `docs/V2_MIGRATION_REPORT.md`
+- Current state: `docs/V2_CURRENT_STATE.md`
+
+Tier 2 không được tự đổi schema/API contract trong các file này. Nếu phát hiện docs và `app/db/schema.sql` lệch nhau, `app/db/schema.sql` + contract v2 là nguồn kiểm tra chính, còn thay đổi schema phải viết proposal.
+
+## 0.1 PostgreSQL v2 Schema Summary
+
+V2 dùng PostgreSQL database `microschedule_v2`, schema mới, không port nguyên SQLite v1.
+
+| Nhóm | Bảng | Mục đích |
+|---|---|---|
+| Calendar source versioning | `calendar_sources` | Nguồn lịch, loại nguồn, màu, visibility, active version |
+| Calendar source versioning | `calendar_source_versions` | Mỗi lần import/update của một source |
+| Calendar source versioning | `calendar_events` | Event thuộc source và source version cụ thể |
+| Tasks | `tasks` | Task có deadline/action |
+| Tasks | `task_items` | Checklist/subtasks của task |
+| Notes | `notes` | Note/ý tưởng không bắt buộc due date |
+| Notes | `note_items` | Checklist/sub-items của note |
+| Settings | `priorities` | Priority normalized |
+| Settings | `app_settings` | Settings dạng `jsonb` |
+| Backup | `backup_runs` | Log mỗi lần backup PostgreSQL |
+| AI safety | `agent_action_log` | Audit log cho AI tools tương lai |
+
+Các rule v2 đã khóa:
+
+- Mọi `calendar_events` phải có `source_id` và `source_version_id`.
+- Calendar chính chỉ đọc event thuộc `calendar_sources.current_version_id`.
+- Import cùng checksum cho cùng source là duplicate/no-op, không tạo duplicate active events.
+- 29 incomplete overdue tasks của v1 migrate sang `notes`, không lưu `source_task_id`.
+- SQLite v1 tại `C:\Users\os\Desktop\Tools\VC_microSchedule_home\todo.db` không bị sửa/xóa.
+
 ## 1. Database Overview
 
 ```

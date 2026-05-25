@@ -2,6 +2,19 @@
 
 Ứng dụng quản lý lịch học + danh sách việc cần làm, được tối ưu hóa cho ôn tập và kế hoạch thời gian.
 
+## Trạng thái hiện tại
+
+Repo hiện đang ở trạng thái chuyển tiếp từ v1 sang v2:
+
+| Track | Trạng thái | File chính |
+|---|---|---|
+| v1 desktop app | Vẫn là runtime chính khi chạy `python main.py` | `main.py`, `database.py`, SQLite `todo.db` |
+| v2 foundation | Đã có trong repo | `app/config.py`, `app/db`, `app/migration`, `app/importers`, `app/services`, `app/exporters` |
+| v2 UI | Chưa tích hợp runtime chính | Notes UI và continuous calendar còn là workstream sau |
+| v2 AI tools | Chưa implement | Chỉ mới khóa contract safety/audit trong docs/schema |
+
+Nếu cần trạng thái v2 mới nhất, đọc [docs/V2_CURRENT_STATE.md](docs/V2_CURRENT_STATE.md), [docs/V2_DECISION_BRIEF.md](docs/V2_DECISION_BRIEF.md), và [app/db/schema.sql](app/db/schema.sql). Các phần mô tả `main.py`/`database.py` bên dưới là tài liệu cho v1 runtime hiện tại.
+
 ## 🎯 Giới thiệu
 
 **microSchedule** là một desktop app standalone giúp bạn:
@@ -56,11 +69,14 @@ Mỗi mức độ có icon + color riêng để dễ phân biệt.
 |-------|----------|
 | **Frontend** | Flet (Python UI framework) |
 | **Backend** | Python 3.8+ |
-| **Database** | SQLite (local file) |
-| **Backup** | File system (shutil) |
+| **Database v1 runtime** | SQLite local file |
+| **Database v2 foundation** | PostgreSQL `microschedule_v2` |
+| **Backup v1** | File system copy |
+| **Backup v2** | `pg_dump -Fc` qua `app/services/backup_service.py` |
 | **Packaging** | PyInstaller (→ .exe) |
 | **Import** | ICS (RFC 5545), openpyxl (Excel) |
-| **Export** | JSON (native) |
+| **Export v1** | JSON native |
+| **Export v2** | Markdown default + JSON optional qua `PlannerExportDTO` |
 
 ---
 
@@ -105,7 +121,7 @@ openpyxl
 pyinstaller
 ```
 
-### Bước 4: Tạo thư mục dữ liệu
+### Bước 4: Tạo thư mục dữ liệu v1
 ```bash
 # Database sẽ được tạo tại:
 # C:\Users\<username>\Desktop\Tools\VC_microSchedule_home
@@ -120,6 +136,18 @@ python main.py
 ```
 
 App sẽ mở cửa sổ Flet, hiển thị giao diện chính.
+
+### Kiểm tra v2 foundation
+
+V2 foundation dùng PostgreSQL và cấu hình qua `.env`. Không commit `.env`; chỉ dùng `.env.example` làm mẫu.
+
+```bash
+python -m pytest
+python app/migration/analyze_v1_sqlite.py
+python app/migration/migrate_sqlite_to_postgres.py --dry-run
+```
+
+Chỉ chạy `--apply` khi đã xác nhận target là database v2 dev `microschedule_v2`.
 
 ---
 
@@ -196,7 +224,15 @@ Paste vào ChatGPT/Claude → AI tạo kế hoạch ôn thi
 ```
 VC_QuanLyThoiGian/
 ├── main.py                 # Entry point, UI layer
-├── database.py             # Data access layer, import logic
+├── database.py             # v1 SQLite data access layer, import logic
+├── app/                    # v2 foundation modules
+│   ├── config.py           # .env/config safety helpers
+│   ├── db/                 # PostgreSQL schema/connection helpers
+│   ├── migration/          # SQLite v1 -> PostgreSQL v2 tools
+│   ├── importers/          # ICS/Excel parser modules
+│   ├── services/           # import/export/backup services
+│   └── exporters/          # PlannerExportDTO Markdown/JSON renderers
+├── tests/                  # v2 service tests
 ├── requirements.txt        # Dependencies
 ├── build.bat               # Build script
 ├── microSchedule.spec      # PyInstaller config
@@ -204,7 +240,7 @@ VC_QuanLyThoiGian/
 ├── docs/                   # 📚 Tài liệu (chi tiết)
 │   ├── SYSTEM_ARCHITECTURE.md   # Kiến trúc tổng thể
 │   ├── IMPORT_GUIDE.md          # ICS/Excel parser
-│   ├── EXPORT_GUIDE.md          # JSON schema + AI
+│   ├── EXPORT_GUIDE.md          # v1 JSON + v2 Markdown/JSON DTO
 │   ├── UI_GUIDE.md              # Flet components
 │   └── DATABASE_SCHEMA.md       # Table definitions
 │
@@ -239,6 +275,10 @@ Các tài liệu trong `/docs/` cung cấp thông tin sâu:
 
 | Tài liệu | Nội dung |
 |---------|---------|
+| [V2_CURRENT_STATE.md](docs/V2_CURRENT_STATE.md) | Trạng thái v1/v2 hiện tại, nguồn sự thật và việc còn pending |
+| [V2_DECISION_BRIEF.md](docs/V2_DECISION_BRIEF.md) | Quyết định kiến trúc v2 đã khóa |
+| [V2_MIGRATION_REPORT.md](docs/V2_MIGRATION_REPORT.md) | Kết quả migration/import/backup v2 đã chạy |
+| [V2_BACKUP_RESTORE.md](docs/V2_BACKUP_RESTORE.md) | Backup/restore PostgreSQL v2 |
 | [SYSTEM_ARCHITECTURE.md](docs/SYSTEM_ARCHITECTURE.md) | Kiến trúc 3-layer, luồng dữ liệu, component overview |
 | [IMPORT_GUIDE.md](docs/IMPORT_GUIDE.md) | ICS/Excel parser, RFC 5545, ví dụ, troubleshooting |
 | [EXPORT_GUIDE.md](docs/EXPORT_GUIDE.md) | JSON schema, AI integration, use cases |

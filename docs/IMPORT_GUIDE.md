@@ -2,6 +2,33 @@
 
 Tài liệu này giải thích chi tiết cách thức hoạt động của hai loại import chính: **ICS (iCalendar)** và **Excel**.
 
+## 0. Trạng Thái Import v1/v2
+
+Phần parser trong tài liệu này ban đầu mô tả luồng v1 `database.py` insert thẳng vào SQLite `schedule`. V2 foundation đã tách parser và service:
+
+| Track | File | Trạng thái |
+|---|---|---|
+| v1 runtime | `database.py` | Vẫn phục vụ UI hiện tại, import insert vào SQLite |
+| v2 parser | `app/importers/ics_importer.py` | Parse ICS thành events normalized |
+| v2 parser | `app/importers/excel_exam_importer.py` | Parse Excel lịch thi fallback, có warning cho date format rủi ro |
+| v2 service | `app/services/calendar_import_service.py` | Import vào PostgreSQL theo source/source_version |
+| v2 service | `app/services/calendar_source_service.py` | Quản lý calendar source, color, visibility, metadata |
+
+Contract v2:
+
+- Không import lịch kiểu insert mù.
+- Mỗi event v2 bắt buộc thuộc `calendar_sources` và `calendar_source_versions`.
+- Update source tạo version mới; version cũ và events cũ được giữ.
+- Re-import cùng file checksum cho cùng source trả duplicate/no-op.
+- Main calendar v2 chỉ đọc active version: `calendar_sources.current_version_id`.
+- Với kỳ hiện tại, ưu tiên `LichThi-QLDT-20252.ics` làm source lịch thi chuẩn; Excel chỉ là fallback/đối chiếu.
+
+Kết quả hiện có theo `docs/V2_MIGRATION_REPORT.md`:
+
+- `TKB-QLDT20252.ics`: 139 active study events.
+- `LichThi-QLDT-20252.ics`: 8 active exam events.
+- Re-import hai file ICS trên trả `duplicate_noop`.
+
 ## 1. ICS Parser (`import_ics_schedule()`)
 
 ### 1.1 RFC 5545 - iCalendar Format

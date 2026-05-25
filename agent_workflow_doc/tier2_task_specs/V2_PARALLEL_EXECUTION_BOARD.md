@@ -23,7 +23,7 @@ Mục tiêu: chia v2 thành nhiều workstream có thể chạy song song, giả
 | WS5 Notes UI | Gemini Flash 3.5 or Sonnet | No | WS1 repositories | `feat/v2-notes-ui` | Notes tab CRUD, note items, no due date |
 | WS6 Continuous calendar UI | Sonnet / Codex / strong Tier 2 | No | WS1 + WS2 services | `feat/v2-continuous-calendar` | Outlook-style scrolling weeks + sidebar filters |
 | WS7 AI agent + safety | Codex / strong model in separate chat | Partial design only | WS0 + backup/audit contract | `feat/v2-ai-agent-tools` | LangGraph/LiteLLM, tools, permission gates, audit, rollback |
-| WS8 Docs reconciliation | Gemini Flash 3.5 | Later | Merged code | `docs/v2-docs-sync` | README/docs update after implementation |
+| WS8 Docs reconciliation | Gemini Flash 3.5 | Yes for v2 foundation docs | WS1-WS4 merged code | `docs/v2-docs-sync` | README/docs sync for implemented v2 foundation; do not claim WS5/WS6/WS7 runtime features are done |
 
 ## What Can Run In Parallel Immediately
 
@@ -97,6 +97,17 @@ WS7:
 - `app/services/audit_service.py`
 - `app/services/agent_action_service.py`
 - tests for permission/audit/tool safety
+
+WS8:
+- `README.md`
+- `docs/V2_CURRENT_STATE.md`
+- `docs/SYSTEM_ARCHITECTURE.md`
+- `docs/DATABASE_SCHEMA.md`
+- `docs/IMPORT_GUIDE.md`
+- `docs/EXPORT_GUIDE.md`
+- `docs/UI_GUIDE.md`
+- `docs/V2_BACKUP_RESTORE.md` only for clarification/consistency
+- `agent_workflow_doc/tier2_task_specs/*.md` only for docs coordination notes
 
 ## Tasks Best Kept For Codex In A Separate Chat
 

@@ -2,6 +2,19 @@
 
 Tài liệu này mô tả cấu trúc UI của microSchedule, các component Flet được sử dụng, và cách thức layout/interaction.
 
+## 0. Trạng Thái UI
+
+Tài liệu này mô tả **UI v1 hiện tại** trong `main.py`. Sau khi v2 foundation được merge, các service PostgreSQL/import/export/backup đã có trong `app/`, nhưng runtime Flet chính chưa được refactor sang v2.
+
+Không coi các tính năng sau là đã có trong UI nếu chưa có workstream riêng merge:
+
+- Notes tab v2 CRUD.
+- Continuous multi-week calendar thay month grid.
+- Sidebar source filters đọc `calendar_sources`.
+- AI agent/chat/tools UI.
+
+Khi implement WS5/WS6/WS7, Tier 2 phải đọc `docs/V2_CURRENT_STATE.md`, `docs/V2_DECISION_BRIEF.md`, và contract/schema v2 trước; không tự đổi schema/API để tiện UI.
+
 ## 1. Architecture Overview
 
 ```
