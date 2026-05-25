@@ -4,14 +4,12 @@ calendar_view.py — WS6: Continuous Calendar UI component.
 Renders an Outlook-style scrollable multi-week calendar with:
 - Left sidebar: mini month navigator + source visibility checkboxes
 - Main area:    ListView of week rows, scrollable continuously
-
-Usage:
-    from app.ui.calendar_view import build_continuous_calendar_tab
-    tab_content = build_continuous_calendar_tab(page, calendar_view_svc, THEME, COLOR_MAP)
 """
 import flet as ft
+import calendar
 from datetime import date, datetime, timedelta, timezone
 from typing import List, Dict, Any
+from collections import defaultdict
 
 from app.services.calendar_view_service import CalendarViewService
 
@@ -23,18 +21,6 @@ from app.services.calendar_view_service import CalendarViewService
 def get_week_start(d: date) -> date:
     """Returns the Monday of the week containing d. weekday(): Mon=0, Sun=6."""
     return d - timedelta(days=d.weekday())
-
-
-def generate_week_rows(center: date, before: int = 8, after: int = 8) -> List[List[date]]:
-    """
-    Returns a list of [7 dates] lists.
-    Total rows = before + 1 + after (17 by default).
-    """
-    start = get_week_start(center) - timedelta(weeks=before)
-    return [
-        [start + timedelta(weeks=w, days=d) for d in range(7)]
-        for w in range(before + 1 + after)
-    ]
 
 
 def _parse_hex_color(hex_color: str) -> str:
@@ -63,6 +49,7 @@ def build_continuous_calendar_tab(
     calendar_view_svc: CalendarViewService,
     theme: dict,
     color_map: dict,
+    on_day_click=None,
 ) -> ft.Control:
     """
     Returns an ft.Row containing:
@@ -70,6 +57,21 @@ def build_continuous_calendar_tab(
     - main area (expand): header row + scrollable week ListView
     """
     today = date.today()
+
+    # Generate complete list of months from today - 2 years to today + 2 years
+    start_year = today.year - 2
+    end_year = today.year + 2
+    start_month = today.month
+    end_month = today.month
+
+    sorted_months = []
+    curr_y, curr_m = start_year, start_month
+    while (curr_y, curr_m) <= (end_year, end_month):
+        sorted_months.append((curr_y, curr_m))
+        curr_m += 1
+        if curr_m > 12:
+            curr_m = 1
+            curr_y += 1
 
     # ------------------------------------------------------------------ #
     # Mutable state                                                        #
@@ -79,16 +81,23 @@ def build_continuous_calendar_tab(
         "selected_date": today,
         "events_cache": {},          # date_iso → List[dict]
         "sources": [],
+        "last_visible_weeks_hash": "", # Track scroll state to prevent redundant updates
+        "visible_dates": set(),      # Store current visible dates for highlighting
     }
 
     # ------------------------------------------------------------------ #
-    # Prefetch events from PG for visible range (±8 weeks)               #
+    # Prefetch events from PG for visible range (±2 years)               #
     # ------------------------------------------------------------------ #
     def _reload_events():
-        weeks = generate_week_rows(today, before=8, after=8)
-        range_start_d = weeks[0][0]
-        range_end_d = weeks[-1][-1]
-        # Convert to UTC datetime for PG query (ends_at <= end of last day)
+        range_start_d = date(start_year, start_month, 1)
+        next_m = end_month + 1
+        next_y = end_year
+        if next_m > 12:
+            next_m = 1
+            next_y += 1
+        range_end_d = date(next_y, next_m, 1) - timedelta(days=1)
+
+        # Convert to UTC datetime for PG query
         VN_TZ = timezone(timedelta(hours=7))
         range_start_dt = datetime(range_start_d.year, range_start_d.month, range_start_d.day,
                                   0, 0, 0, tzinfo=VN_TZ)
@@ -104,7 +113,6 @@ def build_continuous_calendar_tab(
         for ev in events:
             starts = ev["starts_at"]
             if hasattr(starts, "date"):
-                # Convert to VN date
                 if starts.tzinfo is not None:
                     vn_dt = starts.astimezone(VN_TZ)
                     d_key = vn_dt.date().isoformat()
@@ -142,8 +150,16 @@ def build_continuous_calendar_tab(
     )
 
     # ------------------------------------------------------------------ #
-    # Build a single day cell                                              #
+    # Build day cells (empty and normal)                                  #
     # ------------------------------------------------------------------ #
+    def _build_empty_day_cell() -> ft.Control:
+        return ft.Container(
+            expand=True,
+            height=100,
+            bgcolor=ft.Colors.WHITE,
+            border=ft.border.all(0.5, ft.Colors.GREY_200),
+        )
+
     def _build_day_cell(d: date, display_month: int) -> ft.Control:
         is_today = (d == today)
         is_other_month = (d.month != display_month)
@@ -151,7 +167,6 @@ def build_continuous_calendar_tab(
         day_key = d.isoformat()
         day_events = state["events_cache"].get(day_key, [])
 
-        # Number display
         num_color = (
             ft.Colors.GREY_400 if is_other_month
             else (theme.get("primary", ft.Colors.PINK_600) if is_today else ft.Colors.BLACK87)
@@ -161,7 +176,7 @@ def build_continuous_calendar_tab(
         day_num_container = ft.Container(
             padding=ft.padding.symmetric(horizontal=4, vertical=2),
             border_radius=16,
-            bgcolor=theme.get("today_bg", ft.Colors.RED_50) if is_today else None,
+            bgcolor=theme.get("primary_light", ft.Colors.PINK_50) if is_today else None,
             content=ft.Text(str(d.day), size=12, weight=num_weight, color=num_color),
         )
 
@@ -171,7 +186,7 @@ def build_continuous_calendar_tab(
             alignment=ft.MainAxisAlignment.START,
         )
 
-        # Event chips (max 3, then +N...)
+        # Event chips (max 3 in cell, then +N...)
         max_chips = 3
         for i, ev in enumerate(day_events):
             if i >= max_chips:
@@ -185,7 +200,7 @@ def build_continuous_calendar_tab(
                 padding=ft.padding.symmetric(horizontal=4, vertical=1),
                 border_radius=4,
                 bgcolor=ev_color,
-                tooltip=f"{ev['title']}\n{_fmt_time(ev.get('starts_at'))} – {_fmt_time(ev.get('ends_at'))}",
+                alignment=ft.alignment.center_left, # Stretch chip horizontally
                 content=ft.Text(
                     ev["title"],
                     size=9,
@@ -198,16 +213,96 @@ def build_continuous_calendar_tab(
 
         border = ft.border.all(
             2 if is_today else 0.5,
-            theme.get("today_border", ft.Colors.RED_400) if is_today else ft.Colors.GREY_200,
+            ft.Colors.PINK_300 if is_today else ft.Colors.GREY_200,
         )
 
+        # Classify events for the Tooltip popup
+        exams = []
+        studies = []
+        personal = []
+        for ev in day_events:
+            kind = ev.get("kind", "")
+            ev_type = ev.get("event_type", "")
+            if kind == "exam_schedule" or ev_type == "exam":
+                exams.append(ev)
+            elif kind == "study_schedule" or ev_type == "class":
+                studies.append(ev)
+            else:
+                personal.append(ev)
+
+        # Construct native tooltip multiline string (max 4 total events, categorized)
+        tooltip_lines = []
+        tooltip_lines.append(f"📅 {d.strftime('%d/%m/%Y')}")
+        tooltip_lines.append("──────────────────────")
+
+        max_tooltip_items = 4
+        displayed_items = 0
+
+        def _fmt_ev_time(starts, ends):
+            return f"[{_fmt_time(starts)} - {_fmt_time(ends)}]"
+
+        # 1. Exams
+        if exams:
+            tooltip_lines.append("【 LỊCH THI 】")
+            for ev in exams:
+                if displayed_items >= max_tooltip_items:
+                    break
+                tooltip_lines.append(f"• {_fmt_ev_time(ev.get('starts_at'), ev.get('ends_at'))} {ev['title']}")
+                displayed_items += 1
+
+        # 2. Studies
+        if studies:
+            if displayed_items < max_tooltip_items:
+                if exams:
+                    tooltip_lines.append("──────────────────────")
+                tooltip_lines.append("【 LỊCH HỌC 】")
+                for ev in studies:
+                    if displayed_items >= max_tooltip_items:
+                        break
+                    tooltip_lines.append(f"• {_fmt_ev_time(ev.get('starts_at'), ev.get('ends_at'))} {ev['title']}")
+                    displayed_items += 1
+
+        # 3. Personal
+        if personal:
+            if displayed_items < max_tooltip_items:
+                if exams or studies:
+                    tooltip_lines.append("──────────────────────")
+                tooltip_lines.append("【 LỊCH TỰ ĐẶT 】")
+                for ev in personal:
+                    if displayed_items >= max_tooltip_items:
+                        break
+                    tooltip_lines.append(f"• {_fmt_ev_time(ev.get('starts_at'), ev.get('ends_at'))} {ev['title']}")
+                    displayed_items += 1
+
+        total_evs = len(exams) + len(studies) + len(personal)
+        hidden_count = total_evs - displayed_items
+        if hidden_count > 0:
+            tooltip_lines.append(f"+ {hidden_count} lịch khác...")
+
+        tooltip_str = "\n".join(tooltip_lines) if total_evs > 0 else f"📅 {d.strftime('%d/%m/%Y')}\n(Không có lịch)"
+
+        def on_day_cell_click(e):
+            if on_day_click:
+                on_day_click(d)
+
+        # Return a single Container with the native tooltip
         return ft.Container(
             content=content_col,
+            padding=4,
+            bgcolor=theme.get("primary_light", ft.Colors.PINK_50) if is_today else ft.Colors.WHITE,
+            border=border,
+            on_click=on_day_cell_click,
             expand=True,
             height=100,
-            padding=4,
-            bgcolor=theme.get("today_bg", ft.Colors.RED_50) if is_today else ft.Colors.WHITE,
-            border=border,
+            tooltip=ft.Tooltip(
+                message=tooltip_str,
+                prefer_below=True,
+                vertical_offset=60,
+                bgcolor=ft.Colors.BLUE_GREY_900,
+                text_style=ft.TextStyle(color=ft.Colors.WHITE, size=11),
+                padding=8,
+                border_radius=6,
+            ),
         )
 
     def _fmt_time(ts) -> str:
@@ -220,62 +315,176 @@ def build_continuous_calendar_tab(
             return ts.strftime("%H:%M")
         return str(ts)[:5]
 
-    # ------------------------------------------------------------------ #
-    # Build week rows                                                      #
-    # ------------------------------------------------------------------ #
-    weeks = generate_week_rows(today, before=8, after=8)
-    # For header tracking: detect "display_month" from center week
-    center_week_monday = get_week_start(today)
+    # Pre-calculate heights & offsets for scroll position detection
+    # Month Header = 50px, Week Row = 100px, ListView spacing = 2px between items
+    item_offsets = []
+    current_offset = 0.0
+    spacing = 2.0
 
-    def _build_week_row(week_days: List[date]) -> ft.Control:
-        # Use the Wednesday of the week as the representative month
-        rep_month = week_days[2].month if len(week_days) > 2 else week_days[0].month
-        return ft.Row(
-            [_build_day_cell(d, rep_month) for d in week_days],
-            spacing=2,
-        )
+    for year, month in sorted_months:
+        header_key = f"header_{year}_{month:02d}"
+        item_offsets.append({
+            "key": header_key,
+            "offset": current_offset,
+            "type": "header",
+            "month": (year, month),
+            "dates": [],
+        })
+        current_offset += 50.0 + spacing
 
-    # ListView of week rows
+        cal = calendar.monthcalendar(year, month)
+        for w_idx, week in enumerate(cal):
+            week_key = f"week_{year}_{month:02d}_{w_idx}"
+            # Extract actual dates inside this month for this week
+            week_dates = []
+            for day in week:
+                if day != 0:
+                    week_dates.append(date(year, month, day))
+
+            item_offsets.append({
+                "key": week_key,
+                "offset": current_offset,
+                "type": "week",
+                "month": (year, month),
+                "dates": week_dates,
+            })
+            current_offset += 100.0 + spacing
+
+    # Helper to find week offset by date
+    def _get_week_offset(d: date) -> float:
+        for item in item_offsets:
+            if item["type"] == "week" and d in item["dates"]:
+                return item["offset"]
+        return 0.0
+
+    # ------------------------------------------------------------------ #
+    # Scroll handling & Mini-Nav Sync                                      #
+    # ------------------------------------------------------------------ #
+    def on_calendar_scroll(e: ft.OnScrollEvent):
+        pixels = e.pixels
+        viewport_dim = e.viewport_dimension if e.viewport_dimension else 700.0
+
+        # Apply a scroll detection threshold to account for cumulative layout errors
+        # and only trigger when a row is substantially scrolled into view
+        viewport_start = pixels + 30.0
+        viewport_end = pixels + viewport_dim - 30.0
+
+        visible_dates = set()
+        visible_week_keys = []
+        primary_month = None
+
+        for item in item_offsets:
+            item_top = item["offset"]
+            item_h = 50.0 if item["type"] == "header" else 100.0
+            item_bottom = item_top + item_h
+
+            # Check overlap
+            if item_bottom >= viewport_start and item_top <= viewport_end:
+                if item["type"] == "week":
+                    visible_week_keys.append(item["key"])
+                    for d in item["dates"]:
+                        visible_dates.add(d)
+
+                # Find the primary visible month at the top of the viewport
+                # We use raw pixels (without threshold) for header month changes
+                if primary_month is None and item_bottom > pixels:
+                    primary_month = item["month"]
+
+        # Throttle update: only rebuild mini-nav if the visible weeks changed
+        weeks_hash = ",".join(visible_week_keys)
+        state["visible_dates"] = visible_dates
+        if weeks_hash == state["last_visible_weeks_hash"]:
+            return
+        state["last_visible_weeks_hash"] = weeks_hash
+
+        if primary_month:
+            yr, mo = primary_month
+            header_label.value = f"THÁNG {mo:02d} / {yr}"
+            header_label.update()
+
+            new_nav_month = datetime(yr, mo, 1)
+            if state["mini_nav_month"].year != yr or state["mini_nav_month"].month != mo:
+                state["mini_nav_month"] = new_nav_month
+                _build_mini_nav()
+                mini_month_label.update()
+                mini_grid.update()
+            else:
+                _build_mini_nav()
+                mini_grid.update()
+
+    # ListView of flat controls (headers + week rows)
     calendar_list_view = ft.ListView(
         expand=True,
         spacing=2,
         padding=0,
+        on_scroll=on_calendar_scroll,
     )
 
-    for week_days in weeks:
-        monday = week_days[0]
-        calendar_list_view.controls.append(
-            ft.Container(
-                key=monday.isoformat(),
-                content=_build_week_row(week_days),
+    def _fill_calendar_list_view():
+        calendar_list_view.controls.clear()
+        for year, month in sorted_months:
+            header_key = f"header_{year}_{month:02d}"
+            # Month divider at top of header
+            calendar_list_view.controls.append(
+                ft.Container(
+                    key=header_key,
+                    height=50,
+                    padding=ft.padding.only(top=10, bottom=5, left=10, right=10),
+                    alignment=ft.alignment.center_left,
+                    content=ft.Column(
+                        [
+                            ft.Divider(height=1, color=ft.Colors.GREY_300),
+                            ft.Container(height=4),
+                            ft.Text(
+                                f"THÁNG {month:02d} / {year}",
+                                size=14,
+                                weight="bold",
+                                color=theme.get("primary", ft.Colors.PINK_600),
+                            ),
+                        ],
+                        spacing=0,
+                    ),
+                )
             )
-        )
+
+            # Weeks of this month via calendar.monthcalendar
+            cal = calendar.monthcalendar(year, month)
+            for w_idx, week in enumerate(cal):
+                row_controls = []
+                for day in week:
+                    if day == 0:
+                        row_controls.append(_build_empty_day_cell())
+                    else:
+                        d_obj = date(year, month, day)
+                        row_controls.append(_build_day_cell(d_obj, month))
+
+                calendar_list_view.controls.append(
+                    ft.Container(
+                        key=f"week_{year}_{month:02d}_{w_idx}",
+                        height=100,
+                        content=ft.Row(row_controls, spacing=2),
+                    )
+                )
+
+    _fill_calendar_list_view()
 
     # ------------------------------------------------------------------ #
     # Rebuild calendar (called after source toggle)                        #
     # ------------------------------------------------------------------ #
     def _rebuild_calendar():
         _reload_events()
-        calendar_list_view.controls.clear()
-        for week_days in weeks:
-            monday = week_days[0]
-            calendar_list_view.controls.append(
-                ft.Container(
-                    key=monday.isoformat(),
-                    content=_build_week_row(week_days),
-                )
-            )
+        _fill_calendar_list_view()
         calendar_list_view.update()
 
     # ------------------------------------------------------------------ #
     # Scroll to today                                                      #
     # ------------------------------------------------------------------ #
     def _scroll_to_today(e=None):
-        monday_key = get_week_start(today).isoformat()
+        offset = _get_week_offset(today)
         try:
-            calendar_list_view.scroll_to(key=monday_key, duration=300)
-        except Exception:
-            pass
+            calendar_list_view.scroll_to(offset=offset, duration=300)
+        except Exception as ex:
+            print(f"[CalendarView] Scroll to today error: {ex}")
         header_label.value = _visible_range_label(today)
         header_label.update()
         page.update()
@@ -292,7 +501,10 @@ def build_continuous_calendar_tab(
         run_spacing=2,
     )
 
-    def _build_mini_nav():
+    def _build_mini_nav(visible_dates=None):
+        if visible_dates is not None:
+            state["visible_dates"] = visible_dates
+        visible_dates = state["visible_dates"]
         nav_dt = state["mini_nav_month"]
         mini_month_label.value = f"{nav_dt.strftime('%m/%Y')}"
         mini_grid.controls.clear()
@@ -308,7 +520,6 @@ def build_continuous_calendar_tab(
 
         # Blank cells before the 1st
         first_day = date(nav_dt.year, nav_dt.month, 1)
-        # weekday(): Mon=0 → skip 0, Tue=1 → skip 1, etc.
         for _ in range(first_day.weekday()):
             mini_grid.controls.append(ft.Container())
 
@@ -319,21 +530,33 @@ def build_continuous_calendar_tab(
             d = date(nav_dt.year, nav_dt.month, day_n)
             is_today_d = (d == today)
             is_sel = (d == state["selected_date"])
-            bg = theme.get("today_bg", ft.Colors.RED_50) if is_today_d else (
-                ft.Colors.PINK_100 if is_sel else None
+            is_visible_on_screen = (d in visible_dates)
+
+            # Highlighting visible range in main calendar
+            bg = (
+                theme.get("primary_light", ft.Colors.PINK_50) if is_visible_on_screen
+                else (theme.get("today_bg", ft.Colors.RED_50) if is_today_d else None)
             )
+            # Outline selected date
+            border = ft.border.all(1, theme.get("primary", ft.Colors.PINK_600)) if is_sel else None
+
             txt_color = theme.get("primary", ft.Colors.PINK_600) if is_today_d else ft.Colors.BLACK87
 
             def make_click(clicked_date=d):
                 def on_click(e):
                     state["selected_date"] = clicked_date
-                    monday_key = get_week_start(clicked_date).isoformat()
-                    header_label.value = _visible_range_label(clicked_date)
-                    header_label.update()
+                    # Scroll main calendar to the week containing clicked_date using offset
+                    offset = _get_week_offset(clicked_date)
                     try:
-                        calendar_list_view.scroll_to(key=monday_key, duration=300)
+                        calendar_list_view.scroll_to(offset=offset, duration=300)
                     except Exception:
                         pass
+
+                    # Update visible label and rebuild
+                    header_label.value = _visible_range_label(clicked_date)
+                    header_label.update()
+
+                    state["mini_nav_month"] = datetime(clicked_date.year, clicked_date.month, 1)
                     _build_mini_nav()
                     mini_month_label.update()
                     mini_grid.update()
@@ -349,6 +572,7 @@ def build_continuous_calendar_tab(
                         text_align=ft.TextAlign.CENTER,
                     ),
                     bgcolor=bg,
+                    border=border,
                     border_radius=4,
                     alignment=ft.alignment.center,
                     on_click=make_click(),
@@ -519,5 +743,17 @@ def build_continuous_calendar_tab(
         spacing=0,
         expand=True,
     )
+
+    # Scroll initially to today's week
+    # Run slightly deferred so ListView finishes initial layout
+    async def scroll_init():
+        import asyncio
+        await asyncio.sleep(0.5)
+        _scroll_to_today()
+
+    page.run_task(scroll_init)
+
+    # Attach helper to trigger scroll from parent tabs container
+    root.scroll_to_today = _scroll_to_today
 
     return root

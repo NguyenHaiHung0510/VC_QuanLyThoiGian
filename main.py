@@ -2490,9 +2490,16 @@ def main(page: ft.Page):
         page.open(dlg_pg)
 
     # WS6: Build continuous calendar tab
+    def on_calendar_day_click(clicked_date):
+        nonlocal current_date
+        current_date = datetime(clicked_date.year, clicked_date.month, clicked_date.day)
+        load_day_view()
+        tabs_control.selected_index = 0
+        tabs_control.update()
+
     if calendar_view_svc:
         tab_calendar_content = build_continuous_calendar_tab(
-            page, calendar_view_svc, THEME, COLOR_MAP
+            page, calendar_view_svc, THEME, COLOR_MAP, on_day_click=on_calendar_day_click
         )
     else:
         tab_calendar_content = ft.Container(
@@ -2513,9 +2520,20 @@ def main(page: ft.Page):
         ft.Tab(text="LỊCH THÁNG", content=tab_calendar_content),
         ft.Tab(text="GHI CHÚ", content=tab_notes),
     ]
+    tabs_control.selected_index = 1
+    def handle_tab_change(e):
+        if tabs_control.selected_index == 1:
+            if hasattr(tab_calendar_content, "scroll_to_today"):
+                async def do_scroll():
+                    import asyncio
+                    await asyncio.sleep(0.1)
+                    tab_calendar_content.scroll_to_today()
+                page.run_task(do_scroll)
+
     tabs_control.expand = True
     tabs_control.label_color = THEME["primary"]
     tabs_control.indicator_color = THEME["primary"]
+    tabs_control.on_change = handle_tab_change
 
     page.appbar = ft.AppBar(
         leading=ft.Icon(ft.Icons.SCHEDULE, color="white"),
