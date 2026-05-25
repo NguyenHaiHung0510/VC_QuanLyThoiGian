@@ -6,6 +6,9 @@ import os
 import sys
 from datetime import datetime, timedelta
 import database as db  # Import module database
+from app.config import load_config
+from app.db.postgres import connect
+from app.services.notes_service import NotesService
 
 # --- 🎨 THEME & CONSTANTS ---
 THEME = {
@@ -72,6 +75,16 @@ def main(page: ft.Page):
 
     con = db.get_connection()
     cur = con.cursor()
+
+    # PostgreSQL connection for Notes tab (v2 feature)
+    pg_conn = None
+    notes_service = None
+    try:
+        pg_config = load_config()
+        pg_conn = connect(pg_config)
+        notes_service = NotesService(pg_conn)
+    except Exception as pg_err:
+        print(f"PostgreSQL connection initialization failed: {pg_err}")
 
     # --- STATE ---
     current_date = datetime.now()
@@ -150,6 +163,7 @@ def main(page: ft.Page):
         app_bar_title.update()
         load_day_view()
         load_month_view()
+        load_notes_view()
         page.update()
 
     def go_to_today(e):
@@ -1567,9 +1581,438 @@ def main(page: ft.Page):
         ),
     )
 
+    # --- VIEW 3: GHI CHÚ TAB ---
+    container_notes = ft.GridView(
+        expand=True,
+        max_extent=320,
+        child_aspect_ratio=1.0,
+        spacing=15,
+        run_spacing=15,
+    )
+
+    quick_note_tf = ft.TextField(
+        hint_text="Nhập tiêu đề ghi chú nhanh...",
+        expand=True,
+        height=45,
+        content_padding=10,
+    )
+
+    def handle_quick_add_note(e):
+        if not quick_note_tf.value:
+            return
+        if not notes_service:
+            page.open(ft.SnackBar(ft.Text("Lỗi: Không kết nối được PostgreSQL"), bgcolor="red"))
+            return
+        try:
+            notes_service.create_note(title=quick_note_tf.value)
+            quick_note_tf.value = ""
+            quick_note_tf.update()
+            load_notes_view()
+            page.open(ft.SnackBar(ft.Text("Đã thêm ghi chú nhanh!"), bgcolor="green"))
+        except Exception as ex:
+            page.open(ft.SnackBar(ft.Text(f"Lỗi: {ex}"), bgcolor="red"))
+
+    quick_note_tf.on_submit = handle_quick_add_note
+
+    tab_notes = ft.Container(
+        padding=20,
+        bgcolor="white",
+        content=ft.Column(
+            [
+                ft.Row(
+                    [
+                        ft.Text("GHI CHÚ CÁ NHÂN", size=20, weight="bold", color=THEME["primary"]),
+                        ft.Container(width=20),
+                        quick_note_tf,
+                        ft.ElevatedButton(
+                            "THÊM GHI CHÚ",
+                            icon=ft.Icons.ADD,
+                            bgcolor=THEME["primary"],
+                            color="white",
+                            on_click=lambda e: open_edit_note_note_dialog(None),
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                ),
+                ft.Divider(height=10, color="transparent"),
+                container_notes,
+            ],
+            expand=True
+        ),
+    )
+
+    def load_notes_view():
+        if not notes_service:
+            container_notes.controls = [
+                ft.Container(
+                    alignment=ft.alignment.center,
+                    padding=40,
+                    content=ft.Column(
+                        [
+                            ft.Icon(ft.Icons.DANGEROUS, color="red", size=48),
+                            ft.Text("Không thể kết nối đến PostgreSQL!", size=18, weight="bold", color="red"),
+                            ft.Text("Vui lòng kiểm tra cấu hình DATABASE_URL trong file .env và khởi động PostgreSQL server.", color="grey"),
+                        ],
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        spacing=10
+                    )
+                )
+            ]
+            container_notes.update()
+            return
+
+        try:
+            notes = notes_service.list_notes(include_archived=False)
+            container_notes.controls.clear()
+            if not notes:
+                container_notes.controls.append(
+                    ft.Container(
+                        alignment=ft.alignment.center,
+                        padding=100,
+                        content=ft.Text("Chưa có ghi chú nào. Hãy tạo ghi chú mới! 📝", italic=True, color="grey", size=16),
+                    )
+                )
+            else:
+                for note in notes:
+                    container_notes.controls.append(create_note_card(note))
+            container_notes.update()
+        except Exception as e:
+            print(f"Error loading notes: {e}")
+
+    def toggle_pin(nid, current_pinned):
+        try:
+            notes_service.update_note(nid, pinned=not current_pinned)
+            load_notes_view()
+        except Exception as e:
+            page.open(ft.SnackBar(ft.Text(f"Lỗi: {e}"), bgcolor="red"))
+
+    def archive_note(nid):
+        try:
+            notes_service.update_note(nid, archived=True)
+            load_notes_view()
+            page.open(ft.SnackBar(ft.Text("Đã lưu trữ ghi chú!"), bgcolor="green"))
+        except Exception as e:
+            page.open(ft.SnackBar(ft.Text(f"Lỗi: {e}"), bgcolor="red"))
+
+    def confirm_delete_note(nid):
+        def on_confirm(e):
+            if notes_service.delete_note(nid):
+                page.close(dlg)
+                load_notes_view()
+                page.open(ft.SnackBar(ft.Text("Đã xóa ghi chú!"), bgcolor="green"))
+            else:
+                page.open(ft.SnackBar(ft.Text("Lỗi khi xóa ghi chú"), bgcolor="red"))
+
+        dlg = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Xác nhận xóa"),
+            content=ft.Text("Bạn có chắc chắn muốn xóa ghi chú này không? Thao tác này không thể hoàn tác."),
+            actions=[
+                ft.TextButton("Hủy", on_click=lambda e: page.close(dlg)),
+                ft.TextButton(
+                    "XÓA", on_click=on_confirm, style=ft.ButtonStyle(color="red")
+                ),
+            ],
+        )
+        page.open(dlg)
+
+    def create_note_card(note):
+        nid = note["id"]
+        title = note["title"]
+        body = note["body"]
+        pinned = note["pinned"]
+        prio_label = note["priority_label"]
+        prio_color_name = note["priority_color"]
+        note_items = note["note_items"]
+
+        pin_icon = ft.Icons.PUSH_PIN if pinned else ft.Icons.PUSH_PIN_OUTLINED
+        pin_tooltip = "Bỏ ghim" if pinned else "Ghim ghi chú"
+
+        prio_chip = ft.Container()
+        if prio_label:
+            p_color = COLOR_MAP.get(prio_color_name, ft.Colors.GREY)
+            prio_chip = ft.Container(
+                padding=ft.padding.symmetric(horizontal=6, vertical=2),
+                border_radius=10,
+                bgcolor=p_color,
+                content=ft.Text(prio_label, size=9, color="white", weight="bold"),
+            )
+
+        body_display = ft.Text(
+            body,
+            size=12,
+            color=ft.Colors.GREY_800,
+            max_lines=3,
+            overflow=ft.TextOverflow.ELLIPSIS,
+            italic=True
+        ) if body else ft.Container()
+
+        checklist_col = ft.Column(spacing=2)
+        if note_items:
+            for item in note_items[:3]:
+                is_done = item["is_done"]
+                content = item["content"]
+                checklist_col.controls.append(
+                    ft.Row(
+                        [
+                            ft.Icon(
+                                ft.Icons.CHECK_BOX if is_done else ft.Icons.CHECK_BOX_OUTLINE_BLANK,
+                                size=12,
+                                color="grey"
+                            ),
+                            ft.Text(
+                                content,
+                                size=11,
+                                color="grey" if is_done else ft.Colors.BLACK87,
+                                style=ft.TextStyle(decoration=ft.TextDecoration.LINE_THROUGH if is_done else ft.TextDecoration.NONE),
+                                no_wrap=True,
+                                overflow=ft.TextOverflow.ELLIPSIS,
+                                expand=True
+                            )
+                        ],
+                        spacing=3
+                    )
+                )
+            if len(note_items) > 3:
+                checklist_col.controls.append(
+                    ft.Text(f"+ {len(note_items) - 3} mục khác...", size=10, color="grey", italic=True)
+                )
+
+        def make_pin_click(n_id, is_pinned):
+            return lambda e: toggle_pin(n_id, is_pinned)
+
+        def make_edit_click(n_id):
+            return lambda e: open_edit_note_note_dialog(n_id)
+
+        def make_archive_click(n_id):
+            return lambda e: archive_note(n_id)
+
+        def make_delete_click(n_id):
+            return lambda e: confirm_delete_note(n_id)
+
+        return ft.Card(
+            elevation=2,
+            color=ft.Colors.WHITE,
+            content=ft.Container(
+                padding=12,
+                border_radius=8,
+                border=ft.border.all(1.5, THEME["primary"] if pinned else ft.Colors.GREY_200),
+                content=ft.Column(
+                    [
+                        ft.Row(
+                            [
+                                ft.Text(title, weight="bold", size=14, expand=True, no_wrap=True, overflow=ft.TextOverflow.ELLIPSIS),
+                                ft.IconButton(
+                                    pin_icon,
+                                    icon_size=16,
+                                    tooltip=pin_tooltip,
+                                    on_click=make_pin_click(nid, pinned)
+                                )
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                        ),
+                        ft.Row([prio_chip], alignment=ft.MainAxisAlignment.START) if prio_label else ft.Container(),
+                        body_display,
+                        ft.Divider(height=5, color=ft.Colors.GREY_100) if note_items else ft.Container(),
+                        checklist_col,
+                        ft.Container(expand=True),
+                        ft.Row(
+                            [
+                                ft.IconButton(ft.Icons.EDIT, icon_size=16, tooltip="Chỉnh sửa chi tiết", on_click=make_edit_click(nid)),
+                                ft.IconButton(ft.Icons.ARCHIVE, icon_size=16, tooltip="Lưu trữ (Ẩn đi)", on_click=make_archive_click(nid)),
+                                ft.IconButton(ft.Icons.DELETE, icon_size=16, icon_color="red", tooltip="Xóa ghi chú", on_click=make_delete_click(nid)),
+                            ],
+                            alignment=ft.MainAxisAlignment.END,
+                            spacing=2
+                        )
+                    ],
+                    spacing=5,
+                ),
+            )
+        )
+
+    def open_edit_note_note_dialog(nid=None):
+        note_data = None
+        if nid:
+            note_data = notes_service.get_note_by_id(nid)
+
+        title_tf = ft.TextField(
+            label="Tiêu đề",
+            value=note_data["title"] if note_data else "",
+            text_size=16,
+            autofocus=True,
+        )
+        body_tf = ft.TextField(
+            label="Nội dung chi tiết",
+            value=note_data["body"] if note_data else "",
+            multiline=True,
+            max_lines=4,
+        )
+
+        priorities_list = notes_service.list_priorities()
+        prio_options = [ft.dropdown.Option("", text="(Không có)")]
+        for p in priorities_list:
+            prio_options.append(ft.dropdown.Option(p["id"], text=p["label"]))
+
+        selected_prio_id = ""
+        if note_data and note_data["priority_id"]:
+            selected_prio_id = note_data["priority_id"]
+
+        prio_dd = ft.Dropdown(
+            label="Độ ưu tiên",
+            value=selected_prio_id,
+            options=prio_options,
+        )
+
+        note_items_col = ft.Column(spacing=5)
+        new_item_tf = ft.TextField(
+            hint_text="Thêm mục nhỏ...",
+            height=40,
+            text_size=13,
+            content_padding=10,
+            expand=True,
+        )
+
+        def render_note_items(init=False):
+            controls = []
+            if nid:
+                items = notes_service.list_note_items(nid)
+                for item in items:
+                    item_id = item["id"]
+                    is_done = item["is_done"]
+                    content = item["content"]
+
+                    text_style = ft.TextStyle(
+                        decoration=ft.TextDecoration.LINE_THROUGH if is_done else ft.TextDecoration.NONE
+                    )
+
+                    def make_toggle_handler(i_id, curr_done):
+                        return lambda e: toggle_item(i_id, curr_done)
+
+                    def make_delete_handler(i_id):
+                        return lambda e: delete_item(i_id)
+
+                    controls.append(
+                        ft.Row(
+                            [
+                                ft.Checkbox(
+                                    value=is_done,
+                                    on_change=make_toggle_handler(item_id, is_done),
+                                ),
+                                ft.Text(
+                                    content,
+                                    size=13,
+                                    style=text_style,
+                                    expand=True,
+                                ),
+                                ft.IconButton(
+                                    ft.Icons.CLOSE,
+                                    icon_size=14,
+                                    on_click=make_delete_handler(item_id),
+                                ),
+                            ]
+                        )
+                    )
+            note_items_col.controls = controls
+            if not init:
+                note_items_col.update()
+
+        def save_note(close=True):
+            nonlocal nid
+            if not title_tf.value:
+                return
+
+            prio_val = prio_dd.value if prio_dd.value != "" else None
+
+            if nid:
+                notes_service.update_note(
+                    nid,
+                    title=title_tf.value,
+                    body=body_tf.value,
+                    priority_id=prio_val or ""
+                )
+            else:
+                new_note = notes_service.create_note(
+                    title=title_tf.value,
+                    body=body_tf.value,
+                    priority_id=prio_val,
+                    pinned=False
+                )
+                nid = new_note["id"]
+
+            if close:
+                page.close(dlg)
+            load_notes_view()
+
+        def add_item(e):
+            if not new_item_tf.value:
+                return
+            nonlocal nid
+            if not nid:
+                save_note(close=False)
+
+            current_items = notes_service.list_note_items(nid)
+            next_pos = len(current_items)
+
+            notes_service.add_note_item(nid, new_item_tf.value, is_done=False, position=next_pos)
+            new_item_tf.value = ""
+            new_item_tf.focus()
+            new_item_tf.update()
+            render_note_items()
+
+        def toggle_item(item_id, current_state):
+            notes_service.update_note_item(item_id, is_done=not current_state)
+            render_note_items()
+
+        def delete_item(item_id):
+            notes_service.delete_note_item(item_id)
+            render_note_items()
+
+        new_item_tf.on_submit = add_item
+        render_note_items(True)
+
+        dlg = ft.AlertDialog(
+            title=ft.Text("Chi tiết Ghi chú"),
+            content=ft.Container(
+                width=500,
+                height=480,
+                content=ft.Column(
+                    [
+                        title_tf,
+                        prio_dd,
+                        body_tf,
+                        ft.Divider(),
+                        ft.Text("Mục cần làm:"),
+                        ft.Row(
+                            [new_item_tf, ft.IconButton(ft.Icons.ADD, on_click=add_item)]
+                        ),
+                        ft.Container(
+                            content=note_items_col,
+                            expand=True,
+                            border=ft.border.all(1, "grey"),
+                            border_radius=5,
+                            padding=5,
+                        ),
+                    ],
+                    scroll="auto",
+                ),
+            ),
+            actions=[
+                ft.TextButton("Đóng", on_click=lambda e: page.close(dlg)),
+                ft.ElevatedButton(
+                    "LƯU GHI CHÚ",
+                    bgcolor=THEME["primary"],
+                    color="white",
+                    on_click=lambda e: save_note(True),
+                ),
+            ],
+        )
+        page.open(dlg)
+
     tabs_control.tabs = [
         ft.Tab(text="CHI TIẾT NGÀY", content=tab_day),
         ft.Tab(text="LỊCH THÁNG", content=tab_month),
+        ft.Tab(text="GHI CHÚ", content=tab_notes),
     ]
     tabs_control.expand = True
     tabs_control.label_color = THEME["primary"]
