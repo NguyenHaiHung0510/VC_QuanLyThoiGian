@@ -1,29 +1,32 @@
 # microSchedule v2 - Decision Brief
 
-Ngày khảo sát: 2026-05-25  
+Ngày khảo sát: 2026-05-25
 Vai trò tài liệu: Tier 1 strategy, dùng để bạn chọn hướng trước khi giao Tier 2 implement.
 
 ## Executive Summary
 
 Khuyến nghị chiến lược: làm v2 theo hướng "PostgreSQL + schema mới + Flet UI được tách service layer", chưa vội rewrite full web/backend. Lý do: app hiện nhỏ, dùng cá nhân, nhưng nhu cầu mới đòi hỏi data model chắc hơn, import có versioning, note tách khỏi task, và lịch cuộn kiểu Outlook. Tách backend/frontend hoàn toàn nên để sau khi data model ổn.
 
-Các quyết định nên chốt trước khi giao Tier 2:
+Các quyết định đã chốt trước khi giao Tier 2:
 
-| Nhóm | Khuyến nghị Tier 1 | Lựa chọn cần bạn duyệt |
+| Nhóm | Quyết định đã chốt | Ghi chú triển khai |
 |---|---|---|
-| Import lịch học/thi | Dùng `calendar_sources` + `import_batches` + `calendar_events`, upsert theo UID/hash, không insert mù | Chọn "batch versioning + supersede" |
-| Task vs Note | Tạo module Notes riêng, migrate 29 task chưa hoàn thành quá hạn sang note | Chọn rule migrate tự động hay review tay |
-| Calendar UI | Thay month grid bằng continuous multi-week view + left sidebar | Chốt Flet incremental hay rewrite UI |
-| Export | Markdown là mặc định, JSON vẫn giữ như tuỳ chọn setting | Chọn format mặc định: Markdown |
-| Database | PostgreSQL `microschedule_v2`, schema mới, không reuse schema SQLite cũ | Duyệt schema migration |
-| Backup | Dùng `pg_dump` theo lịch + retention; backup app config riêng | Chọn policy backup |
-| AI | Giai đoạn đầu làm Chat + RAG + internal tools read-only, chưa cho agent mutate DB | Chọn mức tự động hoá AI |
+| Import lịch học/thi | Replace theo source + versioning mức source | Mỗi source có nhiều version; update source thay active version, giữ version cũ |
+| Task vs Note | Tạo module Notes riêng, migrate 29 task chưa hoàn thành quá hạn sang note | Không cần lưu `source_task_id`, không cần mark migrated trong DB |
+| Calendar UI | Thay month grid bằng continuous multi-week view + left sidebar | Làm incremental trong Flet trước |
+| Export | Markdown là mặc định, JSON vẫn giữ như tuỳ chọn setting | Internal DTO chung cho cả Markdown/JSON |
+| Database | PostgreSQL `microschedule_v2`, schema mới, không reuse schema SQLite cũ | Migration one-shot từ SQLite v1 |
+| Backup | `pg_dump` vào thư mục v2 đã sync Google Drive | Thư mục: `C:\Users\os\Desktop\Tools\VC_microSchedule_home_v2` |
+| Architecture | Giữ desktop Flet nhưng tách service/repository layer | Chưa rewrite full backend/frontend |
+| AI | Agent + internal tools + MCP | Phải có permission, audit log, backup/recover và safety guardrails |
 
 Hiện trạng đã chuẩn bị:
 - Đã switch sang nhánh `develop`.
 - Đã tạo `.env` local và `.env.example`; `.env` đã được đưa vào `.gitignore`.
 - Đã tạo database PostgreSQL rỗng `microschedule_v2`.
-- Chưa migrate dữ liệu và chưa tạo schema vì cần duyệt quyết định.
+- Chưa migrate dữ liệu và chưa tạo schema vì cần implement theo quyết định đã chốt.
+
+Chiến lược giao việc: không cần một Tier 2 làm toàn bộ. Dùng `agent_workflow_doc/tier2_task_specs/V2_PARALLEL_EXECUTION_BOARD.md` để chia nhiều model chạy song song theo workstream. Các phần schema/migration, cross-workstream integration, continuous calendar khó, và AI agent safety nên giao Codex/strong model ở chat riêng.
 
 ## 1. Hiện Trạng V1
 
@@ -75,20 +78,39 @@ Khuyến nghị: với lịch thi kỳ này, ưu tiên ICS làm source chuẩn. 
 
 Vấn đề v1: import hiện tại insert thẳng vào `schedule`, không biết event đến từ file nào, lần import nào, UID nào, và không phát hiện lịch bị đổi/hủy.
 
-### Option A - Replace theo source
+### Option A - Replace theo source + source-level versioning (đã chọn)
 
-Mỗi source như "Lịch học 20252" hoặc "Lịch thi 20252" chỉ có một bản active. Import mới sẽ archive toàn bộ event active cũ của source rồi insert bản mới.
+Mỗi source như "Lịch học 2025 kỳ 2" hoặc "Lịch thi 2025 kỳ 2" có nhiều version. Tại một thời điểm chỉ có một version active. Khi user bấm "cập nhật lịch" trên một source, app tạo version mới cho source đó, import toàn bộ events của file mới vào version mới, rồi đặt version mới làm active snapshot. Version cũ vẫn được giữ để rollback/diff khi cần.
+
+UI import phải có:
+- Danh sách source đã có, sort theo thời gian/kỳ học: ví dụ "Lịch học 2025 kỳ 2", "Lịch thi 2025 kỳ 2".
+- Mỗi source có nút "Cập nhật lịch".
+- Có nút "Import lịch mới".
+- Khi import lịch mới, user bắt buộc nhập tên source hiển thị và loại source: lịch học, lịch thi, task tự đặt, ngày lễ, lịch khác.
+- Source có màu và cờ visible để dùng cho calendar filter.
+
+Schema core:
+- `calendar_sources`: tên source, loại source, năm/kỳ hoặc sort key, màu, visible, current_version_id.
+- `calendar_source_versions`: source_id, version_number, file_name, file_sha256, imported_at, parser_version, status, summary_json.
+- `calendar_events`: source_id, source_version_id, title, description, starts_at, ends_at, location, event_type, external_uid, content_hash, status.
+
+Import/update source:
+- Import cùng file checksum cho cùng source thì báo duplicate/no-op.
+- Update source không insert đè vào active events cũ; nó tạo version mới.
+- Main calendar chỉ đọc events thuộc `calendar_sources.current_version_id`.
+- Có thể build rollback source bằng cách đổi `current_version_id` về version cũ.
 
 Ưu:
 - Dễ implement.
 - Ít lỗi duplicate.
 - Phù hợp nếu chỉ cần "trạng thái mới nhất".
+- Vẫn giữ lịch sử ở cấp source/version, đủ cho nhu cầu cá nhân.
 
 Nhược:
 - Không thấy diff chi tiết từng event.
-- Không giữ lifecycle event tốt nếu muốn biết môn nào bị đổi phòng/giờ.
+- Không giữ lifecycle event-level chi tiết như supersede từng event.
 
-### Option B - Batch versioning + supersede (khuyến nghị)
+### Option B - Batch versioning + event-level supersede
 
 Tạo các bảng:
 - `calendar_sources`: nguồn lịch, ví dụ `school_schedule_20252`, `exam_schedule_20252`.
@@ -124,7 +146,7 @@ Nhược:
 
 ### Tier 1 chọn
 
-Chọn Option B cho v2 core. UI diff có thể để phase sau. Đây là điểm không nên giao Tier 2 làm kiểu "insert ignore" vì sẽ khóa sai data model.
+Chọn Option A theo quyết định user: replace theo source + versioning mức source. Đây vẫn không phải insert mù: mọi event phải thuộc source và source_version, calendar chỉ hiển thị active version của từng source.
 
 ## 3. Quyết Định 2 - Tách Notes Khỏi Tasks
 
@@ -145,15 +167,15 @@ Nhược:
 ### Option B - Tạo module Notes riêng (khuyến nghị)
 
 Tạo bảng riêng:
-- `notes`: title, body, priority_id nullable, created_at, updated_at, archived_at, pinned, source_task_id.
+- `notes`: title, body, priority_id nullable, created_at, updated_at, archived_at, pinned.
 - `note_items`: note_id, content, is_done, position, created_at.
 - Có thể thêm `tags` sau.
 
 Migration:
 - Mặc định chuyển các task `is_completed = 0 AND date_str < current_date` sang notes.
 - Subtasks của task chuyển thành `note_items`.
-- Giữ `source_task_id` để trace về v1.
-- Có thể mark task cũ là migrated trong bảng migration log, không cần giữ trong v2 tasks.
+- Không lưu `source_task_id` trong DB v2.
+- Không cần mark `migrated` trong DB v2. Nếu cần trace, chỉ ghi trong migration report một lần.
 
 Ưu:
 - Sạch khái niệm: task = có deadline/action; note = tri thức/ý tưởng.
@@ -176,7 +198,7 @@ Nhược:
 
 ### Tier 1 chọn
 
-Chọn Option B. Rule migrate mặc định: chuyển 29 incomplete overdue tasks hiện tại sang notes. Nếu bạn lo có task thật bị chuyển nhầm, thêm file report `migration_review_notes.md` trước khi apply.
+Chọn Option B. Rule migrate mặc định: chuyển 29 incomplete overdue tasks hiện tại sang notes. Không giữ `source_task_id`, không mark migrated.
 
 ## 4. Quyết Định 3 - Continuous Calendar + Sidebar
 
@@ -325,19 +347,20 @@ Chọn Option A. Database `microschedule_v2` đã tạo rỗng, nhưng chưa t�
 Schema khởi điểm đề xuất:
 
 ```sql
-calendar_sources(id, name, kind, color, is_visible, created_at, updated_at)
-import_batches(id, source_id, file_name, file_sha256, imported_at, parser_version, status, summary_json)
-calendar_events(id, source_id, external_uid, content_hash, title, description, starts_at, ends_at, location, event_type, status, valid_from_batch_id, superseded_by_batch_id, created_at, updated_at)
+calendar_sources(id, display_name, kind, academic_year, term, sort_start_date, color, is_visible, current_version_id, created_at, updated_at)
+calendar_source_versions(id, source_id, version_number, file_name, file_sha256, imported_at, parser_version, status, summary_json)
+calendar_events(id, source_id, source_version_id, external_uid, content_hash, title, description, starts_at, ends_at, location, event_type, status, created_at, updated_at)
 
 tasks(id, title, note, priority_id, due_at, status, created_at, updated_at, completed_at)
 task_items(id, task_id, content, is_completed, position, created_at, updated_at)
 
-notes(id, title, body, priority_id, pinned, archived_at, source_task_id, created_at, updated_at)
+notes(id, title, body, priority_id, pinned, archived_at, created_at, updated_at)
 note_items(id, note_id, content, is_done, position, created_at, updated_at)
 
 priorities(id, name, label, color, icon, sort_order, created_at, updated_at)
 app_settings(key, value_json, updated_at)
 backup_runs(id, kind, status, artifact_path, started_at, finished_at, message)
+agent_action_log(id, actor, action_type, tool_name, permission_scope, status, target_summary_json, before_json, after_json, rollback_json, created_at)
 ```
 
 ## 7. Quyết Định 6 - Backup System
@@ -384,7 +407,7 @@ Nhược:
 
 ### Tier 1 chọn
 
-Chọn Kịch bản B. App v2 backup riêng tại `VC_microSchedule_v2_home\backups`, dump ra file temp rồi rename. Retention đề xuất: giữ 48 bản gần nhất + 30 daily snapshot.
+Chọn Kịch bản B. App v2 backup riêng tại `C:\Users\os\Desktop\Tools\VC_microSchedule_home_v2\backups`, dump ra file temp rồi rename. Thư mục này user đã sync với Google Drive. Retention đề xuất: giữ 48 bản gần nhất + 30 daily snapshot.
 
 ## 8. Quyết Định 7 - Có Nên Tách Backend/Frontend?
 
@@ -484,12 +507,19 @@ Nhược:
 
 ### Tier 1 chọn
 
-Chọn Option B trước, thiết kế sẵn boundary để lên Option C. Mọi tool ghi DB phải có dry-run + user confirm ở phase đầu.
+Chọn Option C theo quyết định user: Agent + internal tools + MCP. Làm kỹ permission, audit log, backup/recoverable workflow và safety guardrails ngay từ đầu. Các tool ghi DB được phép tồn tại, nhưng phải qua policy sau:
+- Dry-run/proposal trước khi mutate.
+- User confirm rõ với summary thay đổi.
+- Ghi `agent_action_log`/audit log đầy đủ input summary, tool name, affected entity ids, before/after hoặc rollback payload.
+- Tự tạo backup/checkpoint trước nhóm thao tác rủi ro như import, bulk update, delete, migration.
+- Có rollback/recover path cho thao tác bulk.
+- Permission theo tool scope: read-only, propose-only, write-with-confirm, admin.
+- Safety guardrail chặn destructive action không có backup và confirm.
 
 Thư viện:
-- Khuyến nghị không dùng LangChain cho phase đầu nếu chỉ chat/RAG đơn giản; viết adapter OpenAI-compatible bằng `httpx` hoặc dùng LiteLLM.
-- Dùng LiteLLM nếu muốn đổi model/router dễ.
-- Dùng LangGraph khi thật sự làm agent multi-step có state, tool call, rollback/approval.
+- Dùng LiteLLM cho adapter model/router nếu chạy sạch với 9Router.
+- Dùng LangGraph cho agent multi-step có state, tool call, permission gate, rollback/approval.
+- LangChain chỉ dùng phần cần thiết cho retriever/document abstraction nếu không làm phình dependency.
 
 Model policy đề xuất:
 - `AI_DEFAULT_FAST_MODEL`: Gemini Flash qua 9Router khi router bật.
@@ -497,6 +527,13 @@ Model policy đề xuất:
 - Không hardcode tên model cho đến khi `/models` chạy được; lưu model id trong settings sau.
 
 ## 10. Roadmap Giao Tier 2
+
+Roadmap dưới đây là thứ tự tích hợp. Khi triển khai thực tế, có thể chạy song song các phần ít phụ thuộc nhau:
+- Parser-only của import.
+- Formatter-only của export.
+- Backup/restore.
+- AI permission/audit design.
+- Schema/migration do Codex/strong model giữ contract.
 
 ### Phase 0 - Safety & baseline
 
@@ -557,17 +594,21 @@ Acceptance:
 - Có backup run thành công.
 - Có command restore test trên DB temp.
 
-### Phase 5 - AI chat/RAG
+### Phase 5 - AI agent + RAG + internal tools + MCP
 
 Mục tiêu:
-- Chat UI.
+- Chat/Agent UI.
 - LLM provider config qua `.env`.
-- RAG read-only trên notes/tasks/events.
+- RAG trên notes/tasks/events.
+- Internal tools và MCP boundary.
+- Permission gate, audit log, backup checkpoint và recover path cho write tools.
 
 Acceptance:
 - Router off thì app báo lỗi cấu hình, không crash.
 - Router on thì list model và chat được.
-- Không có DB write tool ở phase đầu.
+- Read tools chạy không cần confirm.
+- Write tools bắt buộc dry-run + confirm + audit log.
+- Bulk/destructive tools bắt buộc backup checkpoint trước khi chạy.
 
 ## 11. Những Điều Tier 2 Không Được Tự Quyết
 
@@ -576,17 +617,19 @@ Tier 2 không được tự:
 - Xóa hoặc sửa SQLite v1.
 - Hardcode API key/connection string vào code/docs.
 - Chọn rewrite full web khi chưa được duyệt.
-- Cho AI agent tự ghi DB không cần confirm.
+- Cho AI agent ghi DB không cần dry-run/confirm/audit.
 - Import lịch bằng cách insert mù vào bảng event active.
+- Bỏ qua source/source_version khi import lịch.
 
 Nếu phát hiện conflict, Tier 2 phải viết report và dừng ở boundary đó.
 
-## 12. Câu Hỏi Cần Bạn Chốt
+## 12. Quyết Định Đã Chốt
 
-1. Import versioning: duyệt Option B `batch versioning + supersede` chứ?
-2. Notes migration: tự động chuyển 29 incomplete overdue tasks sang notes, hay xuất review report trước?
-3. Calendar UI: chấp nhận Flet incremental phase đầu chứ?
-4. Export default: Markdown mặc định, JSON giữ tùy chọn chứ?
-5. Backup: chọn kịch bản B local `pg_dump` + cloud-sync folder?
-6. AI: phase đầu chỉ Chat + RAG read-only, chưa agent ghi DB chứ?
-
+1. Import: replace theo source + versioning mức source.
+2. Notes: Option B, chuyển 29 incomplete overdue tasks sang notes; không giữ `source_task_id`, không mark migrated.
+3. Calendar UI: Flet incremental continuous calendar + sidebar.
+4. Export: Markdown mặc định, JSON tùy chọn.
+5. Database: PostgreSQL schema mới + migration one-shot.
+6. Backup: `pg_dump` vào `C:\Users\os\Desktop\Tools\VC_microSchedule_home_v2`, thư mục đã sync Google Drive.
+7. Architecture: desktop Flet tách layer trước, chưa rewrite backend/frontend.
+8. AI: Option C, Agent + internal tools + MCP với permission, audit, backup/recoverable safety guardrails.

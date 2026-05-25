@@ -26,7 +26,7 @@ graph LR
     UI -->|"User actions"| IMPORT
     UI -->|"Display"| CALC
     UI -->|"Trigger"| EXPORT
-    
+
     IMPORT --> DB
     CALC --> DB
     EXPORT --> DB
@@ -41,11 +41,11 @@ graph TD
     A["📄 File: calendar.ics"] --> B["parse_ics_date<br/>(Handle timezone)"]
     B --> C["unfold lines<br/>(RFC 5545 compliance)"]
     C --> D["Extract VEVENT<br/>(BEGIN:VEVENT...END:VEVENT)"]
-    
+
     D --> E{"DTSTART +<br/>SUMMARY<br/>present?"}
     E -->|Yes| F["Calculate time_end<br/>(Default +90min if missing)"]
     E -->|No| G["Skip event"]
-    
+
     F --> H["INSERT schedule<br/>(subject, time_start, time_end, location, date_str)"]
     G --> H
     H --> I["✅ Success: count++"]
@@ -56,19 +56,19 @@ graph TD
 graph TD
     A["📊 File: exam_schedule.xlsx"] --> B["Detect header<br/>(Find 'Môn', 'Ngày', etc)"]
     B --> C{"Header found<br/>+ required cols?"}
-    
+
     C -->|No| D["❌ Abort"]
     C -->|Yes| E["Parse each row"]
-    
+
     E --> F["Format Date<br/>(Handle: datetime, DD/MM/YYYY, ISO)"]
     F --> G["Map Time Slot<br/>(Ca1→07:00, Ca2→13:00)"]
     G --> H["Get Location<br/>(Default: 'Trường')"]
-    
+
     H --> I["INSERT schedule<br/>(with [THI] prefix)"]
     I --> J["✅ count++"]
 ```
 
-**Key Strategy**: 
+**Key Strategy**:
 - ICS = dùng cho lịch học cố định (import từ Google Cal)
 - Excel = dùng cho lịch thi (smart detect + format inference)
 
@@ -110,25 +110,25 @@ UI queries get_prio_config(prio_name) → (color, icon, label)
 ```mermaid
 graph TD
     A["🔔 User triggers export"] --> B["generate_planner_data()"]
-    
+
     B --> C["threshold_iso = current_date"]
-    
+
     C --> D["Query 1: GET SCHEDULE<br/>(WHERE date_str >= threshold)"]
     D --> D1["schedules = [ ... ]"]
-    
+
     C --> E["Query 2: GET TASKS<br/>(date_str >= threshold OR is_completed=0)"]
     E --> E1["tasks_raw = [ ... ]"]
-    
+
     E1 --> F["FOR each task<br/>Query subtasks"]
     F --> F1["Attach subtasks_list<br/>Calculate progress<br/>Add context_note"]
     F1 --> F2["tasks_with_subs = [ ... ]"]
-    
+
     D1 & F2 --> G["Assemble JSON<br/>{metadata, schedule_events, todo_tasks}"]
-    
+
     G --> H{"Export to:"}
     H -->|File| I["save_file (JSON)"]
     H -->|Clipboard| J["page.set_clipboard()"]
-    
+
     I & J --> K["✅ SnackBar notification"]
 ```
 
@@ -240,7 +240,7 @@ durations = [45p, 90p, 3h]
 
 **TL;DR**: microSchedule là một **desktop app tự chủ** với 3 stream chính:
 1. **Ingest** (ICS/Excel) → parse → DB
-2. **Manage** (UI interactions) → CRUD → DB  
+2. **Manage** (UI interactions) → CRUD → DB
 3. **Export** (JSON generation) → clipboard/file
 
 Hiện tại chưa có abstraction layer (cực kì tight coupling UI + logic), phù hợp cho single-user, single-machine workflow.

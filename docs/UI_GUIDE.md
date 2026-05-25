@@ -56,12 +56,12 @@ ICON_MAP = {
     "School": ft.Icons.SCHOOL,
     "Home": ft.Icons.HOME,
     "Library": ft.Icons.LOCAL_LIBRARY,
-    
+
     # Priorities
     "Low": ft.Icons.LOW_PRIORITY,
     "High": ft.Icons.PRIORITY_HIGH,
     "Danger": ft.Icons.DANGEROUS,
-    
+
     # Misc
     "Check": ft.Icons.CHECK_CIRCLE_OUTLINE,
     "Star": ft.Icons.STAR,
@@ -99,7 +99,7 @@ def main(page: ft.Page):
     page.window_width = 1400
     page.window_height = 900
     page.padding = 0  # No padding on main page
-    
+
     # Overlays (hidden until needed)
     file_picker = ft.FilePicker()
     date_picker = ft.DatePicker(
@@ -550,14 +550,14 @@ def create_task_card(task):
     def on_complete(e):
         db.mark_task_complete(task["id"])
         refresh_all()
-    
+
     def on_edit(e):
         show_edit_dialog(task)
-    
+
     def on_delete(e):
         db.delete_task(task["id"])
         refresh_all()
-    
+
     return ft.Card(
         content=ft.Container(
             content=ft.Column([
@@ -582,14 +582,14 @@ def show_edit_dialog(task):
         options=[ft.dropdown.Option(p["name"]) for p in APP_CONFIG["priorities"]],
         value=task["priority"],
     )
-    
+
     def on_save(e):
         task["title"] = title_field.value
         task["priority"] = prio_dropdown.value
         db.update_task(task)
         page.close(dlg)
         refresh_all()
-    
+
     dlg = ft.AlertDialog(
         modal=True,
         title=ft.Text("Edit Task"),

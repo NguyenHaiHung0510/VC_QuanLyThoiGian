@@ -97,7 +97,7 @@ DTSTART:20250518
 def parse_ics_date(dt_str):
     """
     Chuyển ICS date string → datetime object
-    
+
     Hỗ trợ:
     - "20250518T070000Z" (UTC)
     - "TZID=Asia/Ho_Chi_Minh:20250518T070000" (with timezone)
@@ -105,10 +105,10 @@ def parse_ics_date(dt_str):
     """
     if not dt_str:
         return None
-    
+
     # Xóa timezone prefix nếu có
     clean_str = dt_str.split(":")[-1].replace("Z", "").strip()
-    
+
     try:
         # Try full datetime
         return datetime.strptime(clean_str, "%Y%m%dT%H%M%S")
@@ -127,19 +127,19 @@ def parse_ics_date(dt_str):
 if "DTSTART" in curr_event and "SUMMARY" in curr_event:
     dt_start = parse_ics_date(curr_event["DTSTART"])
     dt_end = parse_ics_date(curr_event.get("DTEND"))
-    
+
     # Nếu không có end time, mặc định +90 phút
     if not dt_end:
         dt_end = dt_start + timedelta(minutes=90)
-    
+
     subj = curr_event["SUMMARY"]
     loc = curr_event.get("LOCATION", "Trường")  # Default location
-    
+
     # Format lại thành YYYY-MM-DD HH:MM
     d_str = dt_start.strftime("%Y-%m-%d")
     t_start = dt_start.strftime("%H:%M")
     t_end = dt_end.strftime("%H:%M")
-    
+
     # Insert vào DB
     cur.execute(
         "INSERT INTO schedule (subject, time_start, time_end, location, date_str) VALUES (?, ?, ?, ?, ?)",
@@ -169,7 +169,7 @@ Excel không có chuẩn định dạng, nên parser phải "flexible" để det
 ```
 Tùy-chỉnh Excel có thể có cột nào:
 - Môn học
-- Học phần  
+- Học phần
 - Lịch thi (row headers khác nhau)
 - Ngày thi / Ngày khai giảng
 - Ca thi (Ca 1, Ca 2, Sáng, Chiều, 07:00-09:00)
@@ -185,11 +185,11 @@ Quét 10 dòng đầu để tìm dòng header chứa các keyword:
 ```python
 for r_idx, row in enumerate(sheet.iter_rows(max_row=10, values_only=True), 1):
     row_lower = [str(c).lower() if c else "" for c in row]
-    
+
     # Tìm keyword
     if any("môn" in c or "học phần" in c for c in row_lower):
         header_row_idx = r_idx
-        
+
         # Map columns
         col_map = {}
         for c_idx, val in enumerate(row_lower):
@@ -213,7 +213,7 @@ for row in sheet.iter_rows(min_row=header_row_idx + 1, values_only=True):
     raw_date = row[col_map["date"]]
     raw_time = row[col_map.get("time", -1)] if "time" in col_map else "07:00"
     raw_loc = row[col_map.get("loc", -1)] if "loc" in col_map else "Trường"
-    
+
     if not raw_sub or not raw_date:
         continue  # Skip empty rows
 ```
@@ -256,7 +256,7 @@ t_start = "07:00"  # Default
 
 if raw_time:
     s_time = str(raw_time).lower()
-    
+
     # Detect ca thi
     if "1" in s_time or "sáng" in s_time:
         t_start = "07:00"

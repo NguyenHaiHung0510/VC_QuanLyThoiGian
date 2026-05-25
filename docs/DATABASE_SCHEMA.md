@@ -174,7 +174,7 @@ FROM subtasks
 WHERE task_id = 1 AND is_completed = 1;
 
 -- Get task progress (done/total)
-SELECT 
+SELECT
     task_id,
     SUM(CASE WHEN is_completed = 1 THEN 1 ELSE 0 END) as done,
     COUNT(*) as total
@@ -357,7 +357,7 @@ SELECT value FROM settings WHERE key = 'app_title';
 SELECT key, value FROM settings;
 
 -- Update setting (upsert)
-INSERT OR REPLACE INTO settings (key, value) 
+INSERT OR REPLACE INTO settings (key, value)
 VALUES ('app_title', '"My Custom App"');
 ```
 
@@ -491,7 +491,7 @@ DELETE FROM tasks WHERE id = ?;
 SELECT id, content, is_completed FROM subtasks WHERE task_id = ?;
 
 -- Count subtask progress
-SELECT 
+SELECT
     COUNT(*) as total,
     SUM(CASE WHEN is_completed = 1 THEN 1 ELSE 0 END) as completed
 FROM subtasks WHERE task_id = ?;

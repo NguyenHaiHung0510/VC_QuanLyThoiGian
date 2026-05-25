@@ -1,6 +1,6 @@
 # Tier 2 Handoff - microSchedule v2 Implementation Plan
 
-Vai trò: tài liệu giao việc cho model Tier 2, ưu tiên Gemini Flash 3.5.  
+Vai trò: tài liệu giao việc cho model Tier 2, ưu tiên Gemini Flash 3.5.
 Nguyên tắc: Tier 2 chỉ implement theo quyết định đã duyệt trong `docs/V2_DECISION_BRIEF.md`. Nếu gặp conflict, dừng và report.
 
 ## Required Reading
@@ -15,6 +15,7 @@ Tier 2 phải đọc theo thứ tự:
 6. `docs/DATABASE_SCHEMA.md`
 7. `database.py`
 8. `main.py`
+9. `agent_workflow_doc/tier2_task_specs/V2_PARALLEL_EXECUTION_BOARD.md`
 
 Nếu đọc file tiếng Việt bằng PowerShell, dùng:
 
@@ -29,8 +30,8 @@ Không được:
 - Sửa/xóa SQLite v1 tại `C:\Users\os\Desktop\Tools\VC_microSchedule_home\todo.db`.
 - Hardcode secret vào code, docs, test.
 - Commit `.env`.
-- Import schedule kiểu insert mù không tracking source/import batch.
-- Cho AI agent ghi DB nếu chưa có user confirmation.
+- Import schedule kiểu insert mù không tracking source/source version.
+- Cho AI agent ghi DB nếu chưa có dry-run, user confirmation, audit log và backup/checkpoint khi thao tác rủi ro.
 - Rewrite full web/backend nếu task chỉ yêu cầu phase incremental.
 
 Phải:
@@ -40,6 +41,15 @@ Phải:
 - Viết report sau mỗi phase: changed files, migration counts, tests run, known risks.
 - Dùng `.env`/`.env.example` cho config.
 - Tạo backup/dry-run trước migration thật.
+
+## Parallel Execution
+
+Không bắt buộc một model làm hết. Khi chia cho nhiều Tier 2 chạy song song, dùng `V2_PARALLEL_EXECUTION_BOARD.md` làm nguồn điều phối chính:
+
+- Mỗi model nhận đúng một workstream.
+- Mỗi workstream có branch và file ownership riêng.
+- Workstream có thể làm parser/formatter/backup độc lập trước, nhưng không tự đổi schema contract.
+- Các phần cross-cutting như schema, migration, AI write tools và integration nên giao Codex/strong model ở chat riêng.
 
 ## Current Local Facts
 
@@ -56,6 +66,7 @@ Phải:
   - `TKB-QLDT20252.ics`: 139 VEVENT
   - `LichThi-QLDT-20252.ics`: 8 VEVENT
   - `LichThi.xlsx`: 8 rows, but some date cells read ambiguously by openpyxl
+- v2 data/backup folder: `C:\Users\os\Desktop\Tools\VC_microSchedule_home_v2` and user has synced it with Google Drive.
 
 ## Phase 1 Task - PostgreSQL Schema + Migration Dry Run
 
@@ -99,7 +110,7 @@ Implement at minimum:
 
 ```sql
 calendar_sources
-import_batches
+calendar_source_versions
 calendar_events
 priorities
 tasks
@@ -108,6 +119,7 @@ notes
 note_items
 app_settings
 backup_runs
+agent_action_log
 ```
 
 Use:
@@ -117,8 +129,10 @@ Use:
 - `jsonb` for settings/summary payloads.
 - FK constraints with `ON DELETE CASCADE` only for child rows like task_items/note_items.
 - Unique indexes:
-  - `calendar_sources(name)`
-  - `calendar_events(source_id, external_uid, superseded_by_batch_id)` where usable
+  - `calendar_sources(display_name)`
+  - `calendar_source_versions(source_id, version_number)`
+  - `calendar_source_versions(source_id, file_sha256)`
+  - `calendar_events(source_version_id, external_uid)` where UID exists
   - `app_settings(key)`
 
 ### Migration Rules
@@ -131,7 +145,8 @@ Tasks:
 - Subtasks of migrated notes become `note_items`.
 - Completed tasks migrate to `tasks` with `status='completed'`.
 - Future/incomplete non-overdue tasks migrate to `tasks` with `status='open'`.
-- Preserve original id in `legacy_sqlite_id` column or `metadata` JSON if the schema uses metadata.
+- Do not preserve `source_task_id` in `notes`; user explicitly does not need it.
+- Do not mark original task as `migrated` in PostgreSQL.
 
 Schedule:
 
@@ -170,11 +185,11 @@ Settings:
 .\venv\Scripts\python.exe app\migration\migrate_sqlite_to_postgres.py --apply
 ```
 
-## Phase 2 Task - Import Versioning
+## Phase 2 Task - Source-level Import Versioning
 
 ### Goal
 
-Implement ICS/Excel import into v2 calendar schema with source and batch tracking.
+Implement ICS/Excel import into v2 calendar schema with source and source-version tracking.
 
 ### Suggested Branch
 
@@ -185,6 +200,7 @@ Implement ICS/Excel import into v2 calendar schema with source and batch trackin
 - `app/importers/__init__.py`
 - `app/importers/ics_importer.py`
 - `app/importers/excel_exam_importer.py`
+- `app/services/calendar_source_service.py`
 - `app/services/calendar_import_service.py`
 - `tests/test_calendar_import_service.py`
 
@@ -207,20 +223,30 @@ Excel:
 - If openpyxl returns datetime with suspicious `mm-dd-yy` format, write warning in import summary.
 - Do not silently override ICS exam events.
 
+Source UI/service behavior:
+
+- Existing sources are listed by `sort_start_date`, `academic_year`, `term`, then name. Example display names: "Lịch học 2025 kỳ 2", "Lịch thi 2025 kỳ 2".
+- Each existing source has an "Update schedule" action.
+- There is an "Import new schedule" action.
+- Import new schedule requires user-provided `display_name` and `kind`.
+- Source has color and visibility flag for calendar filters.
+
 Versioning:
 
-- Same file checksum imported again creates an import batch with status `duplicate` or skips with clear message.
-- Same UID + same hash: no new event.
-- Same UID + changed hash: old event gets `superseded_by_batch_id`, new event inserted.
-- Old active UID missing from latest batch: mark as `missing_in_latest`, not hard delete.
+- Same file checksum imported again for the same source creates no duplicate active events and returns duplicate/no-op summary.
+- Updating a source creates a new `calendar_source_versions` row and imports all parsed events into that version.
+- After successful import, `calendar_sources.current_version_id` points to the new version.
+- The main calendar only reads events whose `source_version_id = calendar_sources.current_version_id`.
+- Old source versions and their events are kept for rollback/diff, not hard deleted.
+- Do not implement event-level supersede unless Tier 1 explicitly changes the architecture.
 
 ### Acceptance Criteria
 
 - Import `TKB-QLDT20252.ics` creates 139 active events.
 - Import `LichThi-QLDT-20252.ics` creates 8 active exam events.
 - Re-importing same file does not duplicate active events.
-- Import summary includes added/changed/unchanged/missing counts.
-- Unit tests cover unchanged and changed event cases.
+- Import summary includes source, version_number, parsed_count, active_count, duplicate/no-op status.
+- Unit tests cover duplicate same-file import and update-source creates a new active version.
 
 ## Phase 3 Task - Export Markdown/JSON
 
@@ -363,6 +389,7 @@ Implement v2 backup using `pg_dump`.
 ### Required Behavior
 
 - Dump `microschedule_v2` using `pg_dump -Fc`.
+- Store backups under `C:\Users\os\Desktop\Tools\VC_microSchedule_home_v2\backups` by default, configurable via `.env`.
 - Write to temp file then atomic rename.
 - Retention:
   - Keep 48 latest backups.
@@ -376,15 +403,15 @@ Implement v2 backup using `pg_dump`.
 - Restore to temp DB succeeds in test docs.
 - App does not crash if backup fails; it shows/logs error.
 
-## Phase 7 Task - AI Chat/RAG Read-only
+## Phase 7 Task - AI Agent/RAG/Internal Tools/MCP
 
 ### Goal
 
-Add AI assistant foundation without DB write tools.
+Add AI assistant foundation with RAG, internal tools, MCP boundary, permission gates, audit logs, and recoverable write workflows.
 
 ### Suggested Branch
 
-`feat/v2-ai-chat-rag`
+`feat/v2-ai-agent-tools`
 
 ### Files To Create
 
@@ -392,31 +419,48 @@ Add AI assistant foundation without DB write tools.
 - `app/ai/llm_client.py`
 - `app/ai/model_registry.py`
 - `app/ai/rag_service.py`
+- `app/ai/tool_registry.py`
+- `app/ai/permission_policy.py`
+- `app/ai/agent_orchestrator.py`
+- `app/services/audit_service.py`
 - `app/services/ai_chat_service.py`
 
 ### Required Behavior
 
 - Read `NINE_ROUTER_URL` and key from `.env`.
 - `/models` call should be optional and failure-tolerant.
-- Chat works only when router is available.
+- Chat/agent works only when router is available.
 - If router is unavailable, UI shows config/status error.
-- RAG is read-only over notes/tasks/calendar.
-- No create/update/delete tool in phase 7.
+- RAG can read notes/tasks/calendar.
+- Internal tools are grouped by permission scope:
+  - `read_only`: list/search/read notes, tasks, events, sources.
+  - `propose_only`: propose study plan, propose task changes, propose import changes.
+  - `write_with_confirm`: create/update task, create/update note, update source visibility, run approved import.
+  - `admin`: delete/bulk update/rollback/restore; requires explicit confirmation and backup checkpoint.
+- Every write tool must produce dry-run/proposal output first.
+- Every confirmed write tool logs to `agent_action_log`.
+- Bulk/destructive/admin tools must create a backup/checkpoint before mutation.
+- Write tools must return affected ids and rollback/recovery instructions.
 
 ### Library Choice
 
 Preferred:
 
 - LiteLLM if it works cleanly with the OpenAI-compatible router.
-- Otherwise minimal `httpx` OpenAI-compatible client.
+- LangGraph for multi-step agent orchestration, permission gate, tool call state, rollback/approval flow.
+- Otherwise minimal `httpx` OpenAI-compatible client only for the LLM adapter.
 
-Do not use LangGraph until agent/tool mutation phase.
+Do not let LangGraph or tool-calling bypass the permission/audit layer.
 
 ### Acceptance Criteria
 
 - Router off does not crash app.
 - Provider config never logs secret.
 - Chat response can cite note/task/event ids used as context.
+- Read-only tools can run without confirm.
+- Write tools cannot mutate without dry-run + explicit confirm.
+- Confirmed write tools create audit records.
+- Bulk/destructive tools create a backup/checkpoint before mutation.
 
 ## Reporting Template
 
@@ -437,4 +481,3 @@ Each Tier 2 task report must include:
 
 ## Questions For Tier 1
 ```
-

@@ -12,7 +12,7 @@ Export có thể được trigger từ ba cách:
 # 1. Menu action (UI button)
 def export_data_to_json(e):
     # Dialog: "Save to file" or "Copy to clipboard"
-    
+
 # 2. Direct call (programmatic)
 data = generate_planner_data()
 
@@ -26,7 +26,7 @@ data = generate_planner_data()
 def generate_planner_data():
     """
     Aggregates data từ database và tạo structured JSON.
-    
+
     Flow:
     1. Determine threshold (current_date)
     2. Query 3 entities: schedule, tasks, subtasks
@@ -35,9 +35,9 @@ def generate_planner_data():
     """
     threshold_dt = current_date
     threshold_iso = threshold_dt.strftime("%Y-%m-%d")
-    
+
     # ... queries ...
-    
+
     final_data = {
         "metadata": {...},
         "schedule_events": [...],
@@ -60,7 +60,7 @@ def generate_planner_data():
     "date_format": "YYYY-MM-DD",
     "description": "Dữ liệu dùng để lập kế hoạch ôn thi."
   },
-  
+
   "schedule_events": [
     {
       "subject": "Math Midterm",
@@ -77,7 +77,7 @@ def generate_planner_data():
       "date_str": "2025-05-27"
     }
   ],
-  
+
   "todo_tasks": [
     {
       "id": 1,
@@ -194,12 +194,12 @@ for task in tasks_raw:
     """
     cur.execute(query_sub, (task["id"],))
     subtasks = rows_to_dicts(cur, cur.fetchall())
-    
+
     # Calculate progress
     task["subtasks_list"] = subtasks
     total_sub = len(subtasks)
     done_sub = sum(1 for s in subtasks if s["is_completed"] == 1)
-    
+
     # Create context note
     task_dt = datetime.strptime(task["date_str"], "%Y-%m-%d")
     if task_dt.date() < threshold_dt.date() and task["is_completed"] == 0:
@@ -387,19 +387,19 @@ You are a study planning assistant. Here is my current schedule and task list:
 ```python
 def validate_export_data(data):
     """Sanity checks before export"""
-    
+
     # Check 1: Schedule consistency
     for sched in data["schedule_events"]:
         if sched["time_start"] >= sched["time_end"]:
             warn(f"Event {sched['subject']} has invalid time range")
-    
+
     # Check 2: Task date consistency
     for task in data["todo_tasks"]:
         task_date = datetime.strptime(task["date_str"], "%Y-%m-%d")
         if task_date < datetime.now().date() and task["is_completed"] == 0:
             # Expected OVERDUE context
             assert "OVERDUE" in task["context_note"]
-    
+
     # Check 3: Subtask progress
     for task in data["todo_tasks"]:
         subs = task["subtasks_list"]
@@ -412,11 +412,11 @@ def validate_export_data(data):
 ```python
 def print_export_stats(data):
     """Print summary for user verification"""
-    
+
     schedule_count = len(data["schedule_events"])
     task_count = len(data["todo_tasks"])
     overdue_count = sum(1 for t in data["todo_tasks"] if "OVERDUE" in t["context_note"])
-    
+
     print(f"✅ Export complete:")
     print(f"   - {schedule_count} schedule events")
     print(f"   - {task_count} tasks ({overdue_count} overdue)")

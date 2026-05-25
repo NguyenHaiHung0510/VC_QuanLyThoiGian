@@ -274,7 +274,7 @@ def _setup_defaults(cur):
         {"name": "Học Online", "icon": "Online"},
         # ...
     ]
-    
+
     default_prios = [
         {"name": "Optional", "label": "Optional", "color": "Grey", "icon": "Low"},
         # ...

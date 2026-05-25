@@ -57,9 +57,8 @@ Mỗi khi được giao Task và cần thực hiện thay đổi, AI tuân thủ
 2. **Rẽ nhánh:** Tạo nhánh mới phù hợp với Task (`git checkout -b <branch_name>`).
 3. **Thực thi:** Hoàn thành code/tài liệu.
 4. **Kiểm tra:** Tự review lại các thay đổi.
-5. **Stage & Commit:** 
+5. **Stage & Commit:**
    - `git add .`
    - Tạo commit message đúng quy chuẩn đã nêu ở mục 2.
 6. **Push:** Đẩy nhánh lên remote (`git push origin <branch_name>`).
 7. **Báo cáo:** Gửi xác nhận cho User kèm theo tên nhánh và nội dung commit.
-

@@ -781,7 +781,7 @@ def main(page: ft.Page):
                             ],
                             spacing=2,
                         )
-                    
+
                     # --- "Today" overdue summary indicator ---
                     if is_today:
                         day_bgcolor = THEME["today_bg"]
@@ -798,7 +798,7 @@ def main(page: ft.Page):
                                 ],
                                 spacing=2,
                             )
-                    
+
                     # --- Get Schedules & Tasks for the day ---
                     cur.execute(
                         "SELECT subject, location FROM schedule WHERE date_str = ? AND is_cancelled = 0",
@@ -819,7 +819,7 @@ def main(page: ft.Page):
                             is_task_overdue = is_past and not t[2]
                             prefix = "⚠️" if is_task_overdue else ("✅" if t[2] else "▫️")
                             tooltip_lines.append(f"{prefix} {t[0]}")
-                    
+
                     if is_today and all_overdue_tasks:
                         tooltip_lines.append("--- Việc trễ hạn ---")
                         for ov_task in all_overdue_tasks:
@@ -853,7 +853,7 @@ def main(page: ft.Page):
                             ]
                         )
                     )
-                    
+
                     max_items = 3
                     count = 0
                     # Display schedules
@@ -877,7 +877,7 @@ def main(page: ft.Page):
                             is_task_overdue_style = is_past and not t[2]
                             bg_c = ft.Colors.RED_100 if is_task_overdue_style else (ft.Colors.GREY_100 if t[2] else ft.Colors.GREY_50)
                             txt_c = ft.Colors.RED_900 if is_task_overdue_style else (ft.Colors.GREY if t[2] else ft.Colors.BLACK87)
-                            
+
                             content_col.controls.append(
                                 ft.Container(
                                     padding=2, border_radius=2,
@@ -893,7 +893,7 @@ def main(page: ft.Page):
                         content_col.controls.append(
                             ft.Text(f"+ {total_hidden}...", size=9, color="grey", italic=True)
                         )
-                    
+
                     week_row.controls.append(
                         ft.Container(
                             content=content_col,
@@ -1218,7 +1218,7 @@ def main(page: ft.Page):
             ],
             alignment=ft.MainAxisAlignment.START,
         )
-        
+
         subtasks_col = ft.Column(spacing=5)
         new_sub_tf = ft.TextField(
             hint_text="Thêm mục nhỏ...",
