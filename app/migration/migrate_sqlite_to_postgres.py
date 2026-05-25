@@ -258,7 +258,7 @@ def migrate_schedule(
         INSERT INTO calendar_sources (
             display_name, kind, color, is_visible, created_at, updated_at
         )
-        VALUES ('v1_sqlite_schedule', 'legacy_v1', '#64748b', true, %s, %s)
+        VALUES ('v1_sqlite_schedule', 'legacy_v1', '#64748b', false, %s, %s)
         ON CONFLICT (display_name) DO UPDATE SET updated_at = EXCLUDED.updated_at
         RETURNING id
         """,

@@ -126,6 +126,12 @@ def build_continuous_calendar_tab(
     _reload_sources()
 
     # ------------------------------------------------------------------ #
+    # Helper: month/year label                                            #
+    # ------------------------------------------------------------------ #
+    def _visible_range_label(center_date: date) -> str:
+        return f"THÁNG {center_date.month:02d} / {center_date.year}"
+
+    # ------------------------------------------------------------------ #
     # Header label (month/year of visible range)                          #
     # ------------------------------------------------------------------ #
     header_label = ft.Text(
@@ -134,9 +140,6 @@ def build_continuous_calendar_tab(
         weight="bold",
         color=theme.get("primary", ft.Colors.PINK_600),
     )
-
-    def _visible_range_label(center_date: date) -> str:
-        return f"THÁNG {center_date.month:02d} / {center_date.year}"
 
     # ------------------------------------------------------------------ #
     # Build a single day cell                                              #
