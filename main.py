@@ -2654,4 +2654,4 @@ def main(page: ft.Page):
     refresh_all()
 
 
-ft.app(target=main, view=ft.AppView.WEB_BROWSER, port=8550)
+ft.app(target=main)
