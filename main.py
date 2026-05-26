@@ -2237,7 +2237,7 @@ def main(page: ft.Page):
                                 ft.Container(
                                     content=ft.Text(title, weight="bold", size=14, no_wrap=False, max_lines=2, overflow=ft.TextOverflow.ELLIPSIS),
                                     on_click=make_edit_click(nid),
-                                    cursor=ft.MouseCursor.CLICK,
+                                    mouse_cursor=ft.MouseCursor.CLICK,
                                     expand=True,
                                 ),
                                 ft.IconButton(

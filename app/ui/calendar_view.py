@@ -924,7 +924,7 @@ def build_continuous_calendar_tab(
                                 color=ft.Colors.BLACK87,
                                 overflow=ft.TextOverflow.ELLIPSIS,
                             ),
-                            cursor=ft.MouseCursor.CLICK,
+                            mouse_cursor=ft.MouseCursor.CLICK,
                             on_click=make_open_manager(),
                             expand=True,
                         )
