@@ -400,17 +400,21 @@ def build_continuous_calendar_tab(
         if primary_month:
             yr, mo = primary_month
             header_label.value = f"THÁNG {mo:02d} / {yr}"
-            header_label.update()
+            if header_label.page:
+                header_label.update()
 
             new_nav_month = datetime(yr, mo, 1)
             if state["mini_nav_month"].year != yr or state["mini_nav_month"].month != mo:
                 state["mini_nav_month"] = new_nav_month
                 _build_mini_nav()
-                mini_month_label.update()
-                mini_grid.update()
+                if mini_month_label.page:
+                    mini_month_label.update()
+                if mini_navigator_container.page:
+                    mini_navigator_container.update()
             else:
                 _build_mini_nav()
-                mini_grid.update()
+                if mini_navigator_container.page:
+                    mini_navigator_container.update()
 
     # ListView of flat controls (headers + week rows)
     calendar_list_view = ft.ListView(
@@ -494,89 +498,143 @@ def build_continuous_calendar_tab(
     # ------------------------------------------------------------------ #
     mini_month_label = ft.Text("", size=13, weight="bold")
 
-    mini_grid = ft.GridView(
-        runs_count=7,
-        max_extent=28,
-        spacing=2,
-        run_spacing=2,
-    )
+    mini_navigator_container = ft.Column(spacing=15)
 
     def _build_mini_nav(visible_dates=None):
         if visible_dates is not None:
             state["visible_dates"] = visible_dates
         visible_dates = state["visible_dates"]
+
+        # Determine unique visible months chronologically
+        if not visible_dates:
+            visible_months = [(state["mini_nav_month"].year, state["mini_nav_month"].month)]
+        else:
+            visible_months = sorted(list(set(
+                (d.year, d.month) for d in visible_dates
+            )))
+
+        # Update the main label to show the primary month of interest
         nav_dt = state["mini_nav_month"]
         mini_month_label.value = f"{nav_dt.strftime('%m/%Y')}"
-        mini_grid.controls.clear()
 
-        # Day-of-week headers
-        for h in ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]:
-            mini_grid.controls.append(
+        mini_navigator_container.controls.clear()
+
+        # Build each visible month block
+        for year, month in visible_months:
+            month_controls = []
+
+            # Month block header
+            month_controls.append(
                 ft.Container(
-                    content=ft.Text(h, size=9, color=ft.Colors.GREY_600, text_align=ft.TextAlign.CENTER),
-                    alignment=ft.alignment.center,
+                    content=ft.Text(
+                        f"Tháng {month:02d} / {year}",
+                        size=12,
+                        weight="bold",
+                        color=theme.get("primary", ft.Colors.PINK_600),
+                    ),
+                    padding=ft.padding.only(left=2, bottom=4),
                 )
             )
 
-        # Blank cells before the 1st
-        first_day = date(nav_dt.year, nav_dt.month, 1)
-        for _ in range(first_day.weekday()):
-            mini_grid.controls.append(ft.Container())
-
-        # Day cells
-        import calendar as cal_module
-        _, days_in_month = cal_module.monthrange(nav_dt.year, nav_dt.month)
-        for day_n in range(1, days_in_month + 1):
-            d = date(nav_dt.year, nav_dt.month, day_n)
-            is_today_d = (d == today)
-            is_sel = (d == state["selected_date"])
-            is_visible_on_screen = (d in visible_dates)
-
-            # Highlighting visible range in main calendar
-            bg = (
-                theme.get("primary_light", ft.Colors.PINK_50) if is_visible_on_screen
-                else (theme.get("today_bg", ft.Colors.RED_50) if is_today_d else None)
+            # Day-of-week subheader row
+            subheaders = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
+            month_controls.append(
+                ft.Row(
+                    [
+                        ft.Container(
+                            content=ft.Text(h, size=9, color=ft.Colors.GREY_600, weight="bold", text_align=ft.TextAlign.CENTER),
+                            alignment=ft.alignment.center,
+                            width=24,
+                            height=24,
+                        )
+                        for h in subheaders
+                    ],
+                    spacing=2,
+                    alignment=ft.MainAxisAlignment.CENTER,
+                )
             )
-            # Outline selected date
-            border = ft.border.all(1, theme.get("primary", ft.Colors.PINK_600)) if is_sel else None
 
-            txt_color = theme.get("primary", ft.Colors.PINK_600) if is_today_d else ft.Colors.BLACK87
+            # Build week rows using calendar.monthcalendar
+            import calendar as cal_module
+            cal = cal_module.monthcalendar(year, month)
+            for week in cal:
+                week_cells = []
+                for day in week:
+                    if day == 0:
+                        week_cells.append(ft.Container(width=24, height=24))
+                    else:
+                        d = date(year, month, day)
+                        is_today_d = (d == today)
+                        is_sel = (d == state["selected_date"])
+                        is_visible_on_screen = (d in visible_dates)
 
-            def make_click(clicked_date=d):
-                def on_click(e):
-                    state["selected_date"] = clicked_date
-                    # Scroll main calendar to the week containing clicked_date using offset
-                    offset = _get_week_offset(clicked_date)
-                    try:
-                        calendar_list_view.scroll_to(offset=offset, duration=300)
-                    except Exception:
-                        pass
+                        # Highlighting visible range in main calendar
+                        bg = (
+                            theme.get("primary_light", ft.Colors.PINK_50) if is_visible_on_screen
+                            else (theme.get("today_bg", ft.Colors.RED_50) if is_today_d else None)
+                        )
+                        # Outline selected date
+                        border = ft.border.all(1, theme.get("primary", ft.Colors.PINK_600)) if is_sel else None
 
-                    # Update visible label and rebuild
-                    header_label.value = _visible_range_label(clicked_date)
-                    header_label.update()
+                        txt_color = theme.get("primary", ft.Colors.PINK_600) if is_today_d else ft.Colors.BLACK87
 
-                    state["mini_nav_month"] = datetime(clicked_date.year, clicked_date.month, 1)
-                    _build_mini_nav()
-                    mini_month_label.update()
-                    mini_grid.update()
-                    page.update()
-                return on_click
+                        def make_click(clicked_date=d):
+                            def on_click(e):
+                                state["selected_date"] = clicked_date
+                                # Scroll main calendar to the week containing clicked_date using offset
+                                offset = _get_week_offset(clicked_date)
+                                try:
+                                    calendar_list_view.scroll_to(offset=offset, duration=300)
+                                except Exception:
+                                    pass
 
-            mini_grid.controls.append(
-                ft.Container(
-                    content=ft.Text(
-                        str(day_n), size=10,
-                        weight="bold" if is_today_d else "normal",
-                        color=txt_color,
-                        text_align=ft.TextAlign.CENTER,
-                    ),
-                    bgcolor=bg,
-                    border=border,
-                    border_radius=4,
-                    alignment=ft.alignment.center,
-                    on_click=make_click(),
-                    tooltip=d.strftime("%d/%m/%Y"),
+                                # Update visible label and rebuild
+                                header_label.value = _visible_range_label(clicked_date)
+                                if header_label.page:
+                                    header_label.update()
+
+                                state["mini_nav_month"] = datetime(clicked_date.year, clicked_date.month, 1)
+                                _build_mini_nav()
+                                if mini_month_label.page:
+                                    mini_month_label.update()
+                                if mini_navigator_container.page:
+                                    mini_navigator_container.update()
+                                page.update()
+                            return on_click
+
+                        week_cells.append(
+                            ft.Container(
+                                content=ft.Text(
+                                    str(day), size=10,
+                                    weight="bold" if is_today_d else "normal",
+                                    color=txt_color,
+                                    text_align=ft.TextAlign.CENTER,
+                                ),
+                                bgcolor=bg,
+                                border=border,
+                                border_radius=4,
+                                alignment=ft.alignment.center,
+                                width=24,
+                                height=24,
+                                on_click=make_click(),
+                                tooltip=d.strftime("%d/%m/%Y"),
+                            )
+                        )
+
+                month_controls.append(
+                    ft.Row(
+                        week_cells,
+                        spacing=2,
+                        alignment=ft.MainAxisAlignment.CENTER,
+                    )
+                )
+
+            # Append the whole month block to the mini column container
+            mini_navigator_container.controls.append(
+                ft.Column(
+                    month_controls,
+                    spacing=2,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 )
             )
 
@@ -587,20 +645,24 @@ def build_continuous_calendar_tab(
         y, mo = m.year, m.month - 1
         if mo < 1:
             mo, y = 12, y - 1
-        state["mini_nav_month"] = datetime(y, mo, 1)
-        _build_mini_nav()
-        mini_month_label.update()
-        mini_grid.update()
+        target_date = date(y, mo, 1)
+        offset = _get_week_offset(target_date)
+        try:
+            calendar_list_view.scroll_to(offset=offset, duration=300)
+        except Exception as ex:
+            print(f"[CalendarView] Scroll to prev mini month error: {ex}")
 
     def _next_mini_month(e):
         m = state["mini_nav_month"]
         y, mo = m.year, m.month + 1
         if mo > 12:
             mo, y = 1, y + 1
-        state["mini_nav_month"] = datetime(y, mo, 1)
-        _build_mini_nav()
-        mini_month_label.update()
-        mini_grid.update()
+        target_date = date(y, mo, 1)
+        offset = _get_week_offset(target_date)
+        try:
+            calendar_list_view.scroll_to(offset=offset, duration=300)
+        except Exception as ex:
+            print(f"[CalendarView] Scroll to next mini month error: {ex}")
 
     mini_nav_row = ft.Row(
         [
@@ -689,7 +751,7 @@ def build_continuous_calendar_tab(
         content=ft.Column(
             [
                 mini_nav_row,
-                mini_grid,
+                mini_navigator_container,
                 ft.Divider(height=12),
                 ft.Text("Nguồn lịch", size=12, weight="bold", color=ft.Colors.GREY_700),
                 sources_col,
