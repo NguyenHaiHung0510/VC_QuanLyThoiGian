@@ -41,17 +41,22 @@ Tài liệu này ghi nhớ toàn bộ tiêu chí, cách thức làm việc, tài
 - Dropdown sắp xếp ghi chú theo Tiêu đề (A-Z) hoặc Chỉnh sửa mới nhất (ghi chú ghim luôn ở trên đầu).
 - Gom nhóm các ghi chú đã lưu trữ (Archived) xuống cuối trang, làm mờ độ đục `opacity=0.6`, cung cấp nút Khôi phục (Unarchive).
 
-### Giai đoạn hiện tại: Đồng bộ Lịch tháng & Tối ưu hóa UX/UI (Đang thực hiện)
+### Giai đoạn hiện tại: Đồng bộ Lịch tháng, Quản lý Nguồn lịch & Tối ưu hóa Ghi chú (Đang thực hiện)
 - **Bối cảnh**:
   - Trong tab "Lịch tháng", việc cuộn làm số lượng tháng hiển thị trên mini-calendar thay đổi (từ 1 sang 2 tháng và ngược lại), gây giật gián đoạn vị trí (layout shift).
   - Trong tab "Chi tiết ngày", độ dài của chuỗi ngày thay đổi (khi có/không có chữ "(Hôm nay)") làm dịch chuyển vị trí của các nút bấm điều hướng.
+  - Người dùng cần quản lý nguồn lịch ở góc trái dưới bằng cách mở một Dialog thay vì click trực tiếp thay đổi trạng thái checkbox, đồng thời hỗ trợ cập nhật file lịch mới ghi đè file lịch cũ (có lưu lịch sử nhập và ẩn sự kiện cũ).
+  - Tab "Ghi chú" cần thêm tooltip chi tiết khi hover qua note cell và cho phép click trực tiếp tiêu đề note để sửa.
 - **Yêu cầu cải tiến & Giải pháp**:
   1. **Cố định hiển thị 2 tháng liên tiếp**:
      - Mini-calendar sẽ luôn luôn hiển thị đúng 2 block tháng liên tiếp để giữ nguyên chiều cao layout.
-     - Nếu viewport chỉ hiển thị các ngày thuộc duy nhất 1 tháng `M`, mini-calendar vẫn hiển thị thêm tháng liền trước `M - 1` ở phía trên (mặc dù tháng `M - 1` không được highlight) để tránh giật UI.
+     - Nếu viewport chỉ hiển thị các ngày thuộc duy nhất 1 tháng `M`, mini-calendar vẫn hiển thị thêm tháng liền trước `M - 1` ở phía trên để tránh giật UI.
   2. **Cố định vị trí điều hướng Chi tiết ngày**:
-     - Đưa text hiển thị ngày `lbl_current_date` vào một `ft.Container` có chiều rộng cố định (ví dụ `width=300`) và căn giữa (`alignment=ft.alignment.center`). Dù chuỗi chữ dài hay ngắn, các nút chevron `<`/`>` và "VỀ HÔM NAY" vẫn đứng cố định tại vị trí của chúng.
-  3. **Đồng bộ highlight & tương tác**:
-     - Highlight vùng ngày hiển thị trong viewport bằng màu hồng nhạt (`theme["primary_light"]`).
-     - Click ngày trên mini-calendar để cuộn main calendar tới tuần đó.
-     - Click chevron trên mini-calendar để cuộn main calendar theo tháng.
+     - Đưa text hiển thị ngày `lbl_current_date` vào một `ft.Container` có chiều rộng cố định `width=300` và căn giữa.
+  3. **Quản lý Nguồn lịch (Sidebar)**:
+     - Tách Checkbox nguồn lịch: click vào ô vuông để tick/untick (ẩn/hiện lịch), click vào chữ hiển thị để mở Dialog quản lý.
+     - Dialog quản lý hiển thị: Tên hiển thị (cho sửa), tên file gốc của version active, vị trí file copy tượng trưng (`storage/copied_calendars/<file_name>`), và lịch sử nhập (sắp xếp thời gian mới nhất lên trước, gồm tên hiển thị và thời gian).
+     - Nút "Cập nhật File mới": Mở FilePicker tải file `.ics` hoặc `.xlsx` mới, gọi `CalendarImportService.import_file` để sinh phiên bản mới hoạt động (active) thay thế phiên bản cũ (revert/supersede lịch cũ bằng cách đổi status version và ẩn các event cũ).
+  4. **Tối ưu hóa Ghi chú**:
+     - Tooltip note card: Khi hover qua note card, hiển thị tooltip tĩnh gồm tên ghi chú đầy đủ (auto ngắt dòng) và các task con (checklist items) từ trên xuống dưới, dài quá 8 mục thì hiện `+N mục khác...`.
+     - Click tiêu đề ghi chú: Bấm trực tiếp vào tiêu đề ghi chú trên note card sẽ kích hoạt mở dialog "chỉnh sửa chi tiết".

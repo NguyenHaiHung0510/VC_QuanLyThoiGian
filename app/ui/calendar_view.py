@@ -12,6 +12,7 @@ from typing import List, Dict, Any
 from collections import defaultdict
 
 from app.services.calendar_view_service import CalendarViewService
+from app.services.calendar_import_service import CalendarImportService
 
 
 # ---------------------------------------------------------------------------
@@ -83,7 +84,38 @@ def build_continuous_calendar_tab(
         "sources": [],
         "last_visible_weeks_hash": "", # Track scroll state to prevent redundant updates
         "visible_dates": set(),      # Store current visible dates for highlighting
+        "updating_source_id": None,  # Track which source is being updated with a new file
     }
+
+    source_update_picker = ft.FilePicker()
+    page.overlay.append(source_update_picker)
+
+    def handle_source_update_result(e: ft.FilePickerResultEvent):
+        if e.files:
+            filepath = e.files[0].path
+            source_id = state["updating_source_id"]
+            if not source_id:
+                return
+            try:
+                import_svc = CalendarImportService(calendar_view_svc.conn)
+                res = import_svc.import_file(source_id, filepath)
+
+                # Reload all data and views
+                _reload_events()
+                _reload_sources()
+                _rebuild_calendar()
+                _build_sources_col()
+
+                if sources_col.page:
+                    sources_col.update()
+                page.update()
+
+                page.open(ft.SnackBar(ft.Text(f"Đã cập nhật nguồn lịch thành công! (Nạp {res['parsed_count']} sự kiện)"), bgcolor="green"))
+            except Exception as ex:
+                print(f"[CalendarView] Error updating source file: {ex}")
+                page.open(ft.SnackBar(ft.Text(f"Cập nhật file lịch thất bại: {ex}"), bgcolor="red"))
+
+    source_update_picker.on_result = handle_source_update_result
 
     # ------------------------------------------------------------------ #
     # Prefetch events from PG for visible range (±2 years)               #
@@ -695,6 +727,161 @@ def build_continuous_calendar_tab(
     # ------------------------------------------------------------------ #
     sources_col = ft.Column(spacing=6)
 
+    def _open_source_manager_dialog(source_info):
+        import os
+        src_id = source_info["id"]
+        try:
+            versions = calendar_view_svc.get_source_versions(src_id)
+        except Exception as ex:
+            print(f"[CalendarView] Error loading source versions: {ex}")
+            versions = []
+
+        active_ver = None
+        for v in versions:
+            if v["status"] == "active":
+                active_ver = v
+                break
+        if not active_ver and versions:
+            active_ver = versions[0]
+
+        file_name = active_ver["file_name"] if active_ver else "N/A"
+        file_sha256 = active_ver["file_sha256"] if active_ver else "N/A"
+
+        project_dir = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+        simulated_path = os.path.join(project_dir, "storage", "copied_calendars", file_name)
+
+        name_tf = ft.TextField(
+            label="Tên hiển thị nguồn lịch",
+            value=source_info["display_name"],
+            expand=True,
+            height=45,
+            text_size=14,
+        )
+
+        def handle_save_name(e):
+            new_name = name_tf.value.strip()
+            if not new_name:
+                return
+            try:
+                calendar_view_svc.update_source_name(src_id, new_name)
+                _reload_sources()
+                _build_sources_col()
+                if sources_col.page:
+                    sources_col.update()
+                _rebuild_calendar()
+                page.close(dlg)
+                page.open(ft.SnackBar(ft.Text("Đã cập nhật tên nguồn lịch!"), bgcolor="green"))
+            except Exception as ex:
+                print(f"[CalendarView] Error updating source name: {ex}")
+                page.open(ft.SnackBar(ft.Text(f"Lỗi: {ex}"), bgcolor="red"))
+
+        def handle_pick_new_file(e):
+            state["updating_source_id"] = src_id
+            page.close(dlg)
+            source_update_picker.pick_files(allow_multiple=False, allowed_extensions=["ics", "xlsx"])
+
+        history_list = ft.Column(spacing=8, scroll="auto", max_height=180)
+        if not versions:
+            history_list.controls.append(ft.Text("Chưa có lịch sử nhập.", size=12, color="grey", italic=True))
+        else:
+            for v in versions:
+                imp_dt = v["imported_at"]
+                if isinstance(imp_dt, str):
+                    try:
+                        imp_dt = datetime.fromisoformat(imp_dt.replace("Z", "+00:00"))
+                    except Exception:
+                        pass
+                date_str = imp_dt.strftime("%d/%m/%Y %H:%M:%S") if isinstance(imp_dt, datetime) else str(imp_dt)
+                history_list.controls.append(
+                    ft.Container(
+                        padding=ft.padding.symmetric(horizontal=10, vertical=8),
+                        bgcolor=ft.Colors.GREY_50,
+                        border_radius=6,
+                        border=ft.border.all(1, ft.Colors.GREY_200),
+                        content=ft.Row(
+                            [
+                                ft.Icon(ft.Icons.HISTORY, size=16, color=theme.get("primary", ft.Colors.PINK_600)),
+                                ft.Column(
+                                    [
+                                        ft.Text(f"{v['source_display_name']}", size=12, weight="bold"),
+                                        ft.Text(f"Thời gian: {date_str} (v{v['version_number']})", size=10, color=ft.Colors.GREY_600),
+                                    ],
+                                    spacing=2,
+                                    expand=True
+                                ),
+                                ft.Container(
+                                    content=ft.Text(v["status"].upper(), size=8, color="white", weight="bold"),
+                                    bgcolor=ft.Colors.GREEN_600 if v["status"] == "active" else ft.Colors.GREY_500,
+                                    padding=ft.padding.symmetric(horizontal=5, vertical=2),
+                                    border_radius=3,
+                                )
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                        )
+                    )
+                )
+
+        dlg = ft.AlertDialog(
+            title=ft.Text("Quản lý Nguồn lịch", weight="bold"),
+            content=ft.Container(
+                width=500,
+                height=450,
+                content=ft.Column(
+                    [
+                        ft.Text("Cấu hình tên hiển thị:", size=12, weight="bold", color="grey"),
+                        ft.Row(
+                            [
+                                name_tf,
+                                ft.ElevatedButton(
+                                    "Lưu",
+                                    bgcolor=theme.get("primary", ft.Colors.PINK_600),
+                                    color="white",
+                                    on_click=handle_save_name
+                                )
+                            ],
+                            spacing=10,
+                        ),
+                        ft.Divider(height=15),
+                        ft.Text("Thông tin file hiện tại:", size=12, weight="bold", color="grey"),
+                        ft.Row(
+                            [
+                                ft.Icon(ft.Icons.FILE_PRESENT, color=ft.Colors.BLUE_GREY),
+                                ft.Column(
+                                    [
+                                        ft.Text(f"File gốc: {file_name}", size=13, weight="bold"),
+                                        ft.Text(f"Vị trí: {simulated_path}", size=11, color="grey", overflow=ft.TextOverflow.ELLIPSIS),
+                                        ft.Text(f"SHA-256: {file_sha256}", size=11, color="grey", overflow=ft.TextOverflow.ELLIPSIS),
+                                    ],
+                                    spacing=2,
+                                    expand=True
+                                )
+                            ]
+                        ),
+                        ft.Row(
+                            [
+                                ft.OutlinedButton(
+                                    "Cập nhật File mới...",
+                                    icon=ft.Icons.UPLOAD_FILE,
+                                    on_click=handle_pick_new_file
+                                )
+                            ],
+                            alignment=ft.MainAxisAlignment.END
+                        ),
+                        ft.Divider(height=15),
+                        ft.Text("Lịch sử nhập (mới nhất lên trước):", size=12, weight="bold", color="grey"),
+                        history_list,
+                    ],
+                    scroll="auto",
+                    spacing=10,
+                )
+            ),
+            actions=[
+                ft.TextButton("Đóng", on_click=lambda e: page.close(dlg))
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        page.open(dlg)
+
     def _build_sources_col():
         sources_col.controls.clear()
         for src in state["sources"]:
@@ -714,6 +901,9 @@ def build_continuous_calendar_tab(
                     sources_col.update()
                 return on_change
 
+            def make_open_manager(source_info=src):
+                return lambda e: _open_source_manager_dialog(source_info)
+
             chip_dot = ft.Container(
                 width=10, height=10,
                 border_radius=5,
@@ -726,8 +916,18 @@ def build_continuous_calendar_tab(
                         ft.Checkbox(
                             value=is_vis,
                             on_change=make_toggle(),
-                            label=src["display_name"],
                         ),
+                        ft.Container(
+                            content=ft.Text(
+                                src["display_name"],
+                                size=13,
+                                color=ft.Colors.BLACK87,
+                                overflow=ft.TextOverflow.ELLIPSIS,
+                            ),
+                            cursor=ft.MouseCursor.CLICK,
+                            on_click=make_open_manager(),
+                            expand=True,
+                        )
                     ],
                     spacing=4,
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,

@@ -2113,6 +2113,20 @@ def main(page: ft.Page):
         prio_color_name = note["priority_color"]
         note_items = note["note_items"]
 
+        # Build tooltip text with note title, body and checklist details
+        tooltip_lines = [title]
+        if body:
+            tooltip_lines.append(body)
+        if note_items:
+            tooltip_lines.append("-" * 25)
+            max_tooltip_items = 8
+            for item in note_items[:max_tooltip_items]:
+                prefix = "[x]" if item["is_done"] else "[ ]"
+                tooltip_lines.append(f"{prefix} {item['content']}")
+            if len(note_items) > max_tooltip_items:
+                tooltip_lines.append(f"+ {len(note_items) - max_tooltip_items} mục khác...")
+        tooltip_text = "\n".join(tooltip_lines)
+
         pin_icon = ft.Icons.PUSH_PIN if pinned else ft.Icons.PUSH_PIN_OUTLINED
         pin_tooltip = "Bỏ ghim" if pinned else "Ghim ghi chú"
 
@@ -2215,11 +2229,17 @@ def main(page: ft.Page):
                 opacity=0.6 if is_archived else 1.0,
                 border_radius=8,
                 border=ft.border.all(1.5, THEME["primary"] if pinned else ft.Colors.GREY_200),
+                tooltip=tooltip_text,
                 content=ft.Column(
                     [
                         ft.Row(
                             [
-                                ft.Text(title, weight="bold", size=14, expand=True, no_wrap=False, max_lines=2, overflow=ft.TextOverflow.ELLIPSIS),
+                                ft.Container(
+                                    content=ft.Text(title, weight="bold", size=14, no_wrap=False, max_lines=2, overflow=ft.TextOverflow.ELLIPSIS),
+                                    on_click=make_edit_click(nid),
+                                    cursor=ft.MouseCursor.CLICK,
+                                    expand=True,
+                                ),
                                 ft.IconButton(
                                     pin_icon,
                                     icon_size=16,

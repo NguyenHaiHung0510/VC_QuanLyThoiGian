@@ -103,3 +103,43 @@ class CalendarViewService:
         with self.conn.cursor() as cur:
             cur.execute(query, (is_visible, source_id))
             self.conn.commit()
+
+    def update_source_name(self, source_id: str, new_name: str) -> None:
+        """
+        Updates the display name of a calendar source.
+        """
+        query = """
+            UPDATE calendar_sources
+            SET display_name = %s,
+                updated_at = NOW()
+            WHERE id = %s
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(query, (new_name, source_id))
+            self.conn.commit()
+
+    def get_source_versions(self, source_id: str) -> List[Dict[str, Any]]:
+        """
+        Retrieves all version history for a given calendar source.
+        """
+        query = """
+            SELECT csv.id, csv.version_number, csv.file_name, csv.file_sha256, csv.imported_at, csv.status, cs.display_name
+            FROM calendar_source_versions csv
+            JOIN calendar_sources cs ON csv.source_id = cs.id
+            WHERE csv.source_id = %s
+            ORDER BY csv.imported_at DESC
+        """
+        versions = []
+        with self.conn.cursor() as cur:
+            cur.execute(query, (source_id,))
+            for row in cur.fetchall():
+                versions.append({
+                    "id": row[0],
+                    "version_number": row[1],
+                    "file_name": row[2],
+                    "file_sha256": row[3],
+                    "imported_at": row[4],
+                    "status": row[5],
+                    "source_display_name": row[6]
+                })
+        return versions
