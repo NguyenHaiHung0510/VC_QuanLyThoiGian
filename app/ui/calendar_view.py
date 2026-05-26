@@ -909,6 +909,17 @@ def build_continuous_calendar_tab(
                 border_radius=5,
                 bgcolor=src_color,
             )
+            src_name_container = ft.Container(
+                            content=ft.Text(
+                                src["display_name"],
+                                size=13,
+                                color=ft.Colors.BLACK87,
+                                overflow=ft.TextOverflow.ELLIPSIS,
+                            ),
+                            on_click=make_open_manager(),
+                            expand=True,
+                        )
+            src_name_container.mouse_cursor = ft.MouseCursor.CLICK
             sources_col.controls.append(
                 ft.Row(
                     [
@@ -917,17 +928,7 @@ def build_continuous_calendar_tab(
                             value=is_vis,
                             on_change=make_toggle(),
                         ),
-                        ft.Container(
-                            content=ft.Text(
-                                src["display_name"],
-                                size=13,
-                                color=ft.Colors.BLACK87,
-                                overflow=ft.TextOverflow.ELLIPSIS,
-                            ),
-                            mouse_cursor=ft.MouseCursor.CLICK,
-                            on_click=make_open_manager(),
-                            expand=True,
-                        )
+                        src_name_container
                     ],
                     spacing=4,
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,

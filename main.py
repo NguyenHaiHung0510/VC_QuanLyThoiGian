@@ -2219,6 +2219,13 @@ def main(page: ft.Page):
             ft.IconButton(ft.Icons.ARCHIVE, icon_size=16, tooltip="Lưu trữ (Ẩn đi)", on_click=make_archive_click(nid))
         )
 
+        title_container = ft.Container(
+            content=ft.Text(title, weight="bold", size=14, no_wrap=False, max_lines=2, overflow=ft.TextOverflow.ELLIPSIS),
+            on_click=make_edit_click(nid),
+            expand=True,
+        )
+        title_container.mouse_cursor = ft.MouseCursor.CLICK
+
         return ft.Card(
             elevation=2,
             color=ft.Colors.WHITE,
@@ -2234,12 +2241,7 @@ def main(page: ft.Page):
                     [
                         ft.Row(
                             [
-                                ft.Container(
-                                    content=ft.Text(title, weight="bold", size=14, no_wrap=False, max_lines=2, overflow=ft.TextOverflow.ELLIPSIS),
-                                    on_click=make_edit_click(nid),
-                                    mouse_cursor=ft.MouseCursor.CLICK,
-                                    expand=True,
-                                ),
+                                title_container,
                                 ft.IconButton(
                                     pin_icon,
                                     icon_size=16,
