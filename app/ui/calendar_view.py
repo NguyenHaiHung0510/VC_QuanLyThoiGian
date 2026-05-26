@@ -505,13 +505,30 @@ def build_continuous_calendar_tab(
             state["visible_dates"] = visible_dates
         visible_dates = state["visible_dates"]
 
-        # Determine unique visible months chronologically
+        # Determine unique visible months chronologically, always maintaining exactly 2 months
         if not visible_dates:
-            visible_months = [(state["mini_nav_month"].year, state["mini_nav_month"].month)]
+            main_y, main_m = state["mini_nav_month"].year, state["mini_nav_month"].month
+            prev_y = main_y
+            prev_m = main_m - 1
+            if prev_m < 1:
+                prev_m = 12
+                prev_y -= 1
+            visible_months = [(prev_y, prev_m), (main_y, main_m)]
         else:
-            visible_months = sorted(list(set(
+            unique_months = sorted(list(set(
                 (d.year, d.month) for d in visible_dates
             )))
+            if len(unique_months) == 1:
+                main_y, main_m = unique_months[0]
+                prev_y = main_y
+                prev_m = main_m - 1
+                if prev_m < 1:
+                    prev_m = 12
+                    prev_y -= 1
+                visible_months = [(prev_y, prev_m), (main_y, main_m)]
+            else:
+                # Always take the first 2 unique months to keep layout height fixed to exactly 2 months
+                visible_months = unique_months[:2]
 
         # Update the main label to show the primary month of interest
         nav_dt = state["mini_nav_month"]

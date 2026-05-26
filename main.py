@@ -1821,7 +1821,11 @@ def main(page: ft.Page):
                                     icon=ft.Icons.CALENDAR_TODAY,
                                     style=ft.ButtonStyle(color=THEME["primary"]),
                                 ),
-                                lbl_current_date,
+                                ft.Container(
+                                    content=lbl_current_date,
+                                    width=300,
+                                    alignment=ft.alignment.center,
+                                ),
                                 ft.IconButton(
                                     ft.Icons.CHEVRON_RIGHT,
                                     on_click=lambda e: change_day(1),

@@ -41,11 +41,17 @@ Tài liệu này ghi nhớ toàn bộ tiêu chí, cách thức làm việc, tài
 - Dropdown sắp xếp ghi chú theo Tiêu đề (A-Z) hoặc Chỉnh sửa mới nhất (ghi chú ghim luôn ở trên đầu).
 - Gom nhóm các ghi chú đã lưu trữ (Archived) xuống cuối trang, làm mờ độ đục `opacity=0.6`, cung cấp nút Khôi phục (Unarchive).
 
-### Giai đoạn hiện tại: Đồng bộ Lịch tháng & Mini Calendar (Đang thực hiện)
-- **Bối cảnh**: Trong tab "Lịch tháng" (Continuous Calendar), main calendar hiển thị cuộn liên tục nhiều tuần kéo dài qua các tháng (ví dụ từ ngày 11/5 đến ngày 21/6 hiển thị đồng thời cả block tháng 5 và block tháng 6).
-- **Yêu cầu cải tiến**:
-  1. **Đồng bộ khoảng hiển thị (Multi-Month Display)**: Mini calendar ở cột bên trái không chỉ hiển thị một tháng cố định mà phải tự động hiển thị **tất cả các tháng** đang có ngày hiển thị trong khung nhìn (viewport) của main calendar (ví dụ hiển thị đồng thời tháng 5 và tháng 6).
-  2. **Highlight đồng bộ (Range Highlighting)**: Mini calendar cần tô màu hồng nhạt (highlight) phần tuần/ngày đang hiển thị trên main calendar (ví dụ highlight phần ngày từ 1-21/6 và phần cuối tháng 5 tương ứng).
-  3. **Tương tác điều hướng**:
-     - Bấm vào một ngày trên mini calendar sẽ tự động cuộn main calendar đến tuần chứa ngày đó.
-     - Các nút chevron `<` và `>` ở đầu mini calendar sẽ cuộn main calendar theo tháng để giữ trạng thái đồng bộ tuyệt đối giữa main calendar và mini calendar.
+### Giai đoạn hiện tại: Đồng bộ Lịch tháng & Tối ưu hóa UX/UI (Đang thực hiện)
+- **Bối cảnh**:
+  - Trong tab "Lịch tháng", việc cuộn làm số lượng tháng hiển thị trên mini-calendar thay đổi (từ 1 sang 2 tháng và ngược lại), gây giật gián đoạn vị trí (layout shift).
+  - Trong tab "Chi tiết ngày", độ dài của chuỗi ngày thay đổi (khi có/không có chữ "(Hôm nay)") làm dịch chuyển vị trí của các nút bấm điều hướng.
+- **Yêu cầu cải tiến & Giải pháp**:
+  1. **Cố định hiển thị 2 tháng liên tiếp**:
+     - Mini-calendar sẽ luôn luôn hiển thị đúng 2 block tháng liên tiếp để giữ nguyên chiều cao layout.
+     - Nếu viewport chỉ hiển thị các ngày thuộc duy nhất 1 tháng `M`, mini-calendar vẫn hiển thị thêm tháng liền trước `M - 1` ở phía trên (mặc dù tháng `M - 1` không được highlight) để tránh giật UI.
+  2. **Cố định vị trí điều hướng Chi tiết ngày**:
+     - Đưa text hiển thị ngày `lbl_current_date` vào một `ft.Container` có chiều rộng cố định (ví dụ `width=300`) và căn giữa (`alignment=ft.alignment.center`). Dù chuỗi chữ dài hay ngắn, các nút chevron `<`/`>` và "VỀ HÔM NAY" vẫn đứng cố định tại vị trí của chúng.
+  3. **Đồng bộ highlight & tương tác**:
+     - Highlight vùng ngày hiển thị trong viewport bằng màu hồng nhạt (`theme["primary_light"]`).
+     - Click ngày trên mini-calendar để cuộn main calendar tới tuần đó.
+     - Click chevron trên mini-calendar để cuộn main calendar theo tháng.
