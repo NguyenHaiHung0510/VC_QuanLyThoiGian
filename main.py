@@ -1740,6 +1740,51 @@ def main(page: ft.Page):
                 ),
             )
             con.commit()
+
+            # Sync to PostgreSQL as v2 calendar event
+            if pg_conn:
+                try:
+                    import uuid
+                    import hashlib
+                    from datetime import datetime, timezone, timedelta
+                    with pg_conn.cursor() as pg_cur:
+                        pg_cur.execute(
+                            "SELECT id, current_version_id FROM calendar_sources WHERE display_name = 'v1_sqlite_schedule'"
+                        )
+                        res = pg_cur.fetchone()
+                        if res:
+                            source_id, current_version_id = res
+                            vn_tz = timezone(timedelta(hours=7))
+                            date_str = get_date_str(current_date)
+                            starts_at = datetime.strptime(f"{date_str} {start_dd.value}", "%Y-%m-%d %H:%M").replace(tzinfo=vn_tz)
+                            ends_at = datetime.strptime(f"{date_str} {end}", "%Y-%m-%d %H:%M").replace(tzinfo=vn_tz)
+
+                            external_uid = f"manual_{uuid.uuid4()}"
+                            content_str = f"{sub_tf.value}|{starts_at.isoformat()}|{ends_at.isoformat()}|{loc_tf.value}"
+                            content_hash = hashlib.md5(content_str.encode('utf-8')).hexdigest()
+
+                            pg_cur.execute(
+                                """
+                                INSERT INTO calendar_events
+                                (source_id, source_version_id, external_uid, content_hash, title, description, starts_at, ends_at, location, event_type, status, user_cancelled)
+                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'legacy', 'active', false)
+                                """,
+                                (
+                                    source_id,
+                                    current_version_id,
+                                    external_uid,
+                                    content_hash,
+                                    sub_tf.value,
+                                    "",  # description
+                                    starts_at,
+                                    ends_at,
+                                    loc_tf.value
+                                )
+                            )
+                            pg_conn.commit()
+                except Exception as pg_ex:
+                    print(f"Error syncing schedule to PostgreSQL: {pg_ex}")
+
             page.close(dlg)
             refresh_all()
 

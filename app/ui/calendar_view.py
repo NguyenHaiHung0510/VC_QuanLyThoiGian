@@ -27,18 +27,19 @@ def get_week_start(d: date) -> date:
 def _parse_hex_color(hex_color: str) -> str:
     """
     Convert '#RRGGBB' or 'RRGGBB' to a Flet-compatible color string.
-    Falls back to ft.Colors.GREY if parsing fails.
+    Falls back to original string/object if it's already a valid name or object.
     """
     if not hex_color:
         return ft.Colors.GREY_400
-    h = hex_color.strip().lstrip("#")
-    if len(h) == 6:
-        try:
-            r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
-            return f"#{h.upper()}"
-        except ValueError:
-            pass
-    return ft.Colors.GREY_400
+    if isinstance(hex_color, str):
+        h = hex_color.strip().lstrip("#")
+        if len(h) == 6:
+            try:
+                int(h, 16)
+                return f"#{h.upper()}"
+            except ValueError:
+                pass
+    return hex_color
 
 
 # ---------------------------------------------------------------------------
@@ -252,10 +253,13 @@ def build_continuous_calendar_tab(
         exams = []
         studies = []
         personal = []
+        tasks = []
         for ev in day_events:
             kind = ev.get("kind", "")
             ev_type = ev.get("event_type", "")
-            if kind == "exam_schedule" or ev_type == "exam":
+            if ev_type == "task" or kind == "task":
+                tasks.append(ev)
+            elif kind == "exam_schedule" or ev_type == "exam":
                 exams.append(ev)
             elif kind == "study_schedule" or ev_type == "class":
                 studies.append(ev)
@@ -306,10 +310,24 @@ def build_continuous_calendar_tab(
                     tooltip_lines.append(f"• {_fmt_ev_time(ev.get('starts_at'), ev.get('ends_at'))} {ev['title']}")
                     displayed_items += 1
 
-        total_evs = len(exams) + len(studies) + len(personal)
+        # 4. Tasks
+        if tasks:
+            if displayed_items < max_tooltip_items:
+                if exams or studies or personal:
+                    tooltip_lines.append("──────────────────────")
+                tooltip_lines.append("【 VIỆC CẦN LÀM 】")
+                for ev in tasks:
+                    if displayed_items >= max_tooltip_items:
+                        break
+                    status = ev.get("status", "")
+                    prefix = "✅" if status == "completed" else "▫️"
+                    tooltip_lines.append(f"{prefix} {ev['title']}")
+                    displayed_items += 1
+
+        total_evs = len(exams) + len(studies) + len(personal) + len(tasks)
         hidden_count = total_evs - displayed_items
         if hidden_count > 0:
-            tooltip_lines.append(f"+ {hidden_count} lịch khác...")
+            tooltip_lines.append(f"+ {hidden_count} mục khác...")
 
         tooltip_str = "\n".join(tooltip_lines) if total_evs > 0 else f"📅 {d.strftime('%d/%m/%Y')}\n(Không có lịch)"
 
@@ -780,7 +798,7 @@ def build_continuous_calendar_tab(
             page.close(dlg)
             source_update_picker.pick_files(allow_multiple=False, allowed_extensions=["ics", "xlsx"])
 
-        history_list = ft.Column(spacing=8, scroll="auto", max_height=180)
+        history_list = ft.Column(spacing=8, scroll="auto", height=180)
         if not versions:
             history_list.controls.append(ft.Text("Chưa có lịch sử nhập.", size=12, color="grey", italic=True))
         else:

@@ -60,3 +60,12 @@ Tài liệu này ghi nhớ toàn bộ tiêu chí, cách thức làm việc, tài
   4. **Tối ưu hóa Ghi chú**:
      - Tooltip note card: Khi hover qua note card, hiển thị tooltip tĩnh gồm tên ghi chú đầy đủ (auto ngắt dòng) và các task con (checklist items) từ trên xuống dưới, dài quá 8 mục thì hiện `+N mục khác...`.
      - Click tiêu đề ghi chú: Bấm trực tiếp vào tiêu đề ghi chú trên note card sẽ kích hoạt mở dialog "chỉnh sửa chi tiết".
+
+### Giai đoạn Tiếp theo: Sửa lỗi Đồng bộ dữ liệu Lịch/Task & Khắc phục Crash Dialog Quản lý Nguồn lịch (Đang thực hiện)
+- **Bối cảnh & Yêu cầu lỗi**:
+  1. **Thêm lịch cứng ở Chi tiết ngày không hiển thị**: Nút `+ LỊCH CỐ ĐỊNH` (`open_add_schedule_dialog`) chỉ chèn vào SQLite (`schedule`), trong khi Day View và Month View đã chuyển sang dùng PostgreSQL (`calendar_events`).
+     - *Giải pháp*: Khi người dùng lưu lịch cứng qua `open_add_schedule_dialog()`, ngoài việc lưu vào SQLite `schedule` (để tương thích ngược), cần đồng thời chèn sự kiện này vào bảng `calendar_events` trong PostgreSQL dưới nguồn `'v1_sqlite_schedule'` (loại `legacy`, `status = 'active'`).
+  2. **Task không hiển thị ở Lịch tháng**: Người dùng thêm Task ở tab Chi tiết ngày nhưng sang Lịch tháng không nhìn thấy Task này vì Lịch tháng chỉ load từ `calendar_events`.
+     - *Giải pháp*: Cải tiến hàm `get_events_by_range` của `CalendarViewService` trong PostgreSQL để truy vấn thêm các Task có hạn (`due_at`) trong khoảng thời gian tương ứng từ bảng `tasks` (loại trừ các task `archived`), sau đó map các Task này thành dạng dict sự kiện với `event_type = 'task'` để Lịch tháng tự động hiển thị dưới dạng các event chip và tooltip.
+  3. **Crash khi mở Dialog quản lý Nguồn lịch**: Khi bấm vào tên nguồn lịch ở góc trái dưới tab Lịch tháng, ứng dụng bị crash im lặng do thuộc tính `max_height=180` không được Flet hỗ trợ trong constructor `ft.Column`.
+     - *Giải pháp*: Đổi `max_height=180` thành `height=180` trực tiếp khi khởi tạo `ft.Column` cho lịch sử nhập.
