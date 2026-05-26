@@ -1900,13 +1900,13 @@ def main(page: ft.Page):
     )
 
     # --- VIEW 3: GHI CHÚ TAB ---
-    container_notes = ft.GridView(
+    container_notes = ft.Column(
+        scroll=ft.ScrollMode.AUTO,
         expand=True,
-        max_extent=320,
-        child_aspect_ratio=1.0,
         spacing=15,
-        run_spacing=15,
     )
+
+    current_sort_option = "updated"
 
     quick_note_tf = ft.TextField(
         hint_text="Nhập tiêu đề ghi chú nhanh...",
@@ -1932,6 +1932,22 @@ def main(page: ft.Page):
 
     quick_note_tf.on_submit = handle_quick_add_note
 
+    def change_sort_option(val):
+        nonlocal current_sort_option
+        current_sort_option = val
+        load_notes_view()
+
+    sort_dd = ft.Dropdown(
+        width=180,
+        content_padding=10,
+        value=current_sort_option,
+        options=[
+            ft.dropdown.Option("updated", "Chỉnh sửa mới nhất"),
+            ft.dropdown.Option("title", "Tiêu đề (A-Z)"),
+        ],
+        on_change=lambda e: change_sort_option(e.control.value)
+    )
+
     tab_notes = ft.Container(
         padding=20,
         bgcolor="white",
@@ -1940,8 +1956,16 @@ def main(page: ft.Page):
                 ft.Row(
                     [
                         ft.Text("GHI CHÚ CÁ NHÂN", size=20, weight="bold", color=THEME["primary"]),
-                        ft.Container(width=20),
+                        ft.Container(width=10),
                         quick_note_tf,
+                        ft.IconButton(
+                            ft.Icons.CHECK,
+                            icon_color=THEME["primary"],
+                            tooltip="Lưu nhanh",
+                            on_click=handle_quick_add_note
+                        ),
+                        ft.Container(width=10),
+                        sort_dd,
                         ft.ElevatedButton(
                             "THÊM GHI CHÚ",
                             icon=ft.Icons.ADD,
@@ -1976,26 +2000,60 @@ def main(page: ft.Page):
                     )
                 )
             ]
-            container_notes.update()
+            if container_notes.page:
+                container_notes.update()
             return
 
         try:
-            notes = notes_service.list_notes(include_archived=False)
+            print("load_notes_view: listing notes...", flush=True)
+            if not notes_service:
+                print("load_notes_view: notes_service is None!", flush=True)
+            all_notes = notes_service.list_notes(include_archived=True)
+            print(f"load_notes_view: found {len(all_notes)} notes", flush=True)
             container_notes.controls.clear()
-            if not notes:
+
+            # Apply stable sorting: first by secondary key, then by pinned status
+            if current_sort_option == "title":
+                all_notes.sort(key=lambda x: x["title"].lower(), reverse=False)
+                all_notes.sort(key=lambda x: x["pinned"], reverse=True)
+            else: # "updated"
+                all_notes.sort(key=lambda x: x["updated_at"] or "", reverse=True)
+                all_notes.sort(key=lambda x: x["pinned"], reverse=True)
+
+            active_notes = [n for n in all_notes if not n["archived_at"]]
+            archived_notes = [n for n in all_notes if n["archived_at"]]
+
+            if not active_notes:
                 container_notes.controls.append(
                     ft.Container(
                         alignment=ft.alignment.center,
-                        padding=100,
+                        padding=40,
                         content=ft.Text("Chưa có ghi chú nào. Hãy tạo ghi chú mới! 📝", italic=True, color="grey", size=16),
                     )
                 )
             else:
-                for note in notes:
-                    container_notes.controls.append(create_note_card(note))
-            container_notes.update()
+                active_row = ft.Row(wrap=True, spacing=15, run_spacing=15)
+                for note in active_notes:
+                    active_row.controls.append(create_note_card(note, is_archived=False))
+                container_notes.controls.append(active_row)
+
+            if archived_notes:
+                container_notes.controls.append(ft.Divider(height=20, color=ft.Colors.GREY_300))
+                container_notes.controls.append(
+                    ft.Text("GHI CHÚ ĐÃ LƯU TRỮ (ARCHIVED)", size=16, weight="bold", color=ft.Colors.GREY_600)
+                )
+                archived_row = ft.Row(wrap=True, spacing=15, run_spacing=15)
+                for note in archived_notes:
+                    archived_row.controls.append(create_note_card(note, is_archived=True))
+                container_notes.controls.append(archived_row)
+
+            if container_notes.page:
+                container_notes.update()
         except Exception as e:
-            print(f"Error loading notes: {e}")
+            import traceback, sys
+            print(f"Error loading notes: {e}", flush=True)
+            traceback.print_exc(file=sys.stdout)
+            sys.stdout.flush()
 
     def toggle_pin(nid, current_pinned):
         try:
@@ -2009,6 +2067,14 @@ def main(page: ft.Page):
             notes_service.update_note(nid, archived=True)
             load_notes_view()
             page.open(ft.SnackBar(ft.Text("Đã lưu trữ ghi chú!"), bgcolor="green"))
+        except Exception as e:
+            page.open(ft.SnackBar(ft.Text(f"Lỗi: {e}"), bgcolor="red"))
+
+    def unarchive_note(nid):
+        try:
+            notes_service.update_note(nid, archived=False)
+            load_notes_view()
+            page.open(ft.SnackBar(ft.Text("Đã khôi phục ghi chú!"), bgcolor="green"))
         except Exception as e:
             page.open(ft.SnackBar(ft.Text(f"Lỗi: {e}"), bgcolor="red"))
 
@@ -2034,7 +2100,7 @@ def main(page: ft.Page):
         )
         page.open(dlg)
 
-    def create_note_card(note):
+    def create_note_card(note, is_archived=False):
         nid = note["id"]
         title = note["title"]
         body = note["body"]
@@ -2065,61 +2131,91 @@ def main(page: ft.Page):
             italic=True
         ) if body else ft.Container()
 
+        def make_item_toggle(item_id, current_done):
+            def on_click(e):
+                try:
+                    notes_service.update_note_item(item_id, is_done=not current_done)
+                    load_notes_view()
+                except Exception as ex:
+                    print(f"Error toggling item: {ex}")
+            return on_click
+
+        def make_edit_click(n_id):
+            return lambda e: open_edit_note_note_dialog(n_id)
+
         checklist_col = ft.Column(spacing=2)
         if note_items:
             for item in note_items[:3]:
                 is_done = item["is_done"]
                 content = item["content"]
+                item_id = item["id"]
                 checklist_col.controls.append(
-                    ft.Row(
-                        [
-                            ft.Icon(
-                                ft.Icons.CHECK_BOX if is_done else ft.Icons.CHECK_BOX_OUTLINE_BLANK,
-                                size=12,
-                                color="grey"
-                            ),
-                            ft.Text(
-                                content,
-                                size=11,
-                                color="grey" if is_done else ft.Colors.BLACK87,
-                                style=ft.TextStyle(decoration=ft.TextDecoration.LINE_THROUGH if is_done else ft.TextDecoration.NONE),
-                                no_wrap=True,
-                                overflow=ft.TextOverflow.ELLIPSIS,
-                                expand=True
-                            )
-                        ],
-                        spacing=3
+                    ft.Container(
+                        content=ft.Row(
+                            [
+                                ft.Icon(
+                                    ft.Icons.CHECK_BOX if is_done else ft.Icons.CHECK_BOX_OUTLINE_BLANK,
+                                    size=12,
+                                    color="grey" if is_done else THEME["primary"]
+                                ),
+                                ft.Text(
+                                    content,
+                                    size=11,
+                                    color="grey" if is_done else ft.Colors.BLACK87,
+                                    style=ft.TextStyle(decoration=ft.TextDecoration.LINE_THROUGH if is_done else ft.TextDecoration.NONE),
+                                    no_wrap=False,
+                                    max_lines=2,
+                                    overflow=ft.TextOverflow.ELLIPSIS,
+                                    expand=True
+                                )
+                            ],
+                            spacing=3
+                        ),
+                        on_click=make_item_toggle(item_id, is_done),
+                        padding=1
                     )
                 )
             if len(note_items) > 3:
                 checklist_col.controls.append(
-                    ft.Text(f"+ {len(note_items) - 3} mục khác...", size=10, color="grey", italic=True)
+                    ft.Container(
+                        content=ft.Text(f"+ {len(note_items) - 3} mục khác...", size=10, color=THEME["primary"], italic=True, weight="bold"),
+                        on_click=make_edit_click(nid),
+                    )
                 )
 
         def make_pin_click(n_id, is_pinned):
             return lambda e: toggle_pin(n_id, is_pinned)
 
-        def make_edit_click(n_id):
-            return lambda e: open_edit_note_note_dialog(n_id)
-
         def make_archive_click(n_id):
             return lambda e: archive_note(n_id)
 
+        def make_unarchive_click(n_id):
+            return lambda e: unarchive_note(n_id)
+
         def make_delete_click(n_id):
             return lambda e: confirm_delete_note(n_id)
+
+        archive_btn = (
+            ft.IconButton(ft.Icons.UNARCHIVE, icon_size=16, tooltip="Khôi phục ghi chú", on_click=make_unarchive_click(nid))
+            if is_archived else
+            ft.IconButton(ft.Icons.ARCHIVE, icon_size=16, tooltip="Lưu trữ (Ẩn đi)", on_click=make_archive_click(nid))
+        )
 
         return ft.Card(
             elevation=2,
             color=ft.Colors.WHITE,
             content=ft.Container(
+                width=300,
+                height=265,
                 padding=12,
+                opacity=0.6 if is_archived else 1.0,
                 border_radius=8,
                 border=ft.border.all(1.5, THEME["primary"] if pinned else ft.Colors.GREY_200),
                 content=ft.Column(
                     [
                         ft.Row(
                             [
-                                ft.Text(title, weight="bold", size=14, expand=True, no_wrap=True, overflow=ft.TextOverflow.ELLIPSIS),
+                                ft.Text(title, weight="bold", size=14, expand=True, no_wrap=False, max_lines=2, overflow=ft.TextOverflow.ELLIPSIS),
                                 ft.IconButton(
                                     pin_icon,
                                     icon_size=16,
@@ -2137,7 +2233,7 @@ def main(page: ft.Page):
                         ft.Row(
                             [
                                 ft.IconButton(ft.Icons.EDIT, icon_size=16, tooltip="Chỉnh sửa chi tiết", on_click=make_edit_click(nid)),
-                                ft.IconButton(ft.Icons.ARCHIVE, icon_size=16, tooltip="Lưu trữ (Ẩn đi)", on_click=make_archive_click(nid)),
+                                archive_btn,
                                 ft.IconButton(ft.Icons.DELETE, icon_size=16, icon_color="red", tooltip="Xóa ghi chú", on_click=make_delete_click(nid)),
                             ],
                             alignment=ft.MainAxisAlignment.END,
@@ -2277,14 +2373,17 @@ def main(page: ft.Page):
             new_item_tf.focus()
             new_item_tf.update()
             render_note_items()
+            load_notes_view()
 
         def toggle_item(item_id, current_state):
             notes_service.update_note_item(item_id, is_done=not current_state)
             render_note_items()
+            load_notes_view()
 
         def delete_item(item_id):
             notes_service.delete_note_item(item_id)
             render_note_items()
+            load_notes_view()
 
         new_item_tf.on_submit = add_item
         render_note_items(True)
@@ -2522,13 +2621,16 @@ def main(page: ft.Page):
     ]
     tabs_control.selected_index = 1
     def handle_tab_change(e):
-        if tabs_control.selected_index == 1:
+        print(f"handle_tab_change: tabs_control.selected_index={tabs_control.selected_index}, control.selected_index={e.control.selected_index}", flush=True)
+        if e.control.selected_index == 1:
             if hasattr(tab_calendar_content, "scroll_to_today"):
                 async def do_scroll():
                     import asyncio
                     await asyncio.sleep(0.1)
                     tab_calendar_content.scroll_to_today()
                 page.run_task(do_scroll)
+        elif e.control.selected_index == 2:
+            load_notes_view()
 
     tabs_control.expand = True
     tabs_control.label_color = THEME["primary"]
@@ -2552,4 +2654,4 @@ def main(page: ft.Page):
     refresh_all()
 
 
-ft.app(target=main)
+ft.app(target=main, view=ft.AppView.WEB_BROWSER, port=8550)

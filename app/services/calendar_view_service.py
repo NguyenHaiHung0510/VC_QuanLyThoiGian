@@ -33,7 +33,8 @@ class CalendarViewService:
         query = """
             SELECT ce.id, ce.title, ce.location, ce.event_type,
                    ce.starts_at, ce.ends_at, ce.user_cancelled,
-                   cs.color, cs.display_name, cs.id AS source_id
+                   cs.color, cs.display_name, cs.id AS source_id,
+                   cs.kind
             FROM calendar_events ce
             JOIN calendar_sources cs ON ce.source_id = cs.id
             WHERE ce.source_version_id = cs.current_version_id
@@ -59,6 +60,7 @@ class CalendarViewService:
                     "color": row[7],
                     "display_name": row[8],
                     "source_id": row[9],
+                    "kind": row[10],
                 })
         return events
 

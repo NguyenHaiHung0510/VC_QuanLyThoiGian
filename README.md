@@ -132,6 +132,8 @@ DATA_DIR = r"C:\Users\os\Desktop\Tools\VC_microSchedule_home"
 ### Bước 5: Chạy app
 ```bash
 python main.py
+# hoặc chạy web
+flet run --web main.py
 ```
 
 App sẽ mở cửa sổ Flet, hiển thị giao diện chính.
