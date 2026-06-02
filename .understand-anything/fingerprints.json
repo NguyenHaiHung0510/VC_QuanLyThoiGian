@@ -1,0 +1,2684 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "a2326c975077abbb102493acc1cdad926930c5bc",
+  "generatedAt": "2026-06-02T11:14:55.826Z",
+  "files": {
+    ".env.example": {
+      "filePath": ".env.example",
+      "contentHash": "0b93ee5175b91ab1e807ced8e019e3e9518cace600190ce4e42abed5e73cf99d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 10,
+      "hasStructuralAnalysis": true
+    },
+    ".gitattributes": {
+      "filePath": ".gitattributes",
+      "contentHash": "d8fb0de4792538f93822b2c0d235604921299d5e54a3d6ec7a6cb34536e8bf1e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": false
+    },
+    ".pre-commit-config.yaml": {
+      "filePath": ".pre-commit-config.yaml",
+      "contentHash": "40bcd5554cebaf2fe0dfae33d191ebfd62ba80250cb87269638e80a4608c365f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    "agent_workflow_doc/AGENT_PROMPT_TEMPLATES.md": {
+      "filePath": "agent_workflow_doc/AGENT_PROMPT_TEMPLATES.md",
+      "contentHash": "ecba58735d0c21ae33a3b731f88ac88dc4c109548ad4acf500e17312a0923ce6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 206,
+      "hasStructuralAnalysis": true
+    },
+    "agent_workflow_doc/GHI_NHO_CONG_VIEC.md": {
+      "filePath": "agent_workflow_doc/GHI_NHO_CONG_VIEC.md",
+      "contentHash": "3fd3930333b34a6a06ede340e7be265e11f833541ff11cf7490ef7095622e521",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 72,
+      "hasStructuralAnalysis": true
+    },
+    "agent_workflow_doc/GIT_WORKFLOW_GUIDE.md": {
+      "filePath": "agent_workflow_doc/GIT_WORKFLOW_GUIDE.md",
+      "contentHash": "429cf74311d183934186b9693087f612ea5c020768dc686de9a3a80aa3d2e748",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 65,
+      "hasStructuralAnalysis": true
+    },
+    "agent_workflow_doc/KINH_NGHIEM.md": {
+      "filePath": "agent_workflow_doc/KINH_NGHIEM.md",
+      "contentHash": "83cbf954190fb33c60eeac6181545edb7908dc7bbbc1ccaac8e9e92001371702",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 70,
+      "hasStructuralAnalysis": true
+    },
+    "agent_workflow_doc/tier2_task_specs/V2_PARALLEL_EXECUTION_BOARD.md": {
+      "filePath": "agent_workflow_doc/tier2_task_specs/V2_PARALLEL_EXECUTION_BOARD.md",
+      "contentHash": "c21486b07210345358baef4aefd50131ff3681554bfb84724cd69aeca4f0c6f9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 131,
+      "hasStructuralAnalysis": true
+    },
+    "agent_workflow_doc/tier2_task_specs/V2_TIER2_IMPLEMENTATION_PLAN.md": {
+      "filePath": "agent_workflow_doc/tier2_task_specs/V2_TIER2_IMPLEMENTATION_PLAN.md",
+      "contentHash": "d6d1a8dcbf23e539b20840fc9f876227a3daf5ffbaa7c62f2acc4fad27f0a66a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 534,
+      "hasStructuralAnalysis": true
+    },
+    "app/__init__.py": {
+      "filePath": "app/__init__.py",
+      "contentHash": "1ba63a0d34c9aee2c00237a04c59fa611dc3ba66c26ac0512024e06d26e5b4d0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "app/config.py": {
+      "filePath": "app/config.py",
+      "contentHash": "129f2fb4eccea8a934924774e877fe8c779fb82fb5702a6d4a5c538c9c162ff2",
+      "functions": [
+        {
+          "name": "load_config",
+          "params": [
+            "dotenv_path"
+          ],
+          "returnType": "AppConfig",
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "get_database_name",
+          "params": [
+            "database_url"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "redact_database_url",
+          "params": [
+            "database_url"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "assert_safe_target_database",
+          "params": [
+            "database_url",
+            "allow_non_dev_target"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 14
+        },
+        {
+          "name": "assert_reset_allowed",
+          "params": [
+            "database_url"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 7
+        }
+      ],
+      "classes": [
+        {
+          "name": "AppConfig",
+          "methods": [
+            "database_name",
+            "safe_database_url"
+          ],
+          "properties": [
+            "database_url",
+            "data_dir",
+            "backup_dir",
+            "sqlite_v1_path",
+            "app_env",
+            "app_version"
+          ],
+          "exported": true,
+          "lineCount": 15
+        }
+      ],
+      "imports": [
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "urllib.parse",
+          "specifiers": [
+            "urlparse",
+            "urlunparse"
+          ]
+        },
+        {
+          "source": "dotenv",
+          "specifiers": [
+            "load_dotenv"
+          ]
+        }
+      ],
+      "exports": [
+        "AppConfig",
+        "load_config",
+        "get_database_name",
+        "redact_database_url",
+        "assert_safe_target_database",
+        "assert_reset_allowed"
+      ],
+      "totalLines": 101,
+      "hasStructuralAnalysis": true
+    },
+    "app/db/__init__.py": {
+      "filePath": "app/db/__init__.py",
+      "contentHash": "06dabd4e117e69ecc26f8f35a393c9fe5ac53e8195458b9ab6634ff3e3b39b44",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "app/db/postgres.py": {
+      "filePath": "app/db/postgres.py",
+      "contentHash": "dc7fc391f68f1839dd825708010357277420c44bca33e4a16152fe7191b5b863",
+      "functions": [
+        {
+          "name": "connect",
+          "params": [
+            "config_or_url"
+          ],
+          "returnType": "psycopg.Connection",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "transaction",
+          "params": [
+            "conn"
+          ],
+          "returnType": "Iterator[psycopg.Connection]",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "read_schema_sql",
+          "params": [],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "apply_schema",
+          "params": [
+            "conn"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "reset_public_schema",
+          "params": [
+            "conn",
+            "database_url"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "connect_checked",
+          "params": [
+            "config",
+            "allow_non_dev_target"
+          ],
+          "returnType": "psycopg.Connection",
+          "exported": true,
+          "lineCount": 10
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "contextlib",
+          "specifiers": [
+            "contextmanager"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Iterator"
+          ]
+        },
+        {
+          "source": "psycopg",
+          "specifiers": [
+            "psycopg"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "AppConfig",
+            "assert_reset_allowed",
+            "assert_safe_target_database"
+          ]
+        }
+      ],
+      "exports": [
+        "connect",
+        "transaction",
+        "read_schema_sql",
+        "apply_schema",
+        "reset_public_schema",
+        "connect_checked"
+      ],
+      "totalLines": 61,
+      "hasStructuralAnalysis": true
+    },
+    "app/db/schema.sql": {
+      "filePath": "app/db/schema.sql",
+      "contentHash": "8f2e920aeffd5b5dd8630fa53f7dea0ee6adc552ca79646b49f6b001691da2d5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 192,
+      "hasStructuralAnalysis": true
+    },
+    "app/exporters/__init__.py": {
+      "filePath": "app/exporters/__init__.py",
+      "contentHash": "51f6e03f2d75df1ed45f79f3fd0e7c49f801deed096c5bdf5b547452797de0a0",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": ".planner_dto",
+          "specifiers": [
+            "PlannerExportDTO",
+            "ExportMetadata",
+            "ExportEvent",
+            "ExportSubtask",
+            "ExportTask",
+            "ExportNoteItem",
+            "ExportNote"
+          ]
+        },
+        {
+          "source": ".markdown_exporter",
+          "specifiers": [
+            "MarkdownExporter"
+          ]
+        },
+        {
+          "source": ".json_exporter",
+          "specifiers": [
+            "JSONExporter"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 24,
+      "hasStructuralAnalysis": true
+    },
+    "app/exporters/json_exporter.py": {
+      "filePath": "app/exporters/json_exporter.py",
+      "contentHash": "355e769d5839858643dd4cda8098d658300f0fdc44a803b695137371c60adc42",
+      "functions": [],
+      "classes": [
+        {
+          "name": "JSONExporter",
+          "methods": [
+            "export"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "asdict"
+          ]
+        },
+        {
+          "source": ".planner_dto",
+          "specifiers": [
+            "PlannerExportDTO"
+          ]
+        }
+      ],
+      "exports": [
+        "JSONExporter"
+      ],
+      "totalLines": 11,
+      "hasStructuralAnalysis": true
+    },
+    "app/exporters/markdown_exporter.py": {
+      "filePath": "app/exporters/markdown_exporter.py",
+      "contentHash": "5b0708da198fec741f64ea2d9dca4003e3a4d6823b60a540a0fadf32e671fdff",
+      "functions": [],
+      "classes": [
+        {
+          "name": "MarkdownExporter",
+          "methods": [
+            "export"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 89
+        }
+      ],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "Dict",
+            "List"
+          ]
+        },
+        {
+          "source": ".planner_dto",
+          "specifiers": [
+            "PlannerExportDTO",
+            "ExportEvent",
+            "ExportTask",
+            "ExportNote"
+          ]
+        }
+      ],
+      "exports": [
+        "MarkdownExporter"
+      ],
+      "totalLines": 93,
+      "hasStructuralAnalysis": true
+    },
+    "app/exporters/planner_dto.py": {
+      "filePath": "app/exporters/planner_dto.py",
+      "contentHash": "56ed8f580ba68d8c15b202883d27adc00bacc3f06b31f22b4bdacc0d8905dd44",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ExportMetadata",
+          "methods": [],
+          "properties": [
+            "generated_at",
+            "threshold_date",
+            "date_format",
+            "description"
+          ],
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "ExportEvent",
+          "methods": [],
+          "properties": [
+            "subject",
+            "time_start",
+            "time_end",
+            "location",
+            "date_str",
+            "source_name",
+            "event_type"
+          ],
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "ExportSubtask",
+          "methods": [],
+          "properties": [
+            "content",
+            "is_completed"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "ExportTask",
+          "methods": [],
+          "properties": [
+            "id",
+            "title",
+            "is_completed",
+            "priority",
+            "date_str",
+            "note",
+            "subtasks_list",
+            "context_note"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "ExportNoteItem",
+          "methods": [],
+          "properties": [
+            "content",
+            "is_done"
+          ],
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "ExportNote",
+          "methods": [],
+          "properties": [
+            "id",
+            "title",
+            "body",
+            "pinned",
+            "priority",
+            "note_items"
+          ],
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "PlannerExportDTO",
+          "methods": [],
+          "properties": [
+            "metadata",
+            "schedule_events",
+            "todo_tasks",
+            "notes",
+            "warnings"
+          ],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "imports": [
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass",
+            "field"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "List",
+            "Optional"
+          ]
+        }
+      ],
+      "exports": [
+        "ExportMetadata",
+        "ExportEvent",
+        "ExportSubtask",
+        "ExportTask",
+        "ExportNoteItem",
+        "ExportNote",
+        "PlannerExportDTO"
+      ],
+      "totalLines": 58,
+      "hasStructuralAnalysis": true
+    },
+    "app/importers/__init__.py": {
+      "filePath": "app/importers/__init__.py",
+      "contentHash": "7fd4605ca9bf2c3d591fd7d85b1f6879464f1807066729fe1ea671eed97ba29c",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": ".ics_importer",
+          "specifiers": [
+            "IcsImporter"
+          ]
+        },
+        {
+          "source": ".excel_exam_importer",
+          "specifiers": [
+            "ExcelExamImporter"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 5,
+      "hasStructuralAnalysis": true
+    },
+    "app/importers/excel_exam_importer.py": {
+      "filePath": "app/importers/excel_exam_importer.py",
+      "contentHash": "03209b7fa5ac3e6f450581f236f52aeb2c2a2b62a67f612fc058052eedc78e12",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ExcelExamImporter",
+          "methods": [
+            "__init__",
+            "parse_time_slot",
+            "parse"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 183
+        }
+      ],
+      "imports": [
+        {
+          "source": "hashlib",
+          "specifiers": [
+            "hashlib"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timedelta",
+            "timezone"
+          ]
+        },
+        {
+          "source": "openpyxl",
+          "specifiers": [
+            "openpyxl"
+          ]
+        }
+      ],
+      "exports": [
+        "ExcelExamImporter"
+      ],
+      "totalLines": 191,
+      "hasStructuralAnalysis": true
+    },
+    "app/importers/ics_importer.py": {
+      "filePath": "app/importers/ics_importer.py",
+      "contentHash": "d72a9d5a56abdd1bac79748d9253df4ec32f48a09008844caa96d1400374fb1d",
+      "functions": [],
+      "classes": [
+        {
+          "name": "IcsImporter",
+          "methods": [
+            "__init__",
+            "parse_date",
+            "parse"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 123
+        }
+      ],
+      "imports": [
+        {
+          "source": "hashlib",
+          "specifiers": [
+            "hashlib"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timedelta",
+            "timezone"
+          ]
+        }
+      ],
+      "exports": [
+        "IcsImporter"
+      ],
+      "totalLines": 129,
+      "hasStructuralAnalysis": true
+    },
+    "app/migration/__init__.py": {
+      "filePath": "app/migration/__init__.py",
+      "contentHash": "8a97b5f34e5ed0f70c188fed6fd7a1492238ea0f039f96b47af46da1821cb6f9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "app/migration/analyze_v1_sqlite.py": {
+      "filePath": "app/migration/analyze_v1_sqlite.py",
+      "contentHash": "bb910bbc46c67bc0808951f74e5032bc25ce65545e149030721a2b1a1f7df71f",
+      "functions": [
+        {
+          "name": "open_sqlite_readonly",
+          "params": [
+            "sqlite_path"
+          ],
+          "returnType": "sqlite3.Connection",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "parse_v1_date",
+          "params": [
+            "value"
+          ],
+          "returnType": "date | None",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "v1_date_to_due_at",
+          "params": [
+            "value"
+          ],
+          "returnType": "datetime | None",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "parse_v1_datetime",
+          "params": [
+            "date_str",
+            "time_str"
+          ],
+          "returnType": "datetime | None",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "parse_v1_time",
+          "params": [
+            "value"
+          ],
+          "returnType": "time | None",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "file_sha256",
+          "params": [
+            "path"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "table_count",
+          "params": [
+            "conn",
+            "table_name"
+          ],
+          "returnType": "int",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "fetch_dicts",
+          "params": [
+            "conn",
+            "query",
+            "params"
+          ],
+          "returnType": "list[dict[str, Any]]",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "analyze",
+          "params": [
+            "sqlite_path",
+            "target_database_name",
+            "today"
+          ],
+          "returnType": "V1Analysis",
+          "exported": true,
+          "lineCount": 57
+        },
+        {
+          "name": "write_report",
+          "params": [
+            "analysis",
+            "mode",
+            "postgres_counts",
+            "calendar_counts"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 76
+        },
+        {
+          "name": "main",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 27
+        }
+      ],
+      "classes": [
+        {
+          "name": "V1Analysis",
+          "methods": [],
+          "properties": [
+            "sqlite_path",
+            "target_database_name",
+            "today",
+            "counts",
+            "note_candidates",
+            "task_plan_count",
+            "completed_task_count",
+            "open_task_count",
+            "schedule_count",
+            "setting_count",
+            "skipped",
+            "sqlite_sha256"
+          ],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "imports": [
+        {
+          "source": "argparse",
+          "specifiers": [
+            "argparse"
+          ]
+        },
+        {
+          "source": "hashlib",
+          "specifiers": [
+            "hashlib"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "sqlite3",
+          "specifiers": [
+            "sqlite3"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "dataclasses",
+          "specifiers": [
+            "dataclass"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "date",
+            "datetime",
+            "time",
+            "timedelta",
+            "timezone"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "load_config"
+          ]
+        }
+      ],
+      "exports": [
+        "V1Analysis",
+        "open_sqlite_readonly",
+        "parse_v1_date",
+        "v1_date_to_due_at",
+        "parse_v1_datetime",
+        "parse_v1_time",
+        "file_sha256",
+        "table_count",
+        "fetch_dicts",
+        "analyze",
+        "write_report",
+        "main"
+      ],
+      "totalLines": 272,
+      "hasStructuralAnalysis": true
+    },
+    "app/migration/migrate_sqlite_to_postgres.py": {
+      "filePath": "app/migration/migrate_sqlite_to_postgres.py",
+      "contentHash": "4f89d29a0f6424c57ccf89d5a08dc59e504b4daf09c143c3316f1640c32a67c8",
+      "functions": [
+        {
+          "name": "fetch_dicts",
+          "params": [
+            "conn",
+            "query"
+          ],
+          "returnType": "list[dict[str, Any]]",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "normalize_priority_settings",
+          "params": [
+            "settings"
+          ],
+          "returnType": "list[dict[str, Any]]",
+          "exported": true,
+          "lineCount": 29
+        },
+        {
+          "name": "load_v1_data",
+          "params": [
+            "sqlite_path"
+          ],
+          "returnType": "dict[str, list[dict[str, Any]]]",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "parse_settings",
+          "params": [
+            "rows"
+          ],
+          "returnType": "dict[str, Any]",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "content_hash",
+          "params": [
+            "payload"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "insert_priorities",
+          "params": [
+            "cur",
+            "settings"
+          ],
+          "returnType": "dict[str, Any]",
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "insert_settings",
+          "params": [
+            "cur",
+            "settings"
+          ],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 28
+        },
+        {
+          "name": "migrate_tasks_and_notes",
+          "params": [
+            "cur",
+            "tasks",
+            "subtasks",
+            "priority_ids",
+            "today",
+            "migration_time"
+          ],
+          "returnType": "tuple[int, int]",
+          "exported": true,
+          "lineCount": 80
+        },
+        {
+          "name": "migrate_schedule",
+          "params": [
+            "cur",
+            "schedule_rows",
+            "sqlite_path",
+            "sqlite_sha256",
+            "migration_time"
+          ],
+          "returnType": "tuple[int, int, int]",
+          "exported": true,
+          "lineCount": 98
+        },
+        {
+          "name": "collect_postgres_counts",
+          "params": [
+            "cur"
+          ],
+          "returnType": "dict[str, int]",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "collect_calendar_counts",
+          "params": [
+            "cur"
+          ],
+          "returnType": "dict[str, int]",
+          "exported": true,
+          "lineCount": 28
+        },
+        {
+          "name": "apply_migration",
+          "params": [
+            "sqlite_path",
+            "reset_dev_db",
+            "allow_non_dev_target",
+            "today"
+          ],
+          "returnType": "tuple[dict[str, int], dict[str, int]]",
+          "exported": true,
+          "lineCount": 44
+        },
+        {
+          "name": "main",
+          "params": [],
+          "returnType": "None",
+          "exported": true,
+          "lineCount": 61
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "argparse",
+          "specifiers": [
+            "argparse"
+          ]
+        },
+        {
+          "source": "hashlib",
+          "specifiers": [
+            "hashlib"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "sqlite3",
+          "specifiers": [
+            "sqlite3"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "date",
+            "datetime",
+            "timedelta"
+          ]
+        },
+        {
+          "source": "pathlib",
+          "specifiers": [
+            "Path"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "assert_safe_target_database",
+            "load_config"
+          ]
+        },
+        {
+          "source": "app.db.postgres",
+          "specifiers": [
+            "apply_schema",
+            "connect_checked",
+            "reset_public_schema",
+            "transaction"
+          ]
+        },
+        {
+          "source": "app.migration.analyze_v1_sqlite",
+          "specifiers": [
+            "VIETNAM_TZ",
+            "analyze",
+            "open_sqlite_readonly",
+            "parse_v1_datetime",
+            "parse_v1_time",
+            "v1_date_to_due_at",
+            "write_report"
+          ]
+        }
+      ],
+      "exports": [
+        "fetch_dicts",
+        "normalize_priority_settings",
+        "load_v1_data",
+        "parse_settings",
+        "content_hash",
+        "insert_priorities",
+        "insert_settings",
+        "migrate_tasks_and_notes",
+        "migrate_schedule",
+        "collect_postgres_counts",
+        "collect_calendar_counts",
+        "apply_migration",
+        "main"
+      ],
+      "totalLines": 511,
+      "hasStructuralAnalysis": true
+    },
+    "app/services/__init__.py": {
+      "filePath": "app/services/__init__.py",
+      "contentHash": "4102824814615e5b86c9152c56eb3bd54158e4462d90c89c4a5ed2a80e8ed729",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": ".backup_service",
+          "specifiers": [
+            "BackupService"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": true
+    },
+    "app/services/backup_service.py": {
+      "filePath": "app/services/backup_service.py",
+      "contentHash": "b4b87948628a49406db220e3927232d870e63cffe7350bb22539ecdfb0fcda08",
+      "functions": [],
+      "classes": [
+        {
+          "name": "BackupService",
+          "methods": [
+            "__init__",
+            "_parse_db_url",
+            "_log_backup_run",
+            "backup_now",
+            "apply_retention_policy"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 270
+        }
+      ],
+      "imports": [
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        },
+        {
+          "source": "glob",
+          "specifiers": [
+            "glob"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "subprocess",
+          "specifiers": [
+            "subprocess"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "urllib.parse",
+          "specifiers": [
+            "urlparse"
+          ]
+        },
+        {
+          "source": "psycopg",
+          "specifiers": [
+            "psycopg"
+          ]
+        },
+        {
+          "source": "dotenv",
+          "specifiers": [
+            "load_dotenv"
+          ]
+        }
+      ],
+      "exports": [
+        "BackupService"
+      ],
+      "totalLines": 281,
+      "hasStructuralAnalysis": true
+    },
+    "app/services/calendar_day_service.py": {
+      "filePath": "app/services/calendar_day_service.py",
+      "contentHash": "39ce8109f1268f001df6b2f4fc6b62cf265465a2ba9ac7b3e788c37f1dd642ac",
+      "functions": [],
+      "classes": [
+        {
+          "name": "CalendarDayService",
+          "methods": [
+            "__init__",
+            "get_events_for_date",
+            "toggle_event_user_cancelled",
+            "mark_event_user_cancelled"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 85
+        }
+      ],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "date"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "List",
+            "Dict",
+            "Any",
+            "Optional"
+          ]
+        }
+      ],
+      "exports": [
+        "CalendarDayService"
+      ],
+      "totalLines": 95,
+      "hasStructuralAnalysis": true
+    },
+    "app/services/calendar_import_service.py": {
+      "filePath": "app/services/calendar_import_service.py",
+      "contentHash": "a52418c51f1a7bec1cdc2044dca2e7c33b405c846ccb6d17f65176cdcd269a90",
+      "functions": [],
+      "classes": [
+        {
+          "name": "CalendarImportService",
+          "methods": [
+            "__init__",
+            "calculate_sha256",
+            "import_file"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 139
+        }
+      ],
+      "imports": [
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "hashlib",
+          "specifiers": [
+            "hashlib"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Dict",
+            "Any",
+            "List"
+          ]
+        },
+        {
+          "source": "app.importers.ics_importer",
+          "specifiers": [
+            "IcsImporter"
+          ]
+        },
+        {
+          "source": "app.importers.excel_exam_importer",
+          "specifiers": [
+            "ExcelExamImporter"
+          ]
+        }
+      ],
+      "exports": [
+        "CalendarImportService"
+      ],
+      "totalLines": 148,
+      "hasStructuralAnalysis": true
+    },
+    "app/services/calendar_source_service.py": {
+      "filePath": "app/services/calendar_source_service.py",
+      "contentHash": "7529fdc7f06e4c6de3d708f7eadb9b9ef1dce7bb822c840eb16444f35f746083",
+      "functions": [],
+      "classes": [
+        {
+          "name": "CalendarSourceService",
+          "methods": [
+            "__init__",
+            "list_sources",
+            "get_source_by_id",
+            "create_source",
+            "update_source"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 169
+        }
+      ],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "List",
+            "Dict",
+            "Any",
+            "Optional"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "date"
+          ]
+        }
+      ],
+      "exports": [
+        "CalendarSourceService"
+      ],
+      "totalLines": 173,
+      "hasStructuralAnalysis": true
+    },
+    "app/services/calendar_view_service.py": {
+      "filePath": "app/services/calendar_view_service.py",
+      "contentHash": "32bd9671d912af0ad7e4a47081f51a4e113ddf12f7e591383532e4e56637f756",
+      "functions": [],
+      "classes": [
+        {
+          "name": "CalendarViewService",
+          "methods": [
+            "__init__",
+            "get_events_by_range",
+            "get_active_sources",
+            "toggle_source_visibility",
+            "update_source_name",
+            "get_source_versions"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 173
+        }
+      ],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "List",
+            "Dict",
+            "Any"
+          ]
+        }
+      ],
+      "exports": [
+        "CalendarViewService"
+      ],
+      "totalLines": 183,
+      "hasStructuralAnalysis": true
+    },
+    "app/services/export_service.py": {
+      "filePath": "app/services/export_service.py",
+      "contentHash": "28e4458b0b4eaee36976455fc87871951ec977745f2c377a474baf34833008e1",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ExportService",
+          "methods": [
+            "__init__",
+            "_format_date",
+            "_format_time",
+            "_detect_conflicts",
+            "get_settings",
+            "generate_export_data",
+            "export_to_string"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 288
+        }
+      ],
+      "imports": [
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "date",
+            "timedelta"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "Any",
+            "Dict",
+            "List",
+            "Optional"
+          ]
+        },
+        {
+          "source": "..exporters.planner_dto",
+          "specifiers": [
+            "PlannerExportDTO",
+            "ExportMetadata",
+            "ExportEvent",
+            "ExportSubtask",
+            "ExportTask",
+            "ExportNoteItem",
+            "ExportNote"
+          ]
+        },
+        {
+          "source": "..exporters.markdown_exporter",
+          "specifiers": [
+            "MarkdownExporter"
+          ]
+        },
+        {
+          "source": "..exporters.json_exporter",
+          "specifiers": [
+            "JSONExporter"
+          ]
+        }
+      ],
+      "exports": [
+        "ExportService"
+      ],
+      "totalLines": 304,
+      "hasStructuralAnalysis": true
+    },
+    "app/services/notes_service.py": {
+      "filePath": "app/services/notes_service.py",
+      "contentHash": "3424cbf96de9c662ccf87a25458d043e594b6eaf13387ab42f8061a5679b2588",
+      "functions": [],
+      "classes": [
+        {
+          "name": "NotesService",
+          "methods": [
+            "__init__",
+            "list_priorities",
+            "list_notes",
+            "get_note_by_id",
+            "create_note",
+            "update_note",
+            "delete_note",
+            "list_note_items",
+            "add_note_item",
+            "update_note_item",
+            "delete_note_item"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 386
+        }
+      ],
+      "imports": [
+        {
+          "source": "typing",
+          "specifiers": [
+            "List",
+            "Dict",
+            "Any",
+            "Optional"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime"
+          ]
+        },
+        {
+          "source": "psycopg",
+          "specifiers": [
+            "psycopg"
+          ]
+        }
+      ],
+      "exports": [
+        "NotesService"
+      ],
+      "totalLines": 391,
+      "hasStructuralAnalysis": true
+    },
+    "app/services/task_service.py": {
+      "filePath": "app/services/task_service.py",
+      "contentHash": "54149979e3736a500b1bee57237d4e63d2688edfa1da6158a019d10bec5ba902",
+      "functions": [],
+      "classes": [
+        {
+          "name": "TaskService",
+          "methods": [
+            "__init__",
+            "get_tasks_for_date",
+            "get_overdue_tasks",
+            "create_task",
+            "update_task",
+            "toggle_task_done",
+            "delete_task",
+            "list_task_items",
+            "toggle_task_item",
+            "add_task_item",
+            "delete_task_item",
+            "list_priorities"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 297
+        }
+      ],
+      "imports": [
+        {
+          "source": "datetime",
+          "specifiers": [
+            "date",
+            "datetime",
+            "timezone",
+            "timedelta"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "List",
+            "Dict",
+            "Optional",
+            "Any"
+          ]
+        }
+      ],
+      "exports": [
+        "TaskService"
+      ],
+      "totalLines": 310,
+      "hasStructuralAnalysis": true
+    },
+    "app/ui/__init__.py": {
+      "filePath": "app/ui/__init__.py",
+      "contentHash": "075d3cd1b05a40cc0d21b0d2b97c219a948709a82d5ba8e933b8989e16af8952",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "app/ui/calendar_view.py": {
+      "filePath": "app/ui/calendar_view.py",
+      "contentHash": "36ad178a2c54c22c9692a8dfa54841e2991531d385c195f186892db6f8fb791c",
+      "functions": [
+        {
+          "name": "get_week_start",
+          "params": [
+            "d"
+          ],
+          "returnType": "date",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "_parse_hex_color",
+          "params": [
+            "hex_color"
+          ],
+          "returnType": "str",
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "build_continuous_calendar_tab",
+          "params": [
+            "page",
+            "calendar_view_svc",
+            "theme",
+            "color_map",
+            "on_day_click"
+          ],
+          "returnType": "ft.Control",
+          "exported": true,
+          "lineCount": 1009
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "flet",
+          "specifiers": [
+            "ft"
+          ]
+        },
+        {
+          "source": "calendar",
+          "specifiers": [
+            "calendar"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "date",
+            "datetime",
+            "timedelta",
+            "timezone"
+          ]
+        },
+        {
+          "source": "typing",
+          "specifiers": [
+            "List",
+            "Dict",
+            "Any"
+          ]
+        },
+        {
+          "source": "collections",
+          "specifiers": [
+            "defaultdict"
+          ]
+        },
+        {
+          "source": "app.services.calendar_view_service",
+          "specifiers": [
+            "CalendarViewService"
+          ]
+        },
+        {
+          "source": "app.services.calendar_import_service",
+          "specifiers": [
+            "CalendarImportService"
+          ]
+        }
+      ],
+      "exports": [
+        "get_week_start",
+        "_parse_hex_color",
+        "build_continuous_calendar_tab"
+      ],
+      "totalLines": 1058,
+      "hasStructuralAnalysis": true
+    },
+    "build.bat": {
+      "filePath": "build.bat",
+      "contentHash": "7e95d4775af45080752ae74ca7fb4f992b4c0b4ed76ca15beebc6604764aec1b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 17,
+      "hasStructuralAnalysis": false
+    },
+    "database.py": {
+      "filePath": "database.py",
+      "contentHash": "c5f12823e5e4cc612d48952ebcffce057aefff073916034bb741f4e398fd6868",
+      "functions": [
+        {
+          "name": "init_environment",
+          "params": [],
+          "exported": true,
+          "lineCount": 28
+        },
+        {
+          "name": "_setup_defaults",
+          "params": [
+            "cur"
+          ],
+          "exported": true,
+          "lineCount": 47
+        },
+        {
+          "name": "perform_smart_backup",
+          "params": [],
+          "exported": true,
+          "lineCount": 24
+        },
+        {
+          "name": "get_connection",
+          "params": [],
+          "exported": true,
+          "lineCount": 2
+        },
+        {
+          "name": "load_settings",
+          "params": [],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "save_single_setting",
+          "params": [
+            "key",
+            "value"
+          ],
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "parse_ics_date",
+          "params": [
+            "dt_str"
+          ],
+          "exported": true,
+          "lineCount": 13
+        },
+        {
+          "name": "import_ics_schedule",
+          "params": [
+            "file_path"
+          ],
+          "exported": true,
+          "lineCount": 62
+        },
+        {
+          "name": "import_excel_schedule",
+          "params": [
+            "file_path"
+          ],
+          "exported": true,
+          "lineCount": 97
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "sqlite3",
+          "specifiers": [
+            "sqlite3"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "shutil",
+          "specifiers": [
+            "shutil"
+          ]
+        },
+        {
+          "source": "glob",
+          "specifiers": [
+            "glob"
+          ]
+        },
+        {
+          "source": "time",
+          "specifiers": [
+            "time"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timedelta"
+          ]
+        },
+        {
+          "source": "re",
+          "specifiers": [
+            "re"
+          ]
+        }
+      ],
+      "exports": [
+        "init_environment",
+        "_setup_defaults",
+        "perform_smart_backup",
+        "get_connection",
+        "load_settings",
+        "save_single_setting",
+        "parse_ics_date",
+        "import_ics_schedule",
+        "import_excel_schedule"
+      ],
+      "totalLines": 345,
+      "hasStructuralAnalysis": true
+    },
+    "docs/archive/completed_workstreams/README.md": {
+      "filePath": "docs/archive/completed_workstreams/README.md",
+      "contentHash": "720fcf31edc30a2979e942ce5ef4c5dd4143e69d30ffa6ba0115bfc20e8ee5d4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "docs/archive/README.md": {
+      "filePath": "docs/archive/README.md",
+      "contentHash": "f2a4a13932cf27376e3fefc887f54d5753b1f156874284a544b8b5b1cd6e321c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 14,
+      "hasStructuralAnalysis": true
+    },
+    "docs/archive/v1_legacy/README.md": {
+      "filePath": "docs/archive/v1_legacy/README.md",
+      "contentHash": "3cb65f81b843403844589321d4f1be91c02d7d6b830a77cd7c3ac04b554df278",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "docs/DATABASE_SCHEMA.md": {
+      "filePath": "docs/DATABASE_SCHEMA.md",
+      "contentHash": "3c72dc7b6f5d4423471ede8103cc61fdfc532c1f63d5f928c849169565feb3f8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 737,
+      "hasStructuralAnalysis": true
+    },
+    "docs/EXPORT_GUIDE.md": {
+      "filePath": "docs/EXPORT_GUIDE.md",
+      "contentHash": "b850c852f4cfa2e94527bfee2af7db7e18a84df59153fa0c11762bb36e6424f4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 501,
+      "hasStructuralAnalysis": true
+    },
+    "docs/IMPORT_GUIDE.md": {
+      "filePath": "docs/IMPORT_GUIDE.md",
+      "contentHash": "7f8560e3bd0d38dbfc114f712a4c4a2bbb5dd9428cc15f8ee1812a2c874a0181",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 402,
+      "hasStructuralAnalysis": true
+    },
+    "docs/strategy/README.md": {
+      "filePath": "docs/strategy/README.md",
+      "contentHash": "98f55af82b1f5d37c3c95ea8728fad1bb0952184d63756add9a017873d58df04",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "docs/strategy/v2_ai_agent_strategy.md": {
+      "filePath": "docs/strategy/v2_ai_agent_strategy.md",
+      "contentHash": "eabbd39b26934bb624de19353da80eecfb608f21465c17abde34dc419126052a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 34,
+      "hasStructuralAnalysis": true
+    },
+    "docs/strategy/v2_architecture_strategy.md": {
+      "filePath": "docs/strategy/v2_architecture_strategy.md",
+      "contentHash": "6114648ba03dfc90d0a3418ae2d127b7211da48cd89ec618aabb383a173a8af2",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 33,
+      "hasStructuralAnalysis": true
+    },
+    "docs/strategy/v2_data_migration_strategy.md": {
+      "filePath": "docs/strategy/v2_data_migration_strategy.md",
+      "contentHash": "f36137b4126f45a096d52309da6134ec3d09ccf09003873f33730d1efe853f1c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 35,
+      "hasStructuralAnalysis": true
+    },
+    "docs/strategy/v2_ui_strategy.md": {
+      "filePath": "docs/strategy/v2_ui_strategy.md",
+      "contentHash": "d12ff395a805edfb09a492b0bf9acd5fabda84fb033081847ff6996d39970a13",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 32,
+      "hasStructuralAnalysis": true
+    },
+    "docs/SYSTEM_ARCHITECTURE.md": {
+      "filePath": "docs/SYSTEM_ARCHITECTURE.md",
+      "contentHash": "8a884a40c9f37dd0640a0bdbec3c90db6992f1386ea28ee44dab1d2c01479997",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 109,
+      "hasStructuralAnalysis": true
+    },
+    "docs/UI_GUIDE.md": {
+      "filePath": "docs/UI_GUIDE.md",
+      "contentHash": "19faffda8e515ab2292ebb45e1b365cc81fd1232077184c520e9392ec79f1797",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 622,
+      "hasStructuralAnalysis": true
+    },
+    "docs/V2_BACKUP_RESTORE.md": {
+      "filePath": "docs/V2_BACKUP_RESTORE.md",
+      "contentHash": "1d1ca7e741435c7c3bb07d19a737578db52396c5cf8923fe290049af7567c10f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 133,
+      "hasStructuralAnalysis": true
+    },
+    "docs/v2_contracts/WS0_WS1_CONTRACT.md": {
+      "filePath": "docs/v2_contracts/WS0_WS1_CONTRACT.md",
+      "contentHash": "6bcbea4a17e6fb08db4802fc9cc43a7ab54355991bb4a29bdf84e7650531964e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 316,
+      "hasStructuralAnalysis": true
+    },
+    "docs/V2_CURRENT_STATE.md": {
+      "filePath": "docs/V2_CURRENT_STATE.md",
+      "contentHash": "002edf19f8f9c9f6dff781d0f669883a696847577f54067ecc414a7b166bf94d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 90,
+      "hasStructuralAnalysis": true
+    },
+    "docs/V2_DECISION_BRIEF.md": {
+      "filePath": "docs/V2_DECISION_BRIEF.md",
+      "contentHash": "e3b509a3b5655c3069206b0eeeb8b3df9f45b4a13c41a4d8cbf79ccc8a00e669",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 636,
+      "hasStructuralAnalysis": true
+    },
+    "docs/V2_MIGRATION_REPORT.md": {
+      "filePath": "docs/V2_MIGRATION_REPORT.md",
+      "contentHash": "98ef4daaf07985d38f9a3273f89af50c2e114431269acbac8e2710b7b97e771a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 111,
+      "hasStructuralAnalysis": true
+    },
+    "docs/V2_RESTORE_VERIFICATION_REPORT.md": {
+      "filePath": "docs/V2_RESTORE_VERIFICATION_REPORT.md",
+      "contentHash": "b6211e17f968627a5dce393b20cea408e23ffb369023ff211ab434c3b722e740",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 71,
+      "hasStructuralAnalysis": true
+    },
+    "LichThi-QLDT-20252.ics": {
+      "filePath": "LichThi-QLDT-20252.ics",
+      "contentHash": "c1c92aeb6a9bb9580bcb856cae4770ac909c8bbc64a63bcf872bfed841750d7d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 133,
+      "hasStructuralAnalysis": false
+    },
+    "LichThi.xlsx": {
+      "filePath": "LichThi.xlsx",
+      "contentHash": "18ce31352809dce614bd8e0e8e190537616c6652863e7b9a096010623c9f306a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 31,
+      "hasStructuralAnalysis": false
+    },
+    "main.py": {
+      "filePath": "main.py",
+      "contentHash": "be60d1f7b129fdfa76d5a3c6ac91e708f9bae62b6325210adf6ea6ae8cfe53cb",
+      "functions": [
+        {
+          "name": "resource_path",
+          "params": [
+            "relative_path"
+          ],
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "main",
+          "params": [
+            "page"
+          ],
+          "exported": true,
+          "lineCount": 2658
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "flet",
+          "specifiers": [
+            "ft"
+          ]
+        },
+        {
+          "source": "sqlite3",
+          "specifiers": [
+            "sqlite3"
+          ]
+        },
+        {
+          "source": "calendar",
+          "specifiers": [
+            "calendar"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timedelta",
+            "timezone",
+            "_date"
+          ]
+        },
+        {
+          "source": "database",
+          "specifiers": [
+            "db"
+          ]
+        },
+        {
+          "source": "app.config",
+          "specifiers": [
+            "load_config"
+          ]
+        },
+        {
+          "source": "app.db.postgres",
+          "specifiers": [
+            "connect"
+          ]
+        },
+        {
+          "source": "app.services.notes_service",
+          "specifiers": [
+            "NotesService"
+          ]
+        },
+        {
+          "source": "app.services.task_service",
+          "specifiers": [
+            "TaskService"
+          ]
+        },
+        {
+          "source": "app.services.calendar_day_service",
+          "specifiers": [
+            "CalendarDayService"
+          ]
+        },
+        {
+          "source": "app.services.calendar_view_service",
+          "specifiers": [
+            "CalendarViewService"
+          ]
+        },
+        {
+          "source": "app.ui.calendar_view",
+          "specifiers": [
+            "build_continuous_calendar_tab"
+          ]
+        }
+      ],
+      "exports": [
+        "resource_path",
+        "main"
+      ],
+      "totalLines": 2729,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "4c98d2886cf30d8b495a5c3c213994a93fd361cd23354406c5ff1dc2c0320bb1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 518,
+      "hasStructuralAnalysis": true
+    },
+    "requirements-dev.txt": {
+      "filePath": "requirements-dev.txt",
+      "contentHash": "e19ba1a02651bf20222ed6f58b8921b266b0a1e1b8df07ccfef4ce50b77f494c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 3,
+      "hasStructuralAnalysis": false
+    },
+    "requirements.txt": {
+      "filePath": "requirements.txt",
+      "contentHash": "67351bd759308117b45748d2ae3c1e10bc66185524775eee589ab2345618c3a1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": false
+    },
+    "tests/__init__.py": {
+      "filePath": "tests/__init__.py",
+      "contentHash": "3955816c33b1462dde91277458f578364bca756a7d1beeea28ec3486368e0c1b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 2,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_backup_service.py": {
+      "filePath": "tests/test_backup_service.py",
+      "contentHash": "41ab28ece537d46bb8fdae23dd834824c08726a1d673bcd635d2b4fab8c70628",
+      "functions": [],
+      "classes": [
+        {
+          "name": "TestBackupService",
+          "methods": [
+            "setUp",
+            "test_parse_db_url_success",
+            "test_parse_db_url_defaults",
+            "test_parse_db_url_invalid_scheme",
+            "test_parse_db_url_empty",
+            "test_apply_retention_policy_logic",
+            "test_backup_now_success",
+            "test_backup_now_failure"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 186
+        }
+      ],
+      "imports": [
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "unittest",
+          "specifiers": [
+            "unittest"
+          ]
+        },
+        {
+          "source": "unittest.mock",
+          "specifiers": [
+            "patch",
+            "MagicMock",
+            "call"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timedelta"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "app.services.backup_service",
+          "specifiers": [
+            "BackupService"
+          ]
+        }
+      ],
+      "exports": [
+        "TestBackupService"
+      ],
+      "totalLines": 198,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_calendar_import_service.py": {
+      "filePath": "tests/test_calendar_import_service.py",
+      "contentHash": "89c48d7712f797a7b4a6dea31c5414b4e1bacfef6b5c912decef0c13ee7ccfd5",
+      "functions": [
+        {
+          "name": "db_conn",
+          "params": [],
+          "exported": true,
+          "lineCount": 75
+        },
+        {
+          "name": "test_ics_parser_study_schedule",
+          "params": [],
+          "exported": true,
+          "lineCount": 28
+        },
+        {
+          "name": "test_ics_parser_exam_schedule",
+          "params": [],
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "test_excel_parser",
+          "params": [],
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "test_calendar_import_service_workflow",
+          "params": [
+            "db_conn"
+          ],
+          "exported": true,
+          "lineCount": 108
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "psycopg",
+          "specifiers": [
+            "psycopg"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "date",
+            "timezone",
+            "timedelta"
+          ]
+        },
+        {
+          "source": "dotenv",
+          "specifiers": [
+            "load_dotenv"
+          ]
+        },
+        {
+          "source": "app.importers.ics_importer",
+          "specifiers": [
+            "IcsImporter"
+          ]
+        },
+        {
+          "source": "app.importers.excel_exam_importer",
+          "specifiers": [
+            "ExcelExamImporter"
+          ]
+        },
+        {
+          "source": "app.services.calendar_source_service",
+          "specifiers": [
+            "CalendarSourceService"
+          ]
+        },
+        {
+          "source": "app.services.calendar_import_service",
+          "specifiers": [
+            "CalendarImportService"
+          ]
+        }
+      ],
+      "exports": [
+        "db_conn",
+        "test_ics_parser_study_schedule",
+        "test_ics_parser_exam_schedule",
+        "test_excel_parser",
+        "test_calendar_import_service_workflow"
+      ],
+      "totalLines": 283,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_calendar_view_service.py": {
+      "filePath": "tests/test_calendar_view_service.py",
+      "contentHash": "5994c70a08834d74e565a1e557154ce93f39c33a126630ccc3fbe6fc9f027181",
+      "functions": [
+        {
+          "name": "db_conn",
+          "params": [],
+          "exported": true,
+          "lineCount": 71
+        },
+        {
+          "name": "test_get_events_by_range",
+          "params": [
+            "db_conn"
+          ],
+          "exported": true,
+          "lineCount": 46
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "psycopg",
+          "specifiers": [
+            "psycopg"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timezone",
+            "timedelta"
+          ]
+        },
+        {
+          "source": "dotenv",
+          "specifiers": [
+            "load_dotenv"
+          ]
+        },
+        {
+          "source": "app.services.calendar_view_service",
+          "specifiers": [
+            "CalendarViewService"
+          ]
+        }
+      ],
+      "exports": [
+        "db_conn",
+        "test_get_events_by_range"
+      ],
+      "totalLines": 136,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_export_service.py": {
+      "filePath": "tests/test_export_service.py",
+      "contentHash": "8c622b6adcc873de609779fada48d1b04b523961e81ff044498a1fb90750603a",
+      "functions": [],
+      "classes": [
+        {
+          "name": "TestExportService",
+          "methods": [
+            "setUp",
+            "test_markdown_exporter",
+            "test_json_exporter",
+            "test_conflict_detection",
+            "test_generate_export_data_mock",
+            "test_export_to_string_format"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 238
+        }
+      ],
+      "imports": [
+        {
+          "source": "unittest",
+          "specifiers": [
+            "unittest"
+          ]
+        },
+        {
+          "source": "unittest.mock",
+          "specifiers": [
+            "MagicMock",
+            "patch"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timedelta",
+            "date"
+          ]
+        },
+        {
+          "source": "app.exporters.planner_dto",
+          "specifiers": [
+            "PlannerExportDTO",
+            "ExportMetadata",
+            "ExportEvent",
+            "ExportSubtask",
+            "ExportTask",
+            "ExportNoteItem",
+            "ExportNote"
+          ]
+        },
+        {
+          "source": "app.exporters.markdown_exporter",
+          "specifiers": [
+            "MarkdownExporter"
+          ]
+        },
+        {
+          "source": "app.exporters.json_exporter",
+          "specifiers": [
+            "JSONExporter"
+          ]
+        },
+        {
+          "source": "app.services.export_service",
+          "specifiers": [
+            "ExportService"
+          ]
+        }
+      ],
+      "exports": [
+        "TestExportService"
+      ],
+      "totalLines": 259,
+      "hasStructuralAnalysis": true
+    },
+    "tests/test_notes_service.py": {
+      "filePath": "tests/test_notes_service.py",
+      "contentHash": "1468c7b1a9a4f2a34eb2042837fc5ba3a5450ea05a68b99621909f684fc1fbb5",
+      "functions": [
+        {
+          "name": "db_conn",
+          "params": [],
+          "exported": true,
+          "lineCount": 69
+        },
+        {
+          "name": "test_notes_crud_workflow",
+          "params": [
+            "db_conn"
+          ],
+          "exported": true,
+          "lineCount": 82
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "os",
+          "specifiers": [
+            "os"
+          ]
+        },
+        {
+          "source": "sys",
+          "specifiers": [
+            "sys"
+          ]
+        },
+        {
+          "source": "psycopg",
+          "specifiers": [
+            "psycopg"
+          ]
+        },
+        {
+          "source": "pytest",
+          "specifiers": [
+            "pytest"
+          ]
+        },
+        {
+          "source": "uuid",
+          "specifiers": [
+            "uuid"
+          ]
+        },
+        {
+          "source": "datetime",
+          "specifiers": [
+            "datetime",
+            "timedelta"
+          ]
+        },
+        {
+          "source": "dotenv",
+          "specifiers": [
+            "load_dotenv"
+          ]
+        },
+        {
+          "source": "app.services.notes_service",
+          "specifiers": [
+            "NotesService"
+          ]
+        }
+      ],
+      "exports": [
+        "db_conn",
+        "test_notes_crud_workflow"
+      ],
+      "totalLines": 172,
+      "hasStructuralAnalysis": true
+    },
+    "TKB-QLDT20252.ics": {
+      "filePath": "TKB-QLDT20252.ics",
+      "contentHash": "36e48c5ed5bffaccf90ca861e161c0d93ebaeeb647d719d977ef8f90e93df5f3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1534,
+      "hasStructuralAnalysis": false
+    }
+  }
+}

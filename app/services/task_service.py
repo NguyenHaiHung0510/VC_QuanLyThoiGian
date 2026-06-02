@@ -59,22 +59,23 @@ class TaskService:
                 tasks.append(task)
         return tasks
 
-    def get_overdue_tasks(self) -> List[Dict[str, Any]]:
+    def get_overdue_tasks(self, reference_date: Optional[date] = None) -> List[Dict[str, Any]]:
         """
-        Returns open tasks whose due_at is in the past (before NOW()).
+        Returns open tasks whose due date is before the reference date in Vietnam time.
         """
+        reference_date = reference_date or datetime.now(VN_TZ).date()
         query = """
             SELECT t.id, t.title, t.note, t.due_at, t.status,
                    p.name AS priority_name, p.label AS priority_label, p.color AS priority_color, p.icon AS priority_icon
             FROM tasks t
             LEFT JOIN priorities p ON t.priority_id = p.id
-            WHERE t.due_at < NOW()
+            WHERE DATE(t.due_at AT TIME ZONE 'Asia/Ho_Chi_Minh') < %s
               AND t.status = 'open'
             ORDER BY t.due_at ASC
         """
         tasks = []
         with self.conn.cursor() as cur:
-            cur.execute(query)
+            cur.execute(query, (reference_date,))
             rows = cur.fetchall()
             for row in rows:
                 tasks.append({

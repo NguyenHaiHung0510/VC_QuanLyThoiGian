@@ -86,10 +86,13 @@ def build_continuous_calendar_tab(
         "last_visible_weeks_hash": "", # Track scroll state to prevent redundant updates
         "visible_dates": set(),      # Store current visible dates for highlighting
         "updating_source_id": None,  # Track which source is being updated with a new file
+        "new_source_name": "",
     }
 
     source_update_picker = ft.FilePicker()
+    new_source_picker = ft.FilePicker()
     page.overlay.append(source_update_picker)
+    page.overlay.append(new_source_picker)
 
     def handle_source_update_result(e: ft.FilePickerResultEvent):
         if e.files:
@@ -117,6 +120,50 @@ def build_continuous_calendar_tab(
                 page.open(ft.SnackBar(ft.Text(f"Cập nhật file lịch thất bại: {ex}"), bgcolor="red"))
 
     source_update_picker.on_result = handle_source_update_result
+
+    def _pick_source_color() -> str:
+        colors = [
+            "#2563eb",
+            "#dc2626",
+            "#64748b",
+            "#16a34a",
+            "#9333ea",
+            "#ea580c",
+            "#0891b2",
+            "#be123c",
+        ]
+        return colors[len(state["sources"]) % len(colors)]
+
+    def handle_new_source_result(e: ft.FilePickerResultEvent):
+        if not e.files:
+            return
+        display_name = state.get("new_source_name", "").strip()
+        if not display_name:
+            page.open(ft.SnackBar(ft.Text("Vui lòng đặt tên nguồn lịch trước khi import."), bgcolor="red"))
+            return
+        filepath = e.files[0].path
+        try:
+            import_svc = CalendarImportService(calendar_view_svc.conn)
+            res = import_svc.import_new_source(
+                display_name=display_name,
+                file_path=filepath,
+                kind="other",
+                color=_pick_source_color(),
+            )
+            _reload_sources()
+            _build_sources_col()
+            _rebuild_calendar()
+            if sources_col.page:
+                sources_col.update()
+            page.update()
+            page.open(ft.SnackBar(ft.Text(f"Đã thêm nguồn lịch '{display_name}'! (Nạp {res['parsed_count']} sự kiện)"), bgcolor="green"))
+        except Exception as ex:
+            print(f"[CalendarView] Error adding new source: {ex}")
+            page.open(ft.SnackBar(ft.Text(f"Thêm nguồn lịch thất bại: {ex}"), bgcolor="red"))
+        finally:
+            state["new_source_name"] = ""
+
+    new_source_picker.on_result = handle_new_source_result
 
     # ------------------------------------------------------------------ #
     # Prefetch events from PG for visible range (±2 years)               #
@@ -192,6 +239,17 @@ def build_continuous_calendar_tab(
             bgcolor=ft.Colors.WHITE,
             border=ft.border.all(0.5, ft.Colors.GREY_200),
         )
+
+    def _event_vn_date(ev: Dict[str, Any]) -> date:
+        starts = ev.get("starts_at")
+        if hasattr(starts, "date"):
+            if starts.tzinfo is not None:
+                return starts.astimezone(timezone(timedelta(hours=7))).date()
+            return starts.date()
+        try:
+            return datetime.fromisoformat(str(starts)).date()
+        except Exception:
+            return today
 
     def _build_day_cell(d: date, display_month: int) -> ft.Control:
         is_today = (d == today)
@@ -311,18 +369,37 @@ def build_continuous_calendar_tab(
                     displayed_items += 1
 
         # 4. Tasks
-        if tasks:
-            if displayed_items < max_tooltip_items:
-                if exams or studies or personal:
-                    tooltip_lines.append("──────────────────────")
-                tooltip_lines.append("【 VIỆC CẦN LÀM 】")
-                for ev in tasks:
-                    if displayed_items >= max_tooltip_items:
-                        break
-                    status = ev.get("status", "")
-                    prefix = "✅" if status == "completed" else "▫️"
-                    tooltip_lines.append(f"{prefix} {ev['title']}")
-                    displayed_items += 1
+        overdue_tasks = []
+        due_today_tasks = []
+        todo_tasks = []
+        for ev in tasks:
+            status = ev.get("status", "")
+            ev_date = _event_vn_date(ev)
+            if status == "open" and ev_date < today:
+                overdue_tasks.append(ev)
+            elif status == "open" and ev_date == today:
+                due_today_tasks.append(ev)
+            else:
+                todo_tasks.append(ev)
+
+        def _append_task_group(label: str, group: List[Dict[str, Any]]) -> None:
+            nonlocal displayed_items
+            if not group or displayed_items >= max_tooltip_items:
+                return
+            if exams or studies or personal or displayed_items > 0:
+                tooltip_lines.append("──────────────────────")
+            tooltip_lines.append(f"【 {label} 】")
+            for ev in group:
+                if displayed_items >= max_tooltip_items:
+                    break
+                status = ev.get("status", "")
+                prefix = "✅" if status == "completed" else "▫️"
+                tooltip_lines.append(f"{prefix} {ev['title']}")
+                displayed_items += 1
+
+        _append_task_group("VIỆC TRỄ HẠN", overdue_tasks)
+        _append_task_group("VIỆC ĐẾN HẠN HÔM NAY", due_today_tasks)
+        _append_task_group("VIỆC CẦN LÀM", todo_tasks)
 
         total_evs = len(exams) + len(studies) + len(personal) + len(tasks)
         hidden_count = total_evs - displayed_items
@@ -528,7 +605,19 @@ def build_continuous_calendar_tab(
     def _rebuild_calendar():
         _reload_events()
         _fill_calendar_list_view()
-        calendar_list_view.update()
+        if calendar_list_view.page:
+            calendar_list_view.update()
+
+    def _refresh_calendar(e=None):
+        _reload_sources()
+        _build_sources_col()
+        _reload_events()
+        _fill_calendar_list_view()
+        if sources_col.page:
+            sources_col.update()
+        if calendar_list_view.page:
+            calendar_list_view.update()
+        page.update()
 
     # ------------------------------------------------------------------ #
     # Scroll to today                                                      #
@@ -743,7 +832,7 @@ def build_continuous_calendar_tab(
     # ------------------------------------------------------------------ #
     # Source toggles sidebar                                               #
     # ------------------------------------------------------------------ #
-    sources_col = ft.Column(spacing=6)
+    sources_col = ft.Column(spacing=6, scroll=ft.ScrollMode.AUTO)
 
     def _open_source_manager_dialog(source_info):
         import os
@@ -900,6 +989,54 @@ def build_continuous_calendar_tab(
         )
         page.open(dlg)
 
+    def _open_new_source_dialog(e=None):
+        name_tf = ft.TextField(
+            label="Tên nguồn lịch",
+            hint_text="Ví dụ: Lịch cá nhân, Deadline môn học...",
+            autofocus=True,
+            text_size=14,
+        )
+
+        def handle_pick_file(ev):
+            display_name = (name_tf.value or "").strip()
+            if not display_name:
+                name_tf.error_text = "Nhập tên nguồn lịch trước khi chọn file"
+                name_tf.update()
+                return
+            state["new_source_name"] = display_name
+            page.close(dlg)
+            new_source_picker.pick_files(allow_multiple=False, allowed_extensions=["ics", "xlsx"])
+
+        dlg = ft.AlertDialog(
+            title=ft.Text("Thêm nguồn lịch", weight="bold"),
+            content=ft.Container(
+                width=420,
+                content=ft.Column(
+                    [
+                        name_tf,
+                        ft.Text(
+                            "Hỗ trợ file .ics hoặc .xlsx. Nguồn mới sẽ hiện trong danh sách và được bật mặc định.",
+                            size=12,
+                            color=ft.Colors.GREY_600,
+                        ),
+                    ],
+                    spacing=10,
+                ),
+            ),
+            actions=[
+                ft.TextButton("Hủy", on_click=lambda ev: page.close(dlg)),
+                ft.ElevatedButton(
+                    "Chọn file",
+                    icon=ft.Icons.UPLOAD_FILE,
+                    bgcolor=theme.get("primary", ft.Colors.PINK_600),
+                    color="white",
+                    on_click=handle_pick_file,
+                ),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        page.open(dlg)
+
     def _build_sources_col():
         sources_col.controls.clear()
         for src in state["sources"]:
@@ -979,6 +1116,23 @@ def build_continuous_calendar_tab(
     # ------------------------------------------------------------------ #
     # Assemble sidebar                                                     #
     # ------------------------------------------------------------------ #
+    source_header = ft.Row(
+        [
+            ft.Text("Nguồn lịch", size=12, weight="bold", color=ft.Colors.GREY_700),
+            ft.Container(expand=True),
+            ft.IconButton(
+                ft.Icons.ADD,
+                icon_size=16,
+                tooltip="Thêm nguồn lịch",
+                on_click=_open_new_source_dialog,
+            ),
+        ],
+        vertical_alignment=ft.CrossAxisAlignment.CENTER,
+    )
+    sources_scroll = ft.Container(
+        content=sources_col,
+        height=220,
+    )
     sidebar = ft.Container(
         width=220,
         bgcolor=ft.Colors.GREY_50,
@@ -989,8 +1143,8 @@ def build_continuous_calendar_tab(
                 mini_nav_row,
                 mini_navigator_container,
                 ft.Divider(height=12),
-                ft.Text("Nguồn lịch", size=12, weight="bold", color=ft.Colors.GREY_700),
-                sources_col,
+                source_header,
+                sources_scroll,
             ],
             spacing=6,
             scroll=ft.ScrollMode.AUTO,
@@ -1004,6 +1158,12 @@ def build_continuous_calendar_tab(
         [
             header_label,
             ft.Container(expand=True),
+            ft.IconButton(
+                ft.Icons.REFRESH,
+                icon_size=18,
+                tooltip="Làm mới lịch",
+                on_click=_refresh_calendar,
+            ),
             ft.OutlinedButton(
                 "Hôm nay",
                 icon=ft.Icons.CALENDAR_TODAY,
@@ -1053,5 +1213,6 @@ def build_continuous_calendar_tab(
 
     # Attach helper to trigger scroll from parent tabs container
     root.scroll_to_today = _scroll_to_today
+    root.refresh_calendar = _refresh_calendar
 
     return root

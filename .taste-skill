@@ -1,0 +1,45 @@
+# taste-skill Reference
+
+This project uses taste-skill design framework for frontend/UI work.
+
+**GitHub Repository:**
+https://github.com/Leonxlnx/taste-skill
+
+**SKILL.md (Full Guidelines):**
+https://raw.githubusercontent.com/Leonxlnx/taste-skill/main/SKILL.md
+
+## What is taste-skill?
+
+taste-skill is NOT an npm package. It's a **design instruction framework** for AI agents.
+It prevents generic/AI-generated design patterns by enforcing premium design rules.
+
+### How to use:
+
+1. **When designing UI:** Read the design read rules (Section 0) first
+2. **Set the dials:** DESIGN_VARIANCE, MOTION_INTENSITY, VISUAL_DENSITY
+3. **Follow pre-flight checks:** 50+ mandatory quality gates before shipping
+4. **Key rules:**
+   - EM-DASH (—) is COMPLETELY BANNED
+   - One design system per project
+   - Hero fits viewport (no scroll to find CTA)
+   - Max 1 eyebrow per 3 sections
+   - WCAG AA contrast minimum
+
+### Main Sections:
+
+- **Section 0:** Brief Inference (read the room before coding)
+- **Section 1:** Three Dials configuration
+- **Section 2:** Design System Map (when to use official packages)
+- **Section 3:** Default Stack (React/Next.js, Tailwind v4, Motion)
+- **Section 4:** Design Directives (typography, color, layout)
+- **Section 5:** Motion & Interactions (Liquid Glass, Magnetic Physics)
+- **Section 6:** Performance & A11y (hardware acceleration, dark mode, CWV)
+- **Section 7:** Dial Technical Reference
+- **Section 8:** Dark Mode Protocol
+- **Section 9:** AI Tells (Forbidden Patterns)
+- **Section 10:** Pre-Flight Check (50+ checkboxes)
+
+### For this project:
+
+When you ask to build/redesign UI, refer back to this file or the GitHub repo.
+The `.instructions.md` file contains the full copied SKILL.md for quick access.

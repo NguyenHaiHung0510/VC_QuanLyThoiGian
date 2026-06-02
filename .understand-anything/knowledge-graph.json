@@ -1,0 +1,5268 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "microSchedule",
+    "languages": [
+      "batch",
+      "config",
+      "ics",
+      "markdown",
+      "python",
+      "sql",
+      "txt",
+      "unknown",
+      "xlsx",
+      "yaml"
+    ],
+    "frameworks": [
+      "Flet",
+      "PostgreSQL",
+      "PyInstaller",
+      "Pytest"
+    ],
+    "description": "Standalone Flet desktop application for managing study schedules, tasks, notes, and AI-oriented exports, with a PostgreSQL-based v2 architecture and SQLite migration tooling.",
+    "analyzedAt": "2026-06-02T11:13:49.747Z",
+    "gitCommitHash": "a2326c975077abbb102493acc1cdad926930c5bc"
+  },
+  "nodes": [
+    {
+      "id": "file:app/services/calendar_day_service.py",
+      "type": "file",
+      "name": "calendar_day_service.py",
+      "filePath": "app/services/calendar_day_service.py",
+      "summary": "Fetches and updates per-day calendar events, including user-controlled cancellation state for visible schedule entries.",
+      "tags": [
+        "service",
+        "postgresql",
+        "services",
+        "calendar",
+        "day"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:app/services/calendar_day_service.py:CalendarDayService",
+      "type": "class",
+      "name": "CalendarDayService",
+      "filePath": "app/services/calendar_day_service.py",
+      "lineRange": [
+        10,
+        94
+      ],
+      "summary": "Service class that encapsulates calendar day workflows for the v2 application layer.",
+      "tags": [
+        "service",
+        "application-layer",
+        "postgresql",
+        "calendar",
+        "day"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/services/calendar_view_service.py",
+      "type": "file",
+      "name": "calendar_view_service.py",
+      "filePath": "app/services/calendar_view_service.py",
+      "summary": "Builds range-based calendar views and source visibility data for the desktop UI from PostgreSQL-backed schedules.",
+      "tags": [
+        "service",
+        "postgresql",
+        "services",
+        "calendar",
+        "view"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:app/services/calendar_view_service.py:CalendarViewService",
+      "type": "class",
+      "name": "CalendarViewService",
+      "filePath": "app/services/calendar_view_service.py",
+      "lineRange": [
+        10,
+        182
+      ],
+      "summary": "Service class that encapsulates calendar view workflows for the v2 application layer.",
+      "tags": [
+        "service",
+        "application-layer",
+        "postgresql",
+        "calendar",
+        "view"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/services/notes_service.py",
+      "type": "file",
+      "name": "notes_service.py",
+      "filePath": "app/services/notes_service.py",
+      "summary": "Service layer for standalone notes and checklist items, separate from due-date-driven task management.",
+      "tags": [
+        "service",
+        "postgresql",
+        "services",
+        "notes"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:app/services/notes_service.py:NotesService",
+      "type": "class",
+      "name": "NotesService",
+      "filePath": "app/services/notes_service.py",
+      "lineRange": [
+        5,
+        390
+      ],
+      "summary": "Service class that encapsulates notes workflows for the v2 application layer.",
+      "tags": [
+        "service",
+        "application-layer",
+        "postgresql",
+        "notes"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:app/services/task_service.py",
+      "type": "file",
+      "name": "task_service.py",
+      "filePath": "app/services/task_service.py",
+      "summary": "Service layer for CRUD operations on tasks and task items, including completion state and priority-backed workflows.",
+      "tags": [
+        "service",
+        "postgresql",
+        "services",
+        "task"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:app/services/task_service.py:TaskService",
+      "type": "class",
+      "name": "TaskService",
+      "filePath": "app/services/task_service.py",
+      "lineRange": [
+        13,
+        309
+      ],
+      "summary": "Service class that encapsulates task workflows for the v2 application layer.",
+      "tags": [
+        "service",
+        "application-layer",
+        "postgresql",
+        "task"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:app/ui/calendar_view.py",
+      "type": "file",
+      "name": "calendar_view.py",
+      "filePath": "app/ui/calendar_view.py",
+      "summary": "Builds the continuous calendar UI components and rendering helpers used by the Flet desktop shell.",
+      "tags": [
+        "ui",
+        "flet",
+        "calendar",
+        "view"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:app/ui/calendar_view.py:get_week_start",
+      "type": "function",
+      "name": "get_week_start",
+      "filePath": "app/ui/calendar_view.py",
+      "lineRange": [
+        22,
+        24
+      ],
+      "summary": "Function in calendar_view.py that handles get week start logic.",
+      "tags": [
+        "ui",
+        "get",
+        "week",
+        "start"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/ui/calendar_view.py:_parse_hex_color",
+      "type": "function",
+      "name": "_parse_hex_color",
+      "filePath": "app/ui/calendar_view.py",
+      "lineRange": [
+        27,
+        42
+      ],
+      "summary": "Function in calendar_view.py that handles parse hex color logic.",
+      "tags": [
+        "ui",
+        "parse",
+        "hex",
+        "color"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/ui/calendar_view.py:build_continuous_calendar_tab",
+      "type": "function",
+      "name": "build_continuous_calendar_tab",
+      "filePath": "app/ui/calendar_view.py",
+      "lineRange": [
+        49,
+        1057
+      ],
+      "summary": "Function in calendar_view.py that handles build continuous calendar tab logic.",
+      "tags": [
+        "ui",
+        "build",
+        "continuous",
+        "calendar",
+        "tab"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:database.py",
+      "type": "file",
+      "name": "database.py",
+      "filePath": "database.py",
+      "summary": "Legacy SQLite-oriented data access and import module retained while the desktop UI is gradually migrated toward PostgreSQL-backed v2 services.",
+      "tags": [
+        "legacy",
+        "sqlite",
+        "data-access",
+        "database"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:database.py:init_environment",
+      "type": "function",
+      "name": "init_environment",
+      "filePath": "database.py",
+      "lineRange": [
+        25,
+        52
+      ],
+      "summary": "Function in database.py that handles init environment logic.",
+      "tags": [
+        "legacy",
+        "sqlite",
+        "init",
+        "environment"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:database.py:_setup_defaults",
+      "type": "function",
+      "name": "_setup_defaults",
+      "filePath": "database.py",
+      "lineRange": [
+        55,
+        101
+      ],
+      "summary": "Function in database.py that handles setup defaults logic.",
+      "tags": [
+        "legacy",
+        "sqlite",
+        "setup",
+        "defaults"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:database.py:perform_smart_backup",
+      "type": "function",
+      "name": "perform_smart_backup",
+      "filePath": "database.py",
+      "lineRange": [
+        104,
+        127
+      ],
+      "summary": "Function in database.py that handles perform smart backup logic.",
+      "tags": [
+        "legacy",
+        "sqlite",
+        "perform",
+        "smart",
+        "backup"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:database.py:get_connection",
+      "type": "function",
+      "name": "get_connection",
+      "filePath": "database.py",
+      "lineRange": [
+        131,
+        132
+      ],
+      "summary": "Function in database.py that handles get connection logic.",
+      "tags": [
+        "legacy",
+        "sqlite",
+        "get",
+        "connection"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:database.py:load_settings",
+      "type": "function",
+      "name": "load_settings",
+      "filePath": "database.py",
+      "lineRange": [
+        135,
+        147
+      ],
+      "summary": "Function in database.py that handles load settings logic.",
+      "tags": [
+        "legacy",
+        "sqlite",
+        "load",
+        "settings"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:database.py:save_single_setting",
+      "type": "function",
+      "name": "save_single_setting",
+      "filePath": "database.py",
+      "lineRange": [
+        150,
+        158
+      ],
+      "summary": "Function in database.py that handles save single setting logic.",
+      "tags": [
+        "legacy",
+        "sqlite",
+        "save",
+        "single",
+        "setting"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:database.py:parse_ics_date",
+      "type": "function",
+      "name": "parse_ics_date",
+      "filePath": "database.py",
+      "lineRange": [
+        166,
+        178
+      ],
+      "summary": "Function in database.py that handles parse ics date logic.",
+      "tags": [
+        "legacy",
+        "sqlite",
+        "parse",
+        "ics",
+        "date"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:database.py:import_ics_schedule",
+      "type": "function",
+      "name": "import_ics_schedule",
+      "filePath": "database.py",
+      "lineRange": [
+        181,
+        242
+      ],
+      "summary": "Function in database.py that handles import ics schedule logic.",
+      "tags": [
+        "legacy",
+        "sqlite",
+        "import",
+        "ics",
+        "schedule"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:database.py:import_excel_schedule",
+      "type": "function",
+      "name": "import_excel_schedule",
+      "filePath": "database.py",
+      "lineRange": [
+        245,
+        341
+      ],
+      "summary": "Function in database.py that handles import excel schedule logic.",
+      "tags": [
+        "legacy",
+        "sqlite",
+        "import",
+        "excel",
+        "schedule"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:main.py",
+      "type": "file",
+      "name": "main.py",
+      "filePath": "main.py",
+      "summary": "Main Flet desktop shell that composes views, routes user interactions, and still bridges some legacy paths while v2 services are being adopted.",
+      "tags": [
+        "entry-point",
+        "ui",
+        "flet",
+        "desktop",
+        "main"
+      ],
+      "complexity": "complex",
+      "languageNotes": "The Flet UI shell is still carrying some legacy integration paths while the v2 service refactor continues."
+    },
+    {
+      "id": "function:main.py:resource_path",
+      "type": "function",
+      "name": "resource_path",
+      "filePath": "main.py",
+      "lineRange": [
+        60,
+        65
+      ],
+      "summary": "Function in main.py that handles resource path logic.",
+      "tags": [
+        "resource",
+        "path",
+        "project"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:main.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "main.py",
+      "lineRange": [
+        68,
+        2725
+      ],
+      "summary": "Primary entry-point function for main.py.",
+      "tags": [
+        "entry-point",
+        "main",
+        "project"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/test_calendar_view_service.py",
+      "type": "file",
+      "name": "test_calendar_view_service.py",
+      "filePath": "tests/test_calendar_view_service.py",
+      "summary": "Automated test module covering test calendar view service behavior in the v2 codebase.",
+      "tags": [
+        "test",
+        "verification",
+        "calendar",
+        "view",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_calendar_view_service.py:db_conn",
+      "type": "function",
+      "name": "db_conn",
+      "filePath": "tests/test_calendar_view_service.py",
+      "lineRange": [
+        17,
+        87
+      ],
+      "summary": "Function in test_calendar_view_service.py that handles db conn logic.",
+      "tags": [
+        "conn",
+        "project",
+        "internal"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_calendar_view_service.py:test_get_events_by_range",
+      "type": "function",
+      "name": "test_get_events_by_range",
+      "filePath": "tests/test_calendar_view_service.py",
+      "lineRange": [
+        90,
+        135
+      ],
+      "summary": "Automated test function for get events by range.",
+      "tags": [
+        "test",
+        "verification",
+        "get",
+        "events",
+        "range"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:tests/test_notes_service.py",
+      "type": "file",
+      "name": "test_notes_service.py",
+      "filePath": "tests/test_notes_service.py",
+      "summary": "Automated test module covering test notes service behavior in the v2 codebase.",
+      "tags": [
+        "test",
+        "verification",
+        "notes",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_notes_service.py:db_conn",
+      "type": "function",
+      "name": "db_conn",
+      "filePath": "tests/test_notes_service.py",
+      "lineRange": [
+        19,
+        87
+      ],
+      "summary": "Function in test_notes_service.py that handles db conn logic.",
+      "tags": [
+        "conn",
+        "project",
+        "internal"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_notes_service.py:test_notes_crud_workflow",
+      "type": "function",
+      "name": "test_notes_crud_workflow",
+      "filePath": "tests/test_notes_service.py",
+      "lineRange": [
+        90,
+        171
+      ],
+      "summary": "Automated test function for notes crud workflow.",
+      "tags": [
+        "test",
+        "verification",
+        "notes",
+        "crud",
+        "workflow"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/exporters/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "app/exporters/__init__.py",
+      "summary": "Exporter module for init output within the planner data rendering pipeline.",
+      "tags": [
+        "exporter",
+        "planner",
+        "exporters",
+        "init"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/exporters/json_exporter.py",
+      "type": "file",
+      "name": "json_exporter.py",
+      "filePath": "app/exporters/json_exporter.py",
+      "summary": "Renders planner export DTO data into a JSON representation for tool and automation consumers.",
+      "tags": [
+        "exporter",
+        "planner",
+        "exporters",
+        "json"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/exporters/json_exporter.py:JSONExporter",
+      "type": "class",
+      "name": "JSONExporter",
+      "filePath": "app/exporters/json_exporter.py",
+      "lineRange": [
+        5,
+        10
+      ],
+      "summary": "Exporter class that renders planner data into json output.",
+      "tags": [
+        "exporter",
+        "serialization",
+        "jsonexporter"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/exporters/markdown_exporter.py",
+      "type": "file",
+      "name": "markdown_exporter.py",
+      "filePath": "app/exporters/markdown_exporter.py",
+      "summary": "Renders planner export DTO data into the Markdown format used for AI study-planning workflows.",
+      "tags": [
+        "exporter",
+        "planner",
+        "exporters",
+        "markdown"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:app/exporters/markdown_exporter.py:MarkdownExporter",
+      "type": "class",
+      "name": "MarkdownExporter",
+      "filePath": "app/exporters/markdown_exporter.py",
+      "lineRange": [
+        4,
+        92
+      ],
+      "summary": "Exporter class that renders planner data into markdown output.",
+      "tags": [
+        "exporter",
+        "serialization",
+        "markdown"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/exporters/planner_dto.py",
+      "type": "file",
+      "name": "planner_dto.py",
+      "filePath": "app/exporters/planner_dto.py",
+      "summary": "Defines the internal export DTO classes used to move planner data from services into Markdown and JSON renderers.",
+      "tags": [
+        "exporter",
+        "planner",
+        "exporters",
+        "dto"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Dataclass-style DTOs keep export rendering decoupled from database query logic."
+    },
+    {
+      "id": "class:app/exporters/planner_dto.py:ExportMetadata",
+      "type": "class",
+      "name": "ExportMetadata",
+      "filePath": "app/exporters/planner_dto.py",
+      "lineRange": [
+        5,
+        9
+      ],
+      "summary": "Class defined in planner_dto.py for export metadata responsibilities.",
+      "tags": [
+        "export",
+        "metadata",
+        "project"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/exporters/planner_dto.py:ExportEvent",
+      "type": "class",
+      "name": "ExportEvent",
+      "filePath": "app/exporters/planner_dto.py",
+      "lineRange": [
+        12,
+        19
+      ],
+      "summary": "Class defined in planner_dto.py for export event responsibilities.",
+      "tags": [
+        "export",
+        "event",
+        "project"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/exporters/planner_dto.py:ExportSubtask",
+      "type": "class",
+      "name": "ExportSubtask",
+      "filePath": "app/exporters/planner_dto.py",
+      "lineRange": [
+        22,
+        24
+      ],
+      "summary": "Class defined in planner_dto.py for export subtask responsibilities.",
+      "tags": [
+        "export",
+        "subtask",
+        "project"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/exporters/planner_dto.py:ExportTask",
+      "type": "class",
+      "name": "ExportTask",
+      "filePath": "app/exporters/planner_dto.py",
+      "lineRange": [
+        27,
+        35
+      ],
+      "summary": "Class defined in planner_dto.py for export task responsibilities.",
+      "tags": [
+        "export",
+        "task",
+        "project"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/exporters/planner_dto.py:ExportNoteItem",
+      "type": "class",
+      "name": "ExportNoteItem",
+      "filePath": "app/exporters/planner_dto.py",
+      "lineRange": [
+        38,
+        40
+      ],
+      "summary": "Class defined in planner_dto.py for export note item responsibilities.",
+      "tags": [
+        "export",
+        "note",
+        "item"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/exporters/planner_dto.py:ExportNote",
+      "type": "class",
+      "name": "ExportNote",
+      "filePath": "app/exporters/planner_dto.py",
+      "lineRange": [
+        43,
+        49
+      ],
+      "summary": "Class defined in planner_dto.py for export note responsibilities.",
+      "tags": [
+        "export",
+        "note",
+        "project"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "class:app/exporters/planner_dto.py:PlannerExportDTO",
+      "type": "class",
+      "name": "PlannerExportDTO",
+      "filePath": "app/exporters/planner_dto.py",
+      "lineRange": [
+        52,
+        57
+      ],
+      "summary": "Data transfer object class used to move structured planner data between services and exporters.",
+      "tags": [
+        "dto",
+        "data-model",
+        "planner",
+        "export"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/services/export_service.py",
+      "type": "file",
+      "name": "export_service.py",
+      "filePath": "app/services/export_service.py",
+      "summary": "Aggregates events, tasks, notes, and settings into the planner export DTO before rendering Markdown or JSON output.",
+      "tags": [
+        "service",
+        "postgresql",
+        "services",
+        "export"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:app/services/export_service.py:ExportService",
+      "type": "class",
+      "name": "ExportService",
+      "filePath": "app/services/export_service.py",
+      "lineRange": [
+        16,
+        303
+      ],
+      "summary": "Service class that encapsulates export workflows for the v2 application layer.",
+      "tags": [
+        "service",
+        "application-layer",
+        "postgresql",
+        "export"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/test_export_service.py",
+      "type": "file",
+      "name": "test_export_service.py",
+      "filePath": "tests/test_export_service.py",
+      "summary": "Automated test module covering test export service behavior in the v2 codebase.",
+      "tags": [
+        "test",
+        "verification",
+        "export",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:tests/test_export_service.py:TestExportService",
+      "type": "class",
+      "name": "TestExportService",
+      "filePath": "tests/test_export_service.py",
+      "lineRange": [
+        18,
+        255
+      ],
+      "summary": "Service class that encapsulates test export workflows for the v2 application layer.",
+      "tags": [
+        "service",
+        "application-layer",
+        "test",
+        "export"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:app/importers/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "app/importers/__init__.py",
+      "summary": "Importer module for init schedule data used by the calendar source versioning workflow.",
+      "tags": [
+        "importer",
+        "calendar",
+        "importers",
+        "init"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/importers/excel_exam_importer.py",
+      "type": "file",
+      "name": "excel_exam_importer.py",
+      "filePath": "app/importers/excel_exam_importer.py",
+      "summary": "Parses school exam spreadsheets into normalized calendar event payloads with warning reporting.",
+      "tags": [
+        "importer",
+        "calendar",
+        "importers",
+        "excel",
+        "exam"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:app/importers/excel_exam_importer.py:ExcelExamImporter",
+      "type": "class",
+      "name": "ExcelExamImporter",
+      "filePath": "app/importers/excel_exam_importer.py",
+      "lineRange": [
+        8,
+        190
+      ],
+      "summary": "Importer class that parses excel exam inputs into normalized event data.",
+      "tags": [
+        "importer",
+        "parser",
+        "excel",
+        "exam"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/importers/ics_importer.py",
+      "type": "file",
+      "name": "ics_importer.py",
+      "filePath": "app/importers/ics_importer.py",
+      "summary": "Parses RFC 5545 ICS files into normalized calendar event payloads for the versioned import pipeline.",
+      "tags": [
+        "importer",
+        "calendar",
+        "importers",
+        "ics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:app/importers/ics_importer.py:IcsImporter",
+      "type": "class",
+      "name": "IcsImporter",
+      "filePath": "app/importers/ics_importer.py",
+      "lineRange": [
+        6,
+        128
+      ],
+      "summary": "Importer class that parses ics inputs into normalized event data.",
+      "tags": [
+        "importer",
+        "parser",
+        "ics"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/services/calendar_import_service.py",
+      "type": "file",
+      "name": "calendar_import_service.py",
+      "filePath": "app/services/calendar_import_service.py",
+      "summary": "Imports ICS and Excel schedule files into versioned calendar sources and activates the newest parsed snapshot.",
+      "tags": [
+        "service",
+        "postgresql",
+        "services",
+        "calendar",
+        "import"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:app/services/calendar_import_service.py:CalendarImportService",
+      "type": "class",
+      "name": "CalendarImportService",
+      "filePath": "app/services/calendar_import_service.py",
+      "lineRange": [
+        9,
+        147
+      ],
+      "summary": "Service class that encapsulates calendar import workflows for the v2 application layer.",
+      "tags": [
+        "service",
+        "application-layer",
+        "postgresql",
+        "calendar",
+        "import"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/services/calendar_source_service.py",
+      "type": "file",
+      "name": "calendar_source_service.py",
+      "filePath": "app/services/calendar_source_service.py",
+      "summary": "Service layer for managing calendar source records, visibility, and source metadata in the v2 schema.",
+      "tags": [
+        "service",
+        "postgresql",
+        "services",
+        "calendar",
+        "source"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:app/services/calendar_source_service.py:CalendarSourceService",
+      "type": "class",
+      "name": "CalendarSourceService",
+      "filePath": "app/services/calendar_source_service.py",
+      "lineRange": [
+        4,
+        172
+      ],
+      "summary": "Service class that encapsulates calendar source workflows for the v2 application layer.",
+      "tags": [
+        "service",
+        "application-layer",
+        "postgresql",
+        "calendar",
+        "source"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:tests/test_calendar_import_service.py",
+      "type": "file",
+      "name": "test_calendar_import_service.py",
+      "filePath": "tests/test_calendar_import_service.py",
+      "summary": "Automated test module covering test calendar import service behavior in the v2 codebase.",
+      "tags": [
+        "test",
+        "verification",
+        "calendar",
+        "import",
+        "service"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:tests/test_calendar_import_service.py:db_conn",
+      "type": "function",
+      "name": "db_conn",
+      "filePath": "tests/test_calendar_import_service.py",
+      "lineRange": [
+        22,
+        96
+      ],
+      "summary": "Function in test_calendar_import_service.py that handles db conn logic.",
+      "tags": [
+        "conn",
+        "project",
+        "internal"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:tests/test_calendar_import_service.py:test_ics_parser_study_schedule",
+      "type": "function",
+      "name": "test_ics_parser_study_schedule",
+      "filePath": "tests/test_calendar_import_service.py",
+      "lineRange": [
+        99,
+        126
+      ],
+      "summary": "Automated test function for ics parser study schedule.",
+      "tags": [
+        "test",
+        "verification",
+        "ics",
+        "parser",
+        "study"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_calendar_import_service.py:test_ics_parser_exam_schedule",
+      "type": "function",
+      "name": "test_ics_parser_exam_schedule",
+      "filePath": "tests/test_calendar_import_service.py",
+      "lineRange": [
+        129,
+        150
+      ],
+      "summary": "Automated test function for ics parser exam schedule.",
+      "tags": [
+        "test",
+        "verification",
+        "ics",
+        "parser",
+        "exam"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_calendar_import_service.py:test_excel_parser",
+      "type": "function",
+      "name": "test_excel_parser",
+      "filePath": "tests/test_calendar_import_service.py",
+      "lineRange": [
+        153,
+        172
+      ],
+      "summary": "Automated test function for excel parser.",
+      "tags": [
+        "test",
+        "verification",
+        "excel",
+        "parser"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:tests/test_calendar_import_service.py:test_calendar_import_service_workflow",
+      "type": "function",
+      "name": "test_calendar_import_service_workflow",
+      "filePath": "tests/test_calendar_import_service.py",
+      "lineRange": [
+        175,
+        282
+      ],
+      "summary": "Automated test function for calendar import service workflow.",
+      "tags": [
+        "test",
+        "verification",
+        "calendar",
+        "import",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/config.py",
+      "type": "file",
+      "name": "config.py",
+      "filePath": "app/config.py",
+      "summary": "Loads environment-based runtime configuration and applies safety checks before connecting to or resetting PostgreSQL targets.",
+      "tags": [
+        "config",
+        "project",
+        "internal"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:app/config.py:AppConfig",
+      "type": "class",
+      "name": "AppConfig",
+      "filePath": "app/config.py",
+      "lineRange": [
+        20,
+        34
+      ],
+      "summary": "Class defined in config.py for app config responsibilities.",
+      "tags": [
+        "config",
+        "project",
+        "internal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/config.py:load_config",
+      "type": "function",
+      "name": "load_config",
+      "filePath": "app/config.py",
+      "lineRange": [
+        37,
+        53
+      ],
+      "summary": "Function in config.py that handles load config logic.",
+      "tags": [
+        "load",
+        "config",
+        "project"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/config.py:get_database_name",
+      "type": "function",
+      "name": "get_database_name",
+      "filePath": "app/config.py",
+      "lineRange": [
+        56,
+        58
+      ],
+      "summary": "Function in config.py that handles get database name logic.",
+      "tags": [
+        "get",
+        "database",
+        "name"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/config.py:redact_database_url",
+      "type": "function",
+      "name": "redact_database_url",
+      "filePath": "app/config.py",
+      "lineRange": [
+        61,
+        75
+      ],
+      "summary": "Function in config.py that handles redact database url logic.",
+      "tags": [
+        "redact",
+        "database",
+        "url"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/config.py:assert_safe_target_database",
+      "type": "function",
+      "name": "assert_safe_target_database",
+      "filePath": "app/config.py",
+      "lineRange": [
+        78,
+        91
+      ],
+      "summary": "Function in config.py that handles assert safe target database logic.",
+      "tags": [
+        "assert",
+        "safe",
+        "target",
+        "database"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/config.py:assert_reset_allowed",
+      "type": "function",
+      "name": "assert_reset_allowed",
+      "filePath": "app/config.py",
+      "lineRange": [
+        94,
+        100
+      ],
+      "summary": "Function in config.py that handles assert reset allowed logic.",
+      "tags": [
+        "assert",
+        "reset",
+        "allowed"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/db/postgres.py",
+      "type": "file",
+      "name": "postgres.py",
+      "filePath": "app/db/postgres.py",
+      "summary": "Provides PostgreSQL connection helpers, schema loading, transactions, and guarded reset utilities for the v2 database.",
+      "tags": [
+        "database",
+        "postgresql",
+        "postgres"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/db/postgres.py:connect",
+      "type": "function",
+      "name": "connect",
+      "filePath": "app/db/postgres.py",
+      "lineRange": [
+        15,
+        21
+      ],
+      "summary": "Function in postgres.py that handles connect logic.",
+      "tags": [
+        "connect",
+        "project",
+        "internal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/db/postgres.py:transaction",
+      "type": "function",
+      "name": "transaction",
+      "filePath": "app/db/postgres.py",
+      "lineRange": [
+        25,
+        31
+      ],
+      "summary": "Function in postgres.py that handles transaction logic.",
+      "tags": [
+        "transaction",
+        "project",
+        "internal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/db/postgres.py:read_schema_sql",
+      "type": "function",
+      "name": "read_schema_sql",
+      "filePath": "app/db/postgres.py",
+      "lineRange": [
+        34,
+        35
+      ],
+      "summary": "Function in postgres.py that handles read schema sql logic.",
+      "tags": [
+        "read",
+        "schema",
+        "sql"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/db/postgres.py:apply_schema",
+      "type": "function",
+      "name": "apply_schema",
+      "filePath": "app/db/postgres.py",
+      "lineRange": [
+        38,
+        40
+      ],
+      "summary": "Function in postgres.py that handles apply schema logic.",
+      "tags": [
+        "apply",
+        "schema",
+        "project"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/db/postgres.py:reset_public_schema",
+      "type": "function",
+      "name": "reset_public_schema",
+      "filePath": "app/db/postgres.py",
+      "lineRange": [
+        43,
+        48
+      ],
+      "summary": "Function in postgres.py that handles reset public schema logic.",
+      "tags": [
+        "reset",
+        "public",
+        "schema"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/db/postgres.py:connect_checked",
+      "type": "function",
+      "name": "connect_checked",
+      "filePath": "app/db/postgres.py",
+      "lineRange": [
+        51,
+        60
+      ],
+      "summary": "Function in postgres.py that handles connect checked logic.",
+      "tags": [
+        "connect",
+        "checked",
+        "project"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/migration/analyze_v1_sqlite.py",
+      "type": "file",
+      "name": "analyze_v1_sqlite.py",
+      "filePath": "app/migration/analyze_v1_sqlite.py",
+      "summary": "Read-only migration analysis script that inspects the legacy SQLite database and reports counts and transform expectations.",
+      "tags": [
+        "migration",
+        "postgresql",
+        "sqlite",
+        "analyze"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:app/migration/analyze_v1_sqlite.py:V1Analysis",
+      "type": "class",
+      "name": "V1Analysis",
+      "filePath": "app/migration/analyze_v1_sqlite.py",
+      "lineRange": [
+        23,
+        35
+      ],
+      "summary": "Class defined in analyze_v1_sqlite.py for v1 analysis responsibilities.",
+      "tags": [
+        "analysis",
+        "project",
+        "internal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/analyze_v1_sqlite.py:open_sqlite_readonly",
+      "type": "function",
+      "name": "open_sqlite_readonly",
+      "filePath": "app/migration/analyze_v1_sqlite.py",
+      "lineRange": [
+        38,
+        43
+      ],
+      "summary": "Function in analyze_v1_sqlite.py that handles open sqlite readonly logic.",
+      "tags": [
+        "migration",
+        "open",
+        "sqlite",
+        "readonly"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/analyze_v1_sqlite.py:parse_v1_date",
+      "type": "function",
+      "name": "parse_v1_date",
+      "filePath": "app/migration/analyze_v1_sqlite.py",
+      "lineRange": [
+        46,
+        55
+      ],
+      "summary": "Function in analyze_v1_sqlite.py that handles parse v1 date logic.",
+      "tags": [
+        "migration",
+        "parse",
+        "date"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/analyze_v1_sqlite.py:v1_date_to_due_at",
+      "type": "function",
+      "name": "v1_date_to_due_at",
+      "filePath": "app/migration/analyze_v1_sqlite.py",
+      "lineRange": [
+        58,
+        62
+      ],
+      "summary": "Function in analyze_v1_sqlite.py that handles v1 date to due at logic.",
+      "tags": [
+        "migration",
+        "date",
+        "due"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/analyze_v1_sqlite.py:parse_v1_datetime",
+      "type": "function",
+      "name": "parse_v1_datetime",
+      "filePath": "app/migration/analyze_v1_sqlite.py",
+      "lineRange": [
+        65,
+        70
+      ],
+      "summary": "Function in analyze_v1_sqlite.py that handles parse v1 datetime logic.",
+      "tags": [
+        "migration",
+        "parse",
+        "datetime"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/analyze_v1_sqlite.py:parse_v1_time",
+      "type": "function",
+      "name": "parse_v1_time",
+      "filePath": "app/migration/analyze_v1_sqlite.py",
+      "lineRange": [
+        73,
+        82
+      ],
+      "summary": "Function in analyze_v1_sqlite.py that handles parse v1 time logic.",
+      "tags": [
+        "migration",
+        "parse",
+        "time"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/analyze_v1_sqlite.py:file_sha256",
+      "type": "function",
+      "name": "file_sha256",
+      "filePath": "app/migration/analyze_v1_sqlite.py",
+      "lineRange": [
+        85,
+        90
+      ],
+      "summary": "Function in analyze_v1_sqlite.py that handles file sha256 logic.",
+      "tags": [
+        "migration",
+        "sha256",
+        "project"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/analyze_v1_sqlite.py:table_count",
+      "type": "function",
+      "name": "table_count",
+      "filePath": "app/migration/analyze_v1_sqlite.py",
+      "lineRange": [
+        93,
+        95
+      ],
+      "summary": "Function in analyze_v1_sqlite.py that handles table count logic.",
+      "tags": [
+        "migration",
+        "table",
+        "count"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/analyze_v1_sqlite.py:fetch_dicts",
+      "type": "function",
+      "name": "fetch_dicts",
+      "filePath": "app/migration/analyze_v1_sqlite.py",
+      "lineRange": [
+        98,
+        101
+      ],
+      "summary": "Function in analyze_v1_sqlite.py that handles fetch dicts logic.",
+      "tags": [
+        "migration",
+        "fetch",
+        "dicts"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/analyze_v1_sqlite.py:analyze",
+      "type": "function",
+      "name": "analyze",
+      "filePath": "app/migration/analyze_v1_sqlite.py",
+      "lineRange": [
+        104,
+        160
+      ],
+      "summary": "Function in analyze_v1_sqlite.py that handles analyze logic.",
+      "tags": [
+        "migration",
+        "analyze",
+        "project"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/migration/analyze_v1_sqlite.py:write_report",
+      "type": "function",
+      "name": "write_report",
+      "filePath": "app/migration/analyze_v1_sqlite.py",
+      "lineRange": [
+        163,
+        238
+      ],
+      "summary": "Function in analyze_v1_sqlite.py that handles write report logic.",
+      "tags": [
+        "migration",
+        "write",
+        "project"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/migration/analyze_v1_sqlite.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "app/migration/analyze_v1_sqlite.py",
+      "lineRange": [
+        241,
+        267
+      ],
+      "summary": "Primary entry-point function for analyze_v1_sqlite.py.",
+      "tags": [
+        "entry-point",
+        "migration",
+        "main"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "type": "file",
+      "name": "migrate_sqlite_to_postgres.py",
+      "filePath": "app/migration/migrate_sqlite_to_postgres.py",
+      "summary": "One-shot migration script that transforms legacy SQLite data into the PostgreSQL v2 schema with dry-run safeguards.",
+      "tags": [
+        "migration",
+        "postgresql",
+        "sqlite",
+        "migrate",
+        "postgres"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:app/migration/migrate_sqlite_to_postgres.py:fetch_dicts",
+      "type": "function",
+      "name": "fetch_dicts",
+      "filePath": "app/migration/migrate_sqlite_to_postgres.py",
+      "lineRange": [
+        36,
+        38
+      ],
+      "summary": "Function in migrate_sqlite_to_postgres.py that handles fetch dicts logic.",
+      "tags": [
+        "migration",
+        "fetch",
+        "dicts"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/migrate_sqlite_to_postgres.py:normalize_priority_settings",
+      "type": "function",
+      "name": "normalize_priority_settings",
+      "filePath": "app/migration/migrate_sqlite_to_postgres.py",
+      "lineRange": [
+        41,
+        69
+      ],
+      "summary": "Function in migrate_sqlite_to_postgres.py that handles normalize priority settings logic.",
+      "tags": [
+        "migration",
+        "normalize",
+        "priority",
+        "settings"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/migrate_sqlite_to_postgres.py:load_v1_data",
+      "type": "function",
+      "name": "load_v1_data",
+      "filePath": "app/migration/migrate_sqlite_to_postgres.py",
+      "lineRange": [
+        72,
+        91
+      ],
+      "summary": "Function in migrate_sqlite_to_postgres.py that handles load v1 data logic.",
+      "tags": [
+        "migration",
+        "load",
+        "data"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/migrate_sqlite_to_postgres.py:parse_settings",
+      "type": "function",
+      "name": "parse_settings",
+      "filePath": "app/migration/migrate_sqlite_to_postgres.py",
+      "lineRange": [
+        94,
+        102
+      ],
+      "summary": "Function in migrate_sqlite_to_postgres.py that handles parse settings logic.",
+      "tags": [
+        "migration",
+        "parse",
+        "settings"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/migrate_sqlite_to_postgres.py:content_hash",
+      "type": "function",
+      "name": "content_hash",
+      "filePath": "app/migration/migrate_sqlite_to_postgres.py",
+      "lineRange": [
+        105,
+        107
+      ],
+      "summary": "Function in migrate_sqlite_to_postgres.py that handles content hash logic.",
+      "tags": [
+        "migration",
+        "content",
+        "hash"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/migrate_sqlite_to_postgres.py:insert_priorities",
+      "type": "function",
+      "name": "insert_priorities",
+      "filePath": "app/migration/migrate_sqlite_to_postgres.py",
+      "lineRange": [
+        110,
+        134
+      ],
+      "summary": "Function in migrate_sqlite_to_postgres.py that handles insert priorities logic.",
+      "tags": [
+        "migration",
+        "insert",
+        "priorities"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/migrate_sqlite_to_postgres.py:insert_settings",
+      "type": "function",
+      "name": "insert_settings",
+      "filePath": "app/migration/migrate_sqlite_to_postgres.py",
+      "lineRange": [
+        137,
+        164
+      ],
+      "summary": "Function in migrate_sqlite_to_postgres.py that handles insert settings logic.",
+      "tags": [
+        "migration",
+        "insert",
+        "settings"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/migrate_sqlite_to_postgres.py:migrate_tasks_and_notes",
+      "type": "function",
+      "name": "migrate_tasks_and_notes",
+      "filePath": "app/migration/migrate_sqlite_to_postgres.py",
+      "lineRange": [
+        167,
+        246
+      ],
+      "summary": "Function in migrate_sqlite_to_postgres.py that handles migrate tasks and notes logic.",
+      "tags": [
+        "migration",
+        "migrate",
+        "tasks",
+        "and",
+        "notes"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/migration/migrate_sqlite_to_postgres.py:migrate_schedule",
+      "type": "function",
+      "name": "migrate_schedule",
+      "filePath": "app/migration/migrate_sqlite_to_postgres.py",
+      "lineRange": [
+        249,
+        346
+      ],
+      "summary": "Function in migrate_sqlite_to_postgres.py that handles migrate schedule logic.",
+      "tags": [
+        "migration",
+        "migrate",
+        "schedule"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/migration/migrate_sqlite_to_postgres.py:collect_postgres_counts",
+      "type": "function",
+      "name": "collect_postgres_counts",
+      "filePath": "app/migration/migrate_sqlite_to_postgres.py",
+      "lineRange": [
+        349,
+        367
+      ],
+      "summary": "Function in migrate_sqlite_to_postgres.py that handles collect postgres counts logic.",
+      "tags": [
+        "migration",
+        "collect",
+        "postgres",
+        "counts"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/migrate_sqlite_to_postgres.py:collect_calendar_counts",
+      "type": "function",
+      "name": "collect_calendar_counts",
+      "filePath": "app/migration/migrate_sqlite_to_postgres.py",
+      "lineRange": [
+        370,
+        397
+      ],
+      "summary": "Function in migrate_sqlite_to_postgres.py that handles collect calendar counts logic.",
+      "tags": [
+        "migration",
+        "collect",
+        "calendar",
+        "counts"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/migrate_sqlite_to_postgres.py:apply_migration",
+      "type": "function",
+      "name": "apply_migration",
+      "filePath": "app/migration/migrate_sqlite_to_postgres.py",
+      "lineRange": [
+        400,
+        443
+      ],
+      "summary": "Function in migrate_sqlite_to_postgres.py that handles apply migration logic.",
+      "tags": [
+        "migration",
+        "apply",
+        "project"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/migration/migrate_sqlite_to_postgres.py:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "app/migration/migrate_sqlite_to_postgres.py",
+      "lineRange": [
+        446,
+        506
+      ],
+      "summary": "Primary entry-point function for migrate_sqlite_to_postgres.py.",
+      "tags": [
+        "entry-point",
+        "migration",
+        "main"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/services/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "app/services/__init__.py",
+      "summary": "Service-layer module for init functionality backed by the PostgreSQL v2 data model.",
+      "tags": [
+        "service",
+        "postgresql",
+        "services",
+        "init"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/services/backup_service.py",
+      "type": "file",
+      "name": "backup_service.py",
+      "filePath": "app/services/backup_service.py",
+      "summary": "Runs PostgreSQL backup workflows, tracks backup metadata, and supports retention and restore-verification operations.",
+      "tags": [
+        "service",
+        "postgresql",
+        "services",
+        "backup"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "class:app/services/backup_service.py:BackupService",
+      "type": "class",
+      "name": "BackupService",
+      "filePath": "app/services/backup_service.py",
+      "lineRange": [
+        11,
+        280
+      ],
+      "summary": "Service class that encapsulates backup workflows for the v2 application layer.",
+      "tags": [
+        "service",
+        "application-layer",
+        "postgresql",
+        "backup"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:tests/test_backup_service.py",
+      "type": "file",
+      "name": "test_backup_service.py",
+      "filePath": "tests/test_backup_service.py",
+      "summary": "Automated test module covering test backup service behavior in the v2 codebase.",
+      "tags": [
+        "test",
+        "verification",
+        "backup",
+        "service"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "class:tests/test_backup_service.py:TestBackupService",
+      "type": "class",
+      "name": "TestBackupService",
+      "filePath": "tests/test_backup_service.py",
+      "lineRange": [
+        9,
+        194
+      ],
+      "summary": "Service class that encapsulates test backup workflows for the v2 application layer.",
+      "tags": [
+        "service",
+        "application-layer",
+        "test",
+        "backup"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:.env.example",
+      "type": "config",
+      "name": ".env.example",
+      "filePath": ".env.example",
+      "summary": "Example environment configuration showing the PostgreSQL connection and runtime settings expected by v2 tools.",
+      "tags": [
+        "configuration",
+        "environment",
+        "env",
+        "example"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:.pre-commit-config.yaml",
+      "type": "config",
+      "name": ".pre-commit-config.yaml",
+      "filePath": ".pre-commit-config.yaml",
+      "summary": "Repository quality-gate configuration for local pre-commit checks.",
+      "tags": [
+        "configuration",
+        "pre",
+        "commit",
+        "config",
+        "yaml"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "Project overview and operating guide for the microSchedule v2 desktop application, including setup, workflows, and architecture references.",
+      "tags": [
+        "entry-point",
+        "overview",
+        "documentation",
+        "readme"
+      ],
+      "complexity": "complex",
+      "languageNotes": "This document is heavily sectioned and acts as a substantial reference rather than a lightweight note."
+    },
+    {
+      "id": "file:build.bat",
+      "type": "file",
+      "name": "build.bat",
+      "filePath": "build.bat",
+      "summary": "Windows build script for packaging the desktop application with its configured runtime assets.",
+      "tags": [
+        "build-system",
+        "packaging",
+        "build",
+        "bat"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:requirements-dev.txt",
+      "type": "document",
+      "name": "requirements-dev.txt",
+      "filePath": "requirements-dev.txt",
+      "summary": "Development-only dependency manifest focused on the project test workflow.",
+      "tags": [
+        "configuration",
+        "dependencies",
+        "documentation",
+        "requirements",
+        "dev"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:requirements.txt",
+      "type": "document",
+      "name": "requirements.txt",
+      "filePath": "requirements.txt",
+      "summary": "Runtime Python dependency manifest for the desktop application and its schedule import, packaging, and export tooling.",
+      "tags": [
+        "configuration",
+        "dependencies",
+        "documentation",
+        "requirements",
+        "txt"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:agent_workflow_doc/AGENT_PROMPT_TEMPLATES.md",
+      "type": "document",
+      "name": "AGENT_PROMPT_TEMPLATES.md",
+      "filePath": "agent_workflow_doc/AGENT_PROMPT_TEMPLATES.md",
+      "summary": "Internal planning document for AI-assisted implementation and coordination around agent prompt templates.",
+      "tags": [
+        "workflow",
+        "planning",
+        "documentation",
+        "agent",
+        "doc"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:agent_workflow_doc/GHI_NHO_CONG_VIEC.md",
+      "type": "document",
+      "name": "GHI_NHO_CONG_VIEC.md",
+      "filePath": "agent_workflow_doc/GHI_NHO_CONG_VIEC.md",
+      "summary": "Internal planning document for AI-assisted implementation and coordination around ghi nho cong viec.",
+      "tags": [
+        "workflow",
+        "planning",
+        "documentation",
+        "agent",
+        "doc"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:agent_workflow_doc/GIT_WORKFLOW_GUIDE.md",
+      "type": "document",
+      "name": "GIT_WORKFLOW_GUIDE.md",
+      "filePath": "agent_workflow_doc/GIT_WORKFLOW_GUIDE.md",
+      "summary": "Internal planning document for AI-assisted implementation and coordination around git workflow guide.",
+      "tags": [
+        "workflow",
+        "planning",
+        "documentation",
+        "agent",
+        "doc"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:agent_workflow_doc/KINH_NGHIEM.md",
+      "type": "document",
+      "name": "KINH_NGHIEM.md",
+      "filePath": "agent_workflow_doc/KINH_NGHIEM.md",
+      "summary": "Internal planning document for AI-assisted implementation and coordination around kinh nghiem.",
+      "tags": [
+        "workflow",
+        "planning",
+        "documentation",
+        "agent",
+        "doc"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/DATABASE_SCHEMA.md",
+      "type": "document",
+      "name": "DATABASE_SCHEMA.md",
+      "filePath": "docs/DATABASE_SCHEMA.md",
+      "summary": "Documentation for the PostgreSQL schema, table structure, and key data relationships in v2.",
+      "tags": [
+        "documentation",
+        "database",
+        "schema"
+      ],
+      "complexity": "complex",
+      "languageNotes": "This document is heavily sectioned and acts as a substantial reference rather than a lightweight note."
+    },
+    {
+      "id": "document:docs/EXPORT_GUIDE.md",
+      "type": "document",
+      "name": "EXPORT_GUIDE.md",
+      "filePath": "docs/EXPORT_GUIDE.md",
+      "summary": "Guide to the export DTO contract and the Markdown and JSON output flows used by planning tools.",
+      "tags": [
+        "documentation",
+        "export",
+        "project"
+      ],
+      "complexity": "complex",
+      "languageNotes": "This document is heavily sectioned and acts as a substantial reference rather than a lightweight note."
+    },
+    {
+      "id": "document:docs/IMPORT_GUIDE.md",
+      "type": "document",
+      "name": "IMPORT_GUIDE.md",
+      "filePath": "docs/IMPORT_GUIDE.md",
+      "summary": "Guide to the ICS and Excel import pipeline, parser expectations, and troubleshooting steps.",
+      "tags": [
+        "documentation",
+        "import",
+        "project"
+      ],
+      "complexity": "complex",
+      "languageNotes": "This document is heavily sectioned and acts as a substantial reference rather than a lightweight note."
+    },
+    {
+      "id": "document:docs/SYSTEM_ARCHITECTURE.md",
+      "type": "document",
+      "name": "SYSTEM_ARCHITECTURE.md",
+      "filePath": "docs/SYSTEM_ARCHITECTURE.md",
+      "summary": "Architecture reference describing the current v2 subsystem boundaries, runtime status, and source-of-truth documents.",
+      "tags": [
+        "documentation",
+        "system",
+        "architecture"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "This document is heavily sectioned and acts as a substantial reference rather than a lightweight note."
+    },
+    {
+      "id": "document:docs/UI_GUIDE.md",
+      "type": "document",
+      "name": "UI_GUIDE.md",
+      "filePath": "docs/UI_GUIDE.md",
+      "summary": "UI reference covering Flet components, view structure, and interaction patterns in the desktop shell.",
+      "tags": [
+        "documentation",
+        "project",
+        "internal"
+      ],
+      "complexity": "complex",
+      "languageNotes": "This document is heavily sectioned and acts as a substantial reference rather than a lightweight note."
+    },
+    {
+      "id": "document:docs/V2_BACKUP_RESTORE.md",
+      "type": "document",
+      "name": "V2_BACKUP_RESTORE.md",
+      "filePath": "docs/V2_BACKUP_RESTORE.md",
+      "summary": "Guide to PostgreSQL backup and restore procedures, including retention and verification expectations.",
+      "tags": [
+        "documentation",
+        "backup",
+        "restore"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "This document is heavily sectioned and acts as a substantial reference rather than a lightweight note."
+    },
+    {
+      "id": "document:docs/V2_CURRENT_STATE.md",
+      "type": "document",
+      "name": "V2_CURRENT_STATE.md",
+      "filePath": "docs/V2_CURRENT_STATE.md",
+      "summary": "Status document summarizing what has landed on the v2 branch and which workstreams are still pending.",
+      "tags": [
+        "documentation",
+        "current",
+        "state"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/V2_DECISION_BRIEF.md",
+      "type": "document",
+      "name": "V2_DECISION_BRIEF.md",
+      "filePath": "docs/V2_DECISION_BRIEF.md",
+      "summary": "Decision record capturing the key architecture choices locked in for the v2 branch.",
+      "tags": [
+        "documentation",
+        "decision",
+        "brief"
+      ],
+      "complexity": "complex",
+      "languageNotes": "This document is heavily sectioned and acts as a substantial reference rather than a lightweight note."
+    },
+    {
+      "id": "document:docs/V2_MIGRATION_REPORT.md",
+      "type": "document",
+      "name": "V2_MIGRATION_REPORT.md",
+      "filePath": "docs/V2_MIGRATION_REPORT.md",
+      "summary": "Report summarizing migration execution, resulting counts, and checks around the SQLite-to-PostgreSQL move.",
+      "tags": [
+        "documentation",
+        "migration",
+        "project"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/V2_RESTORE_VERIFICATION_REPORT.md",
+      "type": "document",
+      "name": "V2_RESTORE_VERIFICATION_REPORT.md",
+      "filePath": "docs/V2_RESTORE_VERIFICATION_REPORT.md",
+      "summary": "Restore verification report comparing backup contents against a temporary PostgreSQL restore target.",
+      "tags": [
+        "documentation",
+        "restore",
+        "verification"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/strategy/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "docs/strategy/README.md",
+      "summary": "Strategy document outlining the intended direction for readme work in the v2 roadmap.",
+      "tags": [
+        "documentation",
+        "strategy",
+        "readme"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/strategy/v2_ai_agent_strategy.md",
+      "type": "document",
+      "name": "v2_ai_agent_strategy.md",
+      "filePath": "docs/strategy/v2_ai_agent_strategy.md",
+      "summary": "Strategy document outlining the intended direction for v2 ai agent strategy work in the v2 roadmap.",
+      "tags": [
+        "documentation",
+        "strategy",
+        "agent"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/strategy/v2_architecture_strategy.md",
+      "type": "document",
+      "name": "v2_architecture_strategy.md",
+      "filePath": "docs/strategy/v2_architecture_strategy.md",
+      "summary": "Strategy document outlining the intended direction for v2 architecture strategy work in the v2 roadmap.",
+      "tags": [
+        "documentation",
+        "strategy",
+        "architecture"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/strategy/v2_data_migration_strategy.md",
+      "type": "document",
+      "name": "v2_data_migration_strategy.md",
+      "filePath": "docs/strategy/v2_data_migration_strategy.md",
+      "summary": "Strategy document outlining the intended direction for v2 data migration strategy work in the v2 roadmap.",
+      "tags": [
+        "documentation",
+        "strategy",
+        "data",
+        "migration"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/strategy/v2_ui_strategy.md",
+      "type": "document",
+      "name": "v2_ui_strategy.md",
+      "filePath": "docs/strategy/v2_ui_strategy.md",
+      "summary": "Strategy document outlining the intended direction for v2 ui strategy work in the v2 roadmap.",
+      "tags": [
+        "documentation",
+        "strategy",
+        "project"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:.gitattributes",
+      "type": "file",
+      "name": ".gitattributes",
+      "filePath": ".gitattributes",
+      "summary": "Project file for  within the microSchedule codebase.",
+      "tags": [
+        "gitattributes",
+        "project",
+        "internal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:agent_workflow_doc/tier2_task_specs/V2_PARALLEL_EXECUTION_BOARD.md",
+      "type": "document",
+      "name": "V2_PARALLEL_EXECUTION_BOARD.md",
+      "filePath": "agent_workflow_doc/tier2_task_specs/V2_PARALLEL_EXECUTION_BOARD.md",
+      "summary": "Internal planning document for AI-assisted implementation and coordination around v2 parallel execution board.",
+      "tags": [
+        "workflow",
+        "planning",
+        "documentation",
+        "agent",
+        "doc"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:agent_workflow_doc/tier2_task_specs/V2_TIER2_IMPLEMENTATION_PLAN.md",
+      "type": "document",
+      "name": "V2_TIER2_IMPLEMENTATION_PLAN.md",
+      "filePath": "agent_workflow_doc/tier2_task_specs/V2_TIER2_IMPLEMENTATION_PLAN.md",
+      "summary": "Internal planning document for AI-assisted implementation and coordination around v2 tier2 implementation plan.",
+      "tags": [
+        "workflow",
+        "planning",
+        "documentation",
+        "agent",
+        "doc"
+      ],
+      "complexity": "complex",
+      "languageNotes": "This document is heavily sectioned and acts as a substantial reference rather than a lightweight note."
+    },
+    {
+      "id": "file:app/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "app/__init__.py",
+      "summary": "Project file for init within the microSchedule codebase.",
+      "tags": [
+        "init",
+        "project",
+        "internal"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/db/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "app/db/__init__.py",
+      "summary": "Project file for init within the microSchedule codebase.",
+      "tags": [
+        "database",
+        "postgresql",
+        "init"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:app/db/schema.sql",
+      "type": "table",
+      "name": "schema.sql",
+      "filePath": "app/db/schema.sql",
+      "summary": "Authoritative PostgreSQL DDL for microSchedule v2, defining calendar, task, note, backup, and audit tables.",
+      "tags": [
+        "database",
+        "postgresql",
+        "schema-definition",
+        "schema",
+        "sql"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "PostgreSQL DDL is the authoritative schema source for the v2 branch."
+    },
+    {
+      "id": "table:app/db/schema.sql:priorities",
+      "type": "table",
+      "name": "priorities",
+      "filePath": "app/db/schema.sql",
+      "summary": "Database table in the v2 PostgreSQL schema for storing priorities data.",
+      "tags": [
+        "database",
+        "schema-definition",
+        "table"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:app/db/schema.sql:calendar_sources",
+      "type": "table",
+      "name": "calendar_sources",
+      "filePath": "app/db/schema.sql",
+      "summary": "Database table in the v2 PostgreSQL schema for storing calendar sources data.",
+      "tags": [
+        "database",
+        "schema-definition",
+        "table"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:app/db/schema.sql:calendar_source_versions",
+      "type": "table",
+      "name": "calendar_source_versions",
+      "filePath": "app/db/schema.sql",
+      "summary": "Database table in the v2 PostgreSQL schema for storing calendar source versions data.",
+      "tags": [
+        "database",
+        "schema-definition",
+        "table"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:app/db/schema.sql:calendar_events",
+      "type": "table",
+      "name": "calendar_events",
+      "filePath": "app/db/schema.sql",
+      "summary": "Database table in the v2 PostgreSQL schema for storing calendar events data.",
+      "tags": [
+        "database",
+        "schema-definition",
+        "table"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:app/db/schema.sql:tasks",
+      "type": "table",
+      "name": "tasks",
+      "filePath": "app/db/schema.sql",
+      "summary": "Database table in the v2 PostgreSQL schema for storing tasks data.",
+      "tags": [
+        "database",
+        "schema-definition",
+        "table"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:app/db/schema.sql:task_items",
+      "type": "table",
+      "name": "task_items",
+      "filePath": "app/db/schema.sql",
+      "summary": "Database table in the v2 PostgreSQL schema for storing task items data.",
+      "tags": [
+        "database",
+        "schema-definition",
+        "table"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:app/db/schema.sql:notes",
+      "type": "table",
+      "name": "notes",
+      "filePath": "app/db/schema.sql",
+      "summary": "Database table in the v2 PostgreSQL schema for storing notes data.",
+      "tags": [
+        "database",
+        "schema-definition",
+        "table"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:app/db/schema.sql:note_items",
+      "type": "table",
+      "name": "note_items",
+      "filePath": "app/db/schema.sql",
+      "summary": "Database table in the v2 PostgreSQL schema for storing note items data.",
+      "tags": [
+        "database",
+        "schema-definition",
+        "table"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:app/db/schema.sql:app_settings",
+      "type": "table",
+      "name": "app_settings",
+      "filePath": "app/db/schema.sql",
+      "summary": "Database table in the v2 PostgreSQL schema for storing app settings data.",
+      "tags": [
+        "database",
+        "schema-definition",
+        "table"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:app/db/schema.sql:backup_runs",
+      "type": "table",
+      "name": "backup_runs",
+      "filePath": "app/db/schema.sql",
+      "summary": "Database table in the v2 PostgreSQL schema for storing backup runs data.",
+      "tags": [
+        "database",
+        "schema-definition",
+        "table"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "table:app/db/schema.sql:agent_action_log",
+      "type": "table",
+      "name": "agent_action_log",
+      "filePath": "app/db/schema.sql",
+      "summary": "Database table in the v2 PostgreSQL schema for storing agent action log data.",
+      "tags": [
+        "database",
+        "schema-definition",
+        "table"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/migration/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "app/migration/__init__.py",
+      "summary": "Migration utility for init within the legacy SQLite to PostgreSQL v2 transition.",
+      "tags": [
+        "migration",
+        "postgresql",
+        "sqlite",
+        "init"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/ui/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "app/ui/__init__.py",
+      "summary": "Project file for init within the microSchedule codebase.",
+      "tags": [
+        "ui",
+        "flet",
+        "init"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/archive/completed_workstreams/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "docs/archive/completed_workstreams/README.md",
+      "summary": "Archive document preserving historical context for readme in earlier project iterations.",
+      "tags": [
+        "documentation",
+        "archive",
+        "completed",
+        "workstreams",
+        "readme"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/archive/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "docs/archive/README.md",
+      "summary": "Archive document preserving historical context for readme in earlier project iterations.",
+      "tags": [
+        "documentation",
+        "archive",
+        "readme"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/archive/v1_legacy/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "docs/archive/v1_legacy/README.md",
+      "summary": "Archive document preserving historical context for readme in earlier project iterations.",
+      "tags": [
+        "documentation",
+        "archive",
+        "legacy",
+        "readme"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/v2_contracts/WS0_WS1_CONTRACT.md",
+      "type": "document",
+      "name": "WS0_WS1_CONTRACT.md",
+      "filePath": "docs/v2_contracts/WS0_WS1_CONTRACT.md",
+      "summary": "Documentation centered on \"WS0/WS1 Contract - microSchedule v2\" and the surrounding microSchedule project workflow.",
+      "tags": [
+        "documentation",
+        "contracts",
+        "ws0",
+        "ws1",
+        "contract"
+      ],
+      "complexity": "complex",
+      "languageNotes": "This document is heavily sectioned and acts as a substantial reference rather than a lightweight note."
+    },
+    {
+      "id": "file:LichThi-QLDT-20252.ics",
+      "type": "file",
+      "name": "LichThi-QLDT-20252.ics",
+      "filePath": "LichThi-QLDT-20252.ics",
+      "summary": "Sample calendar source file used to validate and populate schedule import workflows.",
+      "tags": [
+        "sample-data",
+        "calendar",
+        "lich",
+        "thi",
+        "qldt"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "ICS files provide realistic import fixtures for the calendar parsing pipeline."
+    },
+    {
+      "id": "file:LichThi.xlsx",
+      "type": "file",
+      "name": "LichThi.xlsx",
+      "filePath": "LichThi.xlsx",
+      "summary": "Sample exam spreadsheet used to validate the Excel-based schedule import workflow.",
+      "tags": [
+        "sample-data",
+        "calendar",
+        "lich",
+        "thi",
+        "xlsx"
+      ],
+      "complexity": "simple",
+      "languageNotes": "The spreadsheet fixture exercises the Excel exam import parser and warning flow."
+    },
+    {
+      "id": "file:tests/__init__.py",
+      "type": "file",
+      "name": "__init__.py",
+      "filePath": "tests/__init__.py",
+      "summary": "Automated test module covering init behavior in the v2 codebase.",
+      "tags": [
+        "test",
+        "verification",
+        "init"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:TKB-QLDT20252.ics",
+      "type": "file",
+      "name": "TKB-QLDT20252.ics",
+      "filePath": "TKB-QLDT20252.ics",
+      "summary": "Sample calendar source file used to validate and populate schedule import workflows.",
+      "tags": [
+        "sample-data",
+        "calendar",
+        "tkb",
+        "qldt20252",
+        "ics"
+      ],
+      "complexity": "complex",
+      "languageNotes": "ICS files provide realistic import fixtures for the calendar parsing pipeline."
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:app/services/calendar_day_service.py",
+      "target": "class:app/services/calendar_day_service.py:CalendarDayService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/calendar_day_service.py",
+      "target": "class:app/services/calendar_day_service.py:CalendarDayService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/calendar_view_service.py",
+      "target": "class:app/services/calendar_view_service.py:CalendarViewService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/calendar_view_service.py",
+      "target": "class:app/services/calendar_view_service.py:CalendarViewService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/notes_service.py",
+      "target": "class:app/services/notes_service.py:NotesService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/notes_service.py",
+      "target": "class:app/services/notes_service.py:NotesService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/task_service.py",
+      "target": "class:app/services/task_service.py:TaskService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/task_service.py",
+      "target": "class:app/services/task_service.py:TaskService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/ui/calendar_view.py",
+      "target": "function:app/ui/calendar_view.py:get_week_start",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/ui/calendar_view.py",
+      "target": "function:app/ui/calendar_view.py:get_week_start",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/ui/calendar_view.py",
+      "target": "function:app/ui/calendar_view.py:_parse_hex_color",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/ui/calendar_view.py",
+      "target": "function:app/ui/calendar_view.py:_parse_hex_color",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/ui/calendar_view.py",
+      "target": "function:app/ui/calendar_view.py:build_continuous_calendar_tab",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/ui/calendar_view.py",
+      "target": "function:app/ui/calendar_view.py:build_continuous_calendar_tab",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:init_environment",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:init_environment",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:_setup_defaults",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:_setup_defaults",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:perform_smart_backup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:perform_smart_backup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:get_connection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:get_connection",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:load_settings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:load_settings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:save_single_setting",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:save_single_setting",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:parse_ics_date",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:parse_ics_date",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:import_ics_schedule",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:import_ics_schedule",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:import_excel_schedule",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:database.py",
+      "target": "function:database.py:import_excel_schedule",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:main.py",
+      "target": "function:main.py:resource_path",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:main.py",
+      "target": "function:main.py:resource_path",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:main.py",
+      "target": "function:main.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:main.py",
+      "target": "function:main.py:main",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_calendar_view_service.py",
+      "target": "function:tests/test_calendar_view_service.py:db_conn",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_calendar_view_service.py",
+      "target": "function:tests/test_calendar_view_service.py:db_conn",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_calendar_view_service.py",
+      "target": "function:tests/test_calendar_view_service.py:test_get_events_by_range",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_calendar_view_service.py",
+      "target": "function:tests/test_calendar_view_service.py:test_get_events_by_range",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_notes_service.py",
+      "target": "function:tests/test_notes_service.py:db_conn",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_notes_service.py",
+      "target": "function:tests/test_notes_service.py:db_conn",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_notes_service.py",
+      "target": "function:tests/test_notes_service.py:test_notes_crud_workflow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_notes_service.py",
+      "target": "function:tests/test_notes_service.py:test_notes_crud_workflow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/exporters/json_exporter.py",
+      "target": "class:app/exporters/json_exporter.py:JSONExporter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/exporters/json_exporter.py",
+      "target": "class:app/exporters/json_exporter.py:JSONExporter",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/exporters/markdown_exporter.py",
+      "target": "class:app/exporters/markdown_exporter.py:MarkdownExporter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/exporters/markdown_exporter.py",
+      "target": "class:app/exporters/markdown_exporter.py:MarkdownExporter",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/exporters/planner_dto.py",
+      "target": "class:app/exporters/planner_dto.py:ExportMetadata",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/exporters/planner_dto.py",
+      "target": "class:app/exporters/planner_dto.py:ExportMetadata",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/exporters/planner_dto.py",
+      "target": "class:app/exporters/planner_dto.py:ExportEvent",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/exporters/planner_dto.py",
+      "target": "class:app/exporters/planner_dto.py:ExportEvent",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/exporters/planner_dto.py",
+      "target": "class:app/exporters/planner_dto.py:ExportSubtask",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/exporters/planner_dto.py",
+      "target": "class:app/exporters/planner_dto.py:ExportSubtask",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/exporters/planner_dto.py",
+      "target": "class:app/exporters/planner_dto.py:ExportTask",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/exporters/planner_dto.py",
+      "target": "class:app/exporters/planner_dto.py:ExportTask",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/exporters/planner_dto.py",
+      "target": "class:app/exporters/planner_dto.py:ExportNoteItem",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/exporters/planner_dto.py",
+      "target": "class:app/exporters/planner_dto.py:ExportNoteItem",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/exporters/planner_dto.py",
+      "target": "class:app/exporters/planner_dto.py:ExportNote",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/exporters/planner_dto.py",
+      "target": "class:app/exporters/planner_dto.py:ExportNote",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/exporters/planner_dto.py",
+      "target": "class:app/exporters/planner_dto.py:PlannerExportDTO",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/exporters/planner_dto.py",
+      "target": "class:app/exporters/planner_dto.py:PlannerExportDTO",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/export_service.py",
+      "target": "class:app/services/export_service.py:ExportService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/export_service.py",
+      "target": "class:app/services/export_service.py:ExportService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_export_service.py",
+      "target": "class:tests/test_export_service.py:TestExportService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_export_service.py",
+      "target": "class:tests/test_export_service.py:TestExportService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/importers/excel_exam_importer.py",
+      "target": "class:app/importers/excel_exam_importer.py:ExcelExamImporter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/importers/excel_exam_importer.py",
+      "target": "class:app/importers/excel_exam_importer.py:ExcelExamImporter",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/importers/ics_importer.py",
+      "target": "class:app/importers/ics_importer.py:IcsImporter",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/importers/ics_importer.py",
+      "target": "class:app/importers/ics_importer.py:IcsImporter",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/calendar_import_service.py",
+      "target": "class:app/services/calendar_import_service.py:CalendarImportService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/calendar_import_service.py",
+      "target": "class:app/services/calendar_import_service.py:CalendarImportService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/calendar_source_service.py",
+      "target": "class:app/services/calendar_source_service.py:CalendarSourceService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/calendar_source_service.py",
+      "target": "class:app/services/calendar_source_service.py:CalendarSourceService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_calendar_import_service.py",
+      "target": "function:tests/test_calendar_import_service.py:db_conn",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_calendar_import_service.py",
+      "target": "function:tests/test_calendar_import_service.py:db_conn",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_calendar_import_service.py",
+      "target": "function:tests/test_calendar_import_service.py:test_ics_parser_study_schedule",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_calendar_import_service.py",
+      "target": "function:tests/test_calendar_import_service.py:test_ics_parser_study_schedule",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_calendar_import_service.py",
+      "target": "function:tests/test_calendar_import_service.py:test_ics_parser_exam_schedule",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_calendar_import_service.py",
+      "target": "function:tests/test_calendar_import_service.py:test_ics_parser_exam_schedule",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_calendar_import_service.py",
+      "target": "function:tests/test_calendar_import_service.py:test_excel_parser",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_calendar_import_service.py",
+      "target": "function:tests/test_calendar_import_service.py:test_excel_parser",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_calendar_import_service.py",
+      "target": "function:tests/test_calendar_import_service.py:test_calendar_import_service_workflow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_calendar_import_service.py",
+      "target": "function:tests/test_calendar_import_service.py:test_calendar_import_service_workflow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "class:app/config.py:AppConfig",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "class:app/config.py:AppConfig",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "function:app/config.py:load_config",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "function:app/config.py:load_config",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "function:app/config.py:get_database_name",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "function:app/config.py:get_database_name",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "function:app/config.py:redact_database_url",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "function:app/config.py:redact_database_url",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "function:app/config.py:assert_safe_target_database",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "function:app/config.py:assert_safe_target_database",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "function:app/config.py:assert_reset_allowed",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/config.py",
+      "target": "function:app/config.py:assert_reset_allowed",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/db/postgres.py",
+      "target": "function:app/db/postgres.py:connect",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/db/postgres.py",
+      "target": "function:app/db/postgres.py:connect",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/db/postgres.py",
+      "target": "function:app/db/postgres.py:transaction",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/db/postgres.py",
+      "target": "function:app/db/postgres.py:transaction",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/db/postgres.py",
+      "target": "function:app/db/postgres.py:read_schema_sql",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/db/postgres.py",
+      "target": "function:app/db/postgres.py:read_schema_sql",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/db/postgres.py",
+      "target": "function:app/db/postgres.py:apply_schema",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/db/postgres.py",
+      "target": "function:app/db/postgres.py:apply_schema",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/db/postgres.py",
+      "target": "function:app/db/postgres.py:reset_public_schema",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/db/postgres.py",
+      "target": "function:app/db/postgres.py:reset_public_schema",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/db/postgres.py",
+      "target": "function:app/db/postgres.py:connect_checked",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/db/postgres.py",
+      "target": "function:app/db/postgres.py:connect_checked",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "class:app/migration/analyze_v1_sqlite.py:V1Analysis",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "class:app/migration/analyze_v1_sqlite.py:V1Analysis",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:open_sqlite_readonly",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:open_sqlite_readonly",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:parse_v1_date",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:parse_v1_date",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:v1_date_to_due_at",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:v1_date_to_due_at",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:parse_v1_datetime",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:parse_v1_datetime",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:parse_v1_time",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:parse_v1_time",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:file_sha256",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:file_sha256",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:table_count",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:table_count",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:fetch_dicts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:fetch_dicts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:analyze",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:analyze",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:write_report",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:write_report",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "function:app/migration/analyze_v1_sqlite.py:main",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:fetch_dicts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:fetch_dicts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:normalize_priority_settings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:normalize_priority_settings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:load_v1_data",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:load_v1_data",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:parse_settings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:parse_settings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:content_hash",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:content_hash",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:insert_priorities",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:insert_priorities",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:insert_settings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:insert_settings",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:migrate_tasks_and_notes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:migrate_tasks_and_notes",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:migrate_schedule",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:migrate_schedule",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:collect_postgres_counts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:collect_postgres_counts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:collect_calendar_counts",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:collect_calendar_counts",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:apply_migration",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:apply_migration",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "function:app/migration/migrate_sqlite_to_postgres.py:main",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/backup_service.py",
+      "target": "class:app/services/backup_service.py:BackupService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/services/backup_service.py",
+      "target": "class:app/services/backup_service.py:BackupService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:tests/test_backup_service.py",
+      "target": "class:tests/test_backup_service.py:TestBackupService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:tests/test_backup_service.py",
+      "target": "class:tests/test_backup_service.py:TestBackupService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql",
+      "target": "table:app/db/schema.sql:priorities",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "table:app/db/schema.sql",
+      "target": "table:app/db/schema.sql:calendar_sources",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "table:app/db/schema.sql",
+      "target": "table:app/db/schema.sql:calendar_source_versions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "table:app/db/schema.sql",
+      "target": "table:app/db/schema.sql:calendar_events",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "table:app/db/schema.sql",
+      "target": "table:app/db/schema.sql:tasks",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "table:app/db/schema.sql",
+      "target": "table:app/db/schema.sql:task_items",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "table:app/db/schema.sql",
+      "target": "table:app/db/schema.sql:notes",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "table:app/db/schema.sql",
+      "target": "table:app/db/schema.sql:note_items",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "table:app/db/schema.sql",
+      "target": "table:app/db/schema.sql:app_settings",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "table:app/db/schema.sql",
+      "target": "table:app/db/schema.sql:backup_runs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "table:app/db/schema.sql",
+      "target": "table:app/db/schema.sql:agent_action_log",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/db/postgres.py",
+      "target": "file:app/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/exporters/__init__.py",
+      "target": "file:app/exporters/json_exporter.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/exporters/__init__.py",
+      "target": "file:app/exporters/markdown_exporter.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/exporters/__init__.py",
+      "target": "file:app/exporters/planner_dto.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/exporters/json_exporter.py",
+      "target": "file:app/exporters/planner_dto.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/exporters/markdown_exporter.py",
+      "target": "file:app/exporters/planner_dto.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/importers/__init__.py",
+      "target": "file:app/importers/excel_exam_importer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/importers/__init__.py",
+      "target": "file:app/importers/ics_importer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/migration/analyze_v1_sqlite.py",
+      "target": "file:app/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "file:app/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "file:app/db/postgres.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "target": "file:app/migration/analyze_v1_sqlite.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/services/__init__.py",
+      "target": "file:app/services/backup_service.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/services/calendar_import_service.py",
+      "target": "file:app/importers/excel_exam_importer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/services/calendar_import_service.py",
+      "target": "file:app/importers/ics_importer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/services/export_service.py",
+      "target": "file:app/exporters/json_exporter.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/services/export_service.py",
+      "target": "file:app/exporters/markdown_exporter.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/services/export_service.py",
+      "target": "file:app/exporters/planner_dto.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/ui/calendar_view.py",
+      "target": "file:app/services/calendar_import_service.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/ui/calendar_view.py",
+      "target": "file:app/services/calendar_view_service.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:main.py",
+      "target": "file:app/config.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:main.py",
+      "target": "file:app/db/postgres.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:main.py",
+      "target": "file:app/services/calendar_day_service.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:main.py",
+      "target": "file:app/services/calendar_view_service.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:main.py",
+      "target": "file:app/services/notes_service.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:main.py",
+      "target": "file:app/services/task_service.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:main.py",
+      "target": "file:app/ui/calendar_view.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:main.py",
+      "target": "file:database.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_backup_service.py",
+      "target": "file:app/services/backup_service.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_calendar_import_service.py",
+      "target": "file:app/importers/excel_exam_importer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_calendar_import_service.py",
+      "target": "file:app/importers/ics_importer.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_calendar_import_service.py",
+      "target": "file:app/services/calendar_import_service.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_calendar_import_service.py",
+      "target": "file:app/services/calendar_source_service.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_calendar_view_service.py",
+      "target": "file:app/services/calendar_view_service.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_export_service.py",
+      "target": "file:app/exporters/json_exporter.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_export_service.py",
+      "target": "file:app/exporters/markdown_exporter.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_export_service.py",
+      "target": "file:app/exporters/planner_dto.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_export_service.py",
+      "target": "file:app/services/export_service.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:tests/test_notes_service.py",
+      "target": "file:app/services/notes_service.py",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/ui/calendar_view.py",
+      "target": "class:app/services/calendar_import_service.py:CalendarImportService",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:main.py:main",
+      "target": "function:database.py:load_settings",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:main.py:main",
+      "target": "function:database.py:get_connection",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:main.py:main",
+      "target": "function:app/config.py:load_config",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:main.py:main",
+      "target": "function:app/db/postgres.py:connect",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:main.py:main",
+      "target": "class:app/services/notes_service.py:NotesService",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:main.py:main",
+      "target": "class:app/services/task_service.py:TaskService",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:main.py:main",
+      "target": "class:app/services/calendar_day_service.py:CalendarDayService",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:main.py:main",
+      "target": "class:app/services/calendar_view_service.py:CalendarViewService",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:main.py",
+      "target": "function:database.py:load_settings",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:main.py",
+      "target": "function:database.py:import_ics_schedule",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:main.py",
+      "target": "function:database.py:import_excel_schedule",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:main.py",
+      "target": "function:database.py:save_single_setting",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:main.py:main",
+      "target": "function:app/ui/calendar_view.py:build_continuous_calendar_tab",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/calendar_view_service.py",
+      "target": "file:tests/test_calendar_view_service.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:tests/test_calendar_view_service.py:test_get_events_by_range",
+      "target": "class:app/services/calendar_view_service.py:CalendarViewService",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/notes_service.py",
+      "target": "file:tests/test_notes_service.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:tests/test_notes_service.py:test_notes_crud_workflow",
+      "target": "class:app/services/notes_service.py:NotesService",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:app/services/export_service.py:ExportService",
+      "target": "class:app/exporters/planner_dto.py:ExportEvent",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:app/services/export_service.py:ExportService",
+      "target": "class:app/exporters/planner_dto.py:ExportSubtask",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:app/services/export_service.py:ExportService",
+      "target": "class:app/exporters/planner_dto.py:ExportTask",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:app/services/export_service.py:ExportService",
+      "target": "class:app/exporters/planner_dto.py:ExportNoteItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:app/services/export_service.py:ExportService",
+      "target": "class:app/exporters/planner_dto.py:ExportNote",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:app/services/export_service.py:ExportService",
+      "target": "class:app/exporters/planner_dto.py:ExportMetadata",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:app/services/export_service.py:ExportService",
+      "target": "class:app/exporters/planner_dto.py:PlannerExportDTO",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:app/services/export_service.py:ExportService",
+      "target": "class:app/exporters/json_exporter.py:JSONExporter",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:app/services/export_service.py:ExportService",
+      "target": "class:app/exporters/markdown_exporter.py:MarkdownExporter",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/exporters/json_exporter.py",
+      "target": "file:tests/test_export_service.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:app/exporters/markdown_exporter.py",
+      "target": "file:tests/test_export_service.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:app/exporters/planner_dto.py",
+      "target": "file:tests/test_export_service.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:app/services/export_service.py",
+      "target": "file:tests/test_export_service.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "class:tests/test_export_service.py:TestExportService",
+      "target": "class:app/services/export_service.py:ExportService",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:tests/test_export_service.py:TestExportService",
+      "target": "class:app/exporters/planner_dto.py:ExportMetadata",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:tests/test_export_service.py:TestExportService",
+      "target": "class:app/exporters/planner_dto.py:ExportEvent",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:tests/test_export_service.py:TestExportService",
+      "target": "class:app/exporters/planner_dto.py:ExportTask",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:tests/test_export_service.py:TestExportService",
+      "target": "class:app/exporters/planner_dto.py:ExportSubtask",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:tests/test_export_service.py:TestExportService",
+      "target": "class:app/exporters/planner_dto.py:ExportNote",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:tests/test_export_service.py:TestExportService",
+      "target": "class:app/exporters/planner_dto.py:ExportNoteItem",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:tests/test_export_service.py:TestExportService",
+      "target": "class:app/exporters/planner_dto.py:PlannerExportDTO",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:tests/test_export_service.py:TestExportService",
+      "target": "class:app/exporters/markdown_exporter.py:MarkdownExporter",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:tests/test_export_service.py:TestExportService",
+      "target": "class:app/exporters/json_exporter.py:JSONExporter",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:app/services/calendar_import_service.py:CalendarImportService",
+      "target": "class:app/importers/ics_importer.py:IcsImporter",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "class:app/services/calendar_import_service.py:CalendarImportService",
+      "target": "class:app/importers/excel_exam_importer.py:ExcelExamImporter",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/importers/excel_exam_importer.py",
+      "target": "file:tests/test_calendar_import_service.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:app/importers/ics_importer.py",
+      "target": "file:tests/test_calendar_import_service.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:app/services/calendar_import_service.py",
+      "target": "file:tests/test_calendar_import_service.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:app/services/calendar_source_service.py",
+      "target": "file:tests/test_calendar_import_service.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "function:tests/test_calendar_import_service.py:test_ics_parser_study_schedule",
+      "target": "class:app/importers/ics_importer.py:IcsImporter",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_calendar_import_service.py:test_ics_parser_exam_schedule",
+      "target": "class:app/importers/ics_importer.py:IcsImporter",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_calendar_import_service.py:test_excel_parser",
+      "target": "class:app/importers/excel_exam_importer.py:ExcelExamImporter",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_calendar_import_service.py:test_calendar_import_service_workflow",
+      "target": "class:app/services/calendar_source_service.py:CalendarSourceService",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:tests/test_calendar_import_service.py:test_calendar_import_service_workflow",
+      "target": "class:app/services/calendar_import_service.py:CalendarImportService",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/db/postgres.py:reset_public_schema",
+      "target": "function:app/config.py:assert_reset_allowed",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/db/postgres.py:connect_checked",
+      "target": "function:app/config.py:assert_safe_target_database",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/analyze_v1_sqlite.py:main",
+      "target": "function:app/config.py:load_config",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:load_v1_data",
+      "target": "function:app/migration/analyze_v1_sqlite.py:open_sqlite_readonly",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:load_v1_data",
+      "target": "function:app/migration/analyze_v1_sqlite.py:fetch_dicts",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:migrate_tasks_and_notes",
+      "target": "function:app/migration/analyze_v1_sqlite.py:v1_date_to_due_at",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:migrate_schedule",
+      "target": "function:app/migration/analyze_v1_sqlite.py:parse_v1_datetime",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:migrate_schedule",
+      "target": "function:app/migration/analyze_v1_sqlite.py:parse_v1_time",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:apply_migration",
+      "target": "function:app/config.py:load_config",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:apply_migration",
+      "target": "function:app/config.py:assert_safe_target_database",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:apply_migration",
+      "target": "function:app/migration/analyze_v1_sqlite.py:analyze",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:apply_migration",
+      "target": "function:app/db/postgres.py:connect_checked",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:apply_migration",
+      "target": "function:app/db/postgres.py:transaction",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:apply_migration",
+      "target": "function:app/db/postgres.py:reset_public_schema",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:apply_migration",
+      "target": "function:app/db/postgres.py:apply_schema",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:main",
+      "target": "function:app/config.py:load_config",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:main",
+      "target": "function:app/migration/analyze_v1_sqlite.py:analyze",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:main",
+      "target": "function:app/config.py:assert_safe_target_database",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/migration/migrate_sqlite_to_postgres.py:main",
+      "target": "function:app/migration/analyze_v1_sqlite.py:write_report",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/services/backup_service.py",
+      "target": "file:tests/test_backup_service.py",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "class:tests/test_backup_service.py:TestBackupService",
+      "target": "class:app/services/backup_service.py:BackupService",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "document:README.md",
+      "target": "file:main.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "file:database.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "table:app/db/schema.sql",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:README.md",
+      "target": "document:docs/SYSTEM_ARCHITECTURE.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/SYSTEM_ARCHITECTURE.md",
+      "target": "file:main.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/SYSTEM_ARCHITECTURE.md",
+      "target": "file:app/config.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/SYSTEM_ARCHITECTURE.md",
+      "target": "table:app/db/schema.sql",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/SYSTEM_ARCHITECTURE.md",
+      "target": "file:app/services/backup_service.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/SYSTEM_ARCHITECTURE.md",
+      "target": "file:app/services/notes_service.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/SYSTEM_ARCHITECTURE.md",
+      "target": "file:app/services/export_service.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/SYSTEM_ARCHITECTURE.md",
+      "target": "file:app/services/calendar_import_service.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/IMPORT_GUIDE.md",
+      "target": "file:app/importers/ics_importer.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/IMPORT_GUIDE.md",
+      "target": "file:app/importers/excel_exam_importer.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/IMPORT_GUIDE.md",
+      "target": "file:app/services/calendar_import_service.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/EXPORT_GUIDE.md",
+      "target": "file:app/services/export_service.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/EXPORT_GUIDE.md",
+      "target": "file:app/exporters/planner_dto.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/EXPORT_GUIDE.md",
+      "target": "file:app/exporters/markdown_exporter.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/EXPORT_GUIDE.md",
+      "target": "file:app/exporters/json_exporter.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/UI_GUIDE.md",
+      "target": "file:main.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/UI_GUIDE.md",
+      "target": "file:app/ui/calendar_view.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/DATABASE_SCHEMA.md",
+      "target": "table:app/db/schema.sql",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/DATABASE_SCHEMA.md",
+      "target": "file:app/db/postgres.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/V2_BACKUP_RESTORE.md",
+      "target": "file:app/services/backup_service.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/V2_RESTORE_VERIFICATION_REPORT.md",
+      "target": "file:app/services/backup_service.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/V2_MIGRATION_REPORT.md",
+      "target": "file:app/migration/analyze_v1_sqlite.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/V2_MIGRATION_REPORT.md",
+      "target": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/V2_CURRENT_STATE.md",
+      "target": "file:main.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/V2_CURRENT_STATE.md",
+      "target": "table:app/db/schema.sql",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/V2_CURRENT_STATE.md",
+      "target": "file:app/services/notes_service.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/V2_DECISION_BRIEF.md",
+      "target": "table:app/db/schema.sql",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/V2_DECISION_BRIEF.md",
+      "target": "file:app/services/export_service.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/V2_DECISION_BRIEF.md",
+      "target": "file:app/services/calendar_import_service.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/v2_contracts/WS0_WS1_CONTRACT.md",
+      "target": "table:app/db/schema.sql",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/v2_contracts/WS0_WS1_CONTRACT.md",
+      "target": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:.env.example",
+      "target": "file:app/config.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:.env.example",
+      "target": "file:app/db/postgres.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:.env.example",
+      "target": "file:app/migration/migrate_sqlite_to_postgres.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:.env.example",
+      "target": "file:app/services/backup_service.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:requirements.txt",
+      "target": "file:main.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:requirements.txt",
+      "target": "file:app/importers/excel_exam_importer.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:requirements.txt",
+      "target": "file:app/services/backup_service.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:requirements-dev.txt",
+      "target": "file:tests/test_backup_service.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "document:requirements-dev.txt",
+      "target": "file:tests/test_export_service.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:.pre-commit-config.yaml",
+      "target": "file:tests/test_backup_service.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:.pre-commit-config.yaml",
+      "target": "file:tests/test_calendar_import_service.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:build.bat",
+      "target": "file:main.py",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "table:app/db/schema.sql:priorities",
+      "target": "file:app/services/task_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:priorities",
+      "target": "file:app/services/notes_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:priorities",
+      "target": "file:app/services/export_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:calendar_sources",
+      "target": "file:app/services/calendar_source_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:calendar_sources",
+      "target": "file:app/services/calendar_view_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:calendar_sources",
+      "target": "file:app/services/calendar_import_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:calendar_source_versions",
+      "target": "file:app/services/calendar_import_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:calendar_source_versions",
+      "target": "file:app/services/calendar_source_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:calendar_source_versions",
+      "target": "file:app/services/export_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:calendar_events",
+      "target": "file:app/services/calendar_day_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:calendar_events",
+      "target": "file:app/services/calendar_view_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:calendar_events",
+      "target": "file:app/services/export_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:tasks",
+      "target": "file:app/services/task_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:tasks",
+      "target": "file:app/services/export_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:task_items",
+      "target": "file:app/services/task_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:task_items",
+      "target": "file:app/services/export_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:notes",
+      "target": "file:app/services/notes_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:notes",
+      "target": "file:app/services/export_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:note_items",
+      "target": "file:app/services/notes_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:note_items",
+      "target": "file:app/services/export_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:app_settings",
+      "target": "file:app/services/export_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:app_settings",
+      "target": "file:main.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:backup_runs",
+      "target": "file:app/services/backup_service.py",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "table:app/db/schema.sql:agent_action_log",
+      "target": "document:docs/V2_DECISION_BRIEF.md",
+      "type": "defines_schema",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:ui-shell",
+      "name": "UI Shell",
+      "description": "Desktop UI entry points, view builders, and UI-facing assets.",
+      "nodeIds": [
+        "file:LichThi-QLDT-20252.ics",
+        "file:LichThi.xlsx",
+        "file:TKB-QLDT20252.ics",
+        "file:app/ui/__init__.py",
+        "file:app/ui/calendar_view.py",
+        "file:main.py"
+      ]
+    },
+    {
+      "id": "layer:application-services",
+      "name": "Application Services",
+      "description": "Service-layer modules that implement the v2 business workflows.",
+      "nodeIds": [
+        "file:app/services/__init__.py",
+        "file:app/services/backup_service.py",
+        "file:app/services/calendar_day_service.py",
+        "file:app/services/calendar_import_service.py",
+        "file:app/services/calendar_source_service.py",
+        "file:app/services/calendar_view_service.py",
+        "file:app/services/export_service.py",
+        "file:app/services/notes_service.py",
+        "file:app/services/task_service.py"
+      ]
+    },
+    {
+      "id": "layer:import-export",
+      "name": "Import And Export",
+      "description": "Parsing, DTO, and rendering modules for schedule import and planner export.",
+      "nodeIds": [
+        "document:docs/EXPORT_GUIDE.md",
+        "document:docs/IMPORT_GUIDE.md",
+        "file:app/exporters/__init__.py",
+        "file:app/exporters/json_exporter.py",
+        "file:app/exporters/markdown_exporter.py",
+        "file:app/exporters/planner_dto.py",
+        "file:app/importers/__init__.py",
+        "file:app/importers/excel_exam_importer.py",
+        "file:app/importers/ics_importer.py"
+      ]
+    },
+    {
+      "id": "layer:data-platform",
+      "name": "Data Platform",
+      "description": "Configuration, schema, and database access components for the PostgreSQL-backed data model.",
+      "nodeIds": [
+        "config:.env.example",
+        "document:docs/DATABASE_SCHEMA.md",
+        "file:.gitattributes",
+        "file:app/db/__init__.py",
+        "file:app/db/postgres.py",
+        "file:database.py",
+        "table:app/db/schema.sql",
+        "table:app/db/schema.sql:agent_action_log",
+        "table:app/db/schema.sql:app_settings",
+        "table:app/db/schema.sql:backup_runs",
+        "table:app/db/schema.sql:calendar_events",
+        "table:app/db/schema.sql:calendar_source_versions",
+        "table:app/db/schema.sql:calendar_sources",
+        "table:app/db/schema.sql:note_items",
+        "table:app/db/schema.sql:notes",
+        "table:app/db/schema.sql:priorities",
+        "table:app/db/schema.sql:task_items",
+        "table:app/db/schema.sql:tasks"
+      ]
+    },
+    {
+      "id": "layer:migration-and-backup",
+      "name": "Migration And Backup",
+      "description": "Legacy data migration and operational backup workflows for the v2 platform.",
+      "nodeIds": [
+        "document:docs/V2_BACKUP_RESTORE.md",
+        "document:docs/V2_MIGRATION_REPORT.md",
+        "document:docs/V2_RESTORE_VERIFICATION_REPORT.md",
+        "file:app/migration/__init__.py",
+        "file:app/migration/analyze_v1_sqlite.py",
+        "file:app/migration/migrate_sqlite_to_postgres.py"
+      ]
+    },
+    {
+      "id": "layer:quality-and-tests",
+      "name": "Quality And Tests",
+      "description": "Tests and repository quality configuration for validating the codebase.",
+      "nodeIds": [
+        "config:.pre-commit-config.yaml",
+        "document:requirements-dev.txt",
+        "file:tests/__init__.py",
+        "file:tests/test_backup_service.py",
+        "file:tests/test_calendar_import_service.py",
+        "file:tests/test_calendar_view_service.py",
+        "file:tests/test_export_service.py",
+        "file:tests/test_notes_service.py"
+      ]
+    },
+    {
+      "id": "layer:product-docs",
+      "name": "Product Docs",
+      "description": "Project documentation, strategy records, and archived planning material.",
+      "nodeIds": [
+        "document:README.md",
+        "document:agent_workflow_doc/AGENT_PROMPT_TEMPLATES.md",
+        "document:agent_workflow_doc/GHI_NHO_CONG_VIEC.md",
+        "document:agent_workflow_doc/GIT_WORKFLOW_GUIDE.md",
+        "document:agent_workflow_doc/KINH_NGHIEM.md",
+        "document:agent_workflow_doc/tier2_task_specs/V2_PARALLEL_EXECUTION_BOARD.md",
+        "document:agent_workflow_doc/tier2_task_specs/V2_TIER2_IMPLEMENTATION_PLAN.md",
+        "document:docs/SYSTEM_ARCHITECTURE.md",
+        "document:docs/UI_GUIDE.md",
+        "document:docs/V2_CURRENT_STATE.md",
+        "document:docs/V2_DECISION_BRIEF.md",
+        "document:docs/archive/README.md",
+        "document:docs/archive/completed_workstreams/README.md",
+        "document:docs/archive/v1_legacy/README.md",
+        "document:docs/strategy/README.md",
+        "document:docs/strategy/v2_ai_agent_strategy.md",
+        "document:docs/strategy/v2_architecture_strategy.md",
+        "document:docs/strategy/v2_data_migration_strategy.md",
+        "document:docs/strategy/v2_ui_strategy.md",
+        "document:docs/v2_contracts/WS0_WS1_CONTRACT.md",
+        "document:requirements.txt",
+        "file:app/__init__.py",
+        "file:app/config.py",
+        "file:build.bat"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "Project Entry",
+      "description": "Start with the project overview and current-state documents to understand the v2 branch, its goals, and the remaining legacy surface.",
+      "nodeIds": [
+        "document:README.md",
+        "document:docs/V2_CURRENT_STATE.md",
+        "document:docs/SYSTEM_ARCHITECTURE.md"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Desktop Shell",
+      "description": "Move into the Flet entry point and calendar view builder to see how the desktop UI still orchestrates much of the runtime behavior.",
+      "nodeIds": [
+        "file:main.py",
+        "file:app/ui/calendar_view.py"
+      ]
+    },
+    {
+      "order": 3,
+      "title": "Service Layer",
+      "description": "Review the service modules that now own task, note, calendar, export, and backup workflows on top of PostgreSQL.",
+      "nodeIds": [
+        "file:app/services/task_service.py",
+        "file:app/services/notes_service.py",
+        "file:app/services/calendar_view_service.py",
+        "file:app/services/export_service.py",
+        "file:app/services/backup_service.py"
+      ]
+    },
+    {
+      "order": 4,
+      "title": "Import Pipeline",
+      "description": "Follow the versioned calendar import path from parsers through the import service into calendar source snapshots.",
+      "nodeIds": [
+        "file:app/importers/ics_importer.py",
+        "file:app/importers/excel_exam_importer.py",
+        "file:app/services/calendar_import_service.py",
+        "document:docs/IMPORT_GUIDE.md"
+      ]
+    },
+    {
+      "order": 5,
+      "title": "Data Model",
+      "description": "Inspect the authoritative PostgreSQL schema and database helper layer that underpin the v2 application services.",
+      "nodeIds": [
+        "table:app/db/schema.sql",
+        "file:app/db/postgres.py",
+        "document:docs/DATABASE_SCHEMA.md"
+      ]
+    },
+    {
+      "order": 6,
+      "title": "Migration And Verification",
+      "description": "Finish with the migration scripts and test suite to understand how v1 data is moved forward and how the service layer is validated.",
+      "nodeIds": [
+        "file:app/migration/analyze_v1_sqlite.py",
+        "file:app/migration/migrate_sqlite_to_postgres.py",
+        "file:tests/test_calendar_import_service.py",
+        "file:tests/test_export_service.py"
+      ]
+    }
+  ]
+}

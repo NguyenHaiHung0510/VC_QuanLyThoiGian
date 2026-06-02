@@ -105,7 +105,16 @@ class ExcelExamImporter:
                     suspicious_date = True
 
             if isinstance(raw_date, datetime):
-                date_obj = raw_date
+                if suspicious_date:
+                    try:
+                        date_obj = raw_date.replace(month=raw_date.day, day=raw_date.month)
+                    except ValueError:
+                        date_obj = raw_date
+                        warnings.append(
+                            f"Dòng {r_idx}: Không thể tự đảo ngày/tháng cho '{raw_date}' dù format là '{date_cell.number_format}'."
+                        )
+                else:
+                    date_obj = raw_date
             else:
                 # String parse
                 date_str_clean = str(raw_date).strip()

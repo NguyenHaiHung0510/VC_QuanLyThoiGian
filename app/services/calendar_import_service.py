@@ -1,7 +1,7 @@
 import os
 import hashlib
 import json
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from app.importers.ics_importer import IcsImporter
 from app.importers.excel_exam_importer import ExcelExamImporter
@@ -25,6 +25,111 @@ class CalendarImportService:
             return sha256.hexdigest()
         except Exception as e:
             raise IOError(f"Failed to calculate SHA256 checksum: {str(e)}")
+
+    def _parse_file(self, file_path: str) -> tuple[str, str, List[Dict[str, Any]], List[str]]:
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"File not found: {file_path}")
+
+        file_name = os.path.basename(file_path)
+        file_sha256 = self.calculate_sha256(file_path)
+        _, ext = os.path.splitext(file_name.lower())
+
+        if ext == ".ics":
+            importer = IcsImporter()
+            return file_name, file_sha256, importer.parse(file_path), []
+        if ext == ".xlsx":
+            importer = ExcelExamImporter()
+            events, warnings = importer.parse(file_path)
+            return file_name, file_sha256, events, warnings
+
+        raise ValueError(f"Unsupported file format '{ext}'. Must be .ics or .xlsx")
+
+    def import_new_source(
+        self,
+        display_name: str,
+        file_path: str,
+        kind: str = "other",
+        color: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Creates a calendar source and imports its first version in one transaction.
+        If parsing or database import fails, no empty source is left behind.
+        """
+        display_name = display_name.strip()
+        if not display_name:
+            raise ValueError("Source display name is required")
+
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"File not found: {file_path}")
+
+        file_name = os.path.basename(file_path)
+        file_sha256 = self.calculate_sha256(file_path)
+        _, _, events, warnings = self._parse_file(file_path)
+        source_color = color or "#2563eb"
+
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO calendar_sources (display_name, kind, color, is_visible, created_at, updated_at)
+                    VALUES (%s, %s, %s, true, NOW(), NOW())
+                    RETURNING id
+                    """,
+                    (display_name, kind, source_color),
+                )
+                source_id = cur.fetchone()[0]
+
+                summary_json = {
+                    "parsed_count": len(events),
+                    "warnings": warnings,
+                }
+
+                cur.execute(
+                    """
+                    INSERT INTO calendar_source_versions
+                        (source_id, version_number, file_name, file_sha256, imported_at, parser_version, status, summary_json)
+                    VALUES (%s, 1, %s, %s, NOW(), 'v2', 'active', %s::jsonb)
+                    RETURNING id
+                    """,
+                    (source_id, file_name, file_sha256, json.dumps(summary_json)),
+                )
+                version_id = cur.fetchone()[0]
+
+                event_insert = """
+                    INSERT INTO calendar_events (source_id, source_version_id, external_uid, content_hash, title, description, starts_at, ends_at, location, event_type, status, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'active', NOW(), NOW())
+                """
+                for ev in events:
+                    cur.execute(event_insert, (
+                        source_id,
+                        version_id,
+                        ev["external_uid"],
+                        ev["content_hash"],
+                        ev["title"],
+                        ev["description"],
+                        ev["starts_at"],
+                        ev["ends_at"],
+                        ev["location"],
+                        ev["event_type"],
+                    ))
+
+                cur.execute(
+                    "UPDATE calendar_sources SET current_version_id = %s, updated_at = NOW() WHERE id = %s",
+                    (version_id, source_id),
+                )
+                self.conn.commit()
+
+                return {
+                    "status": "active",
+                    "source_id": source_id,
+                    "version_id": version_id,
+                    "version_number": 1,
+                    "parsed_count": len(events),
+                    "warnings": warnings,
+                }
+        except Exception as e:
+            self.conn.rollback()
+            raise RuntimeError(f"Database error during new source import: {str(e)}")
 
     def import_file(self, source_id, file_path: str) -> Dict[str, Any]:
         """
@@ -57,19 +162,7 @@ class CalendarImportService:
                     "warnings": []
                 }
 
-        # 2. Select parser based on file extension
-        _, ext = os.path.splitext(file_name.lower())
-        events: List[Dict[str, Any]] = []
-        warnings: List[str] = []
-
-        if ext == ".ics":
-            importer = IcsImporter()
-            events = importer.parse(file_path)
-        elif ext == ".xlsx":
-            importer = ExcelExamImporter()
-            events, warnings = importer.parse(file_path)
-        else:
-            raise ValueError(f"Unsupported file format '{ext}'. Must be .ics or .xlsx")
+        _, _, events, warnings = self._parse_file(file_path)
 
         # 3. Transactional database updates
         try:

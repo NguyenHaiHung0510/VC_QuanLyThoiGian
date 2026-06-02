@@ -167,6 +167,14 @@ def main(page: ft.Page):
             return start_str
 
     # --- CORE LOGIC ---
+    def refresh_calendar_tab():
+        try:
+            content = tab_calendar_content
+        except NameError:
+            return
+        if hasattr(content, "refresh_calendar"):
+            content.refresh_calendar()
+
     def refresh_all():
         nonlocal APP_CONFIG
         APP_CONFIG = db.load_settings()  # Settings still uses SQLite via db.load_settings
@@ -174,7 +182,7 @@ def main(page: ft.Page):
         app_bar_title.value = page.title
         app_bar_title.update()
         load_day_view()      # WS6: now calls PostgreSQL v2 implementation
-        # load_month_view()  # WS6: removed — calendar tab self-manages refresh
+        refresh_calendar_tab()
         load_notes_view()
         page.update()
 
@@ -541,7 +549,7 @@ def main(page: ft.Page):
                                 [
                                     ft.Icon(ft.Icons.WARNING, color="red"),
                                     ft.Text(
-                                        "CẦN XỬ LÝ GẤP", color="red", weight="bold"
+                                        "VIỆC TRỄ HẠN", color="red", weight="bold"
                                     ),
                                 ]
                             ),
@@ -553,6 +561,16 @@ def main(page: ft.Page):
 
         open_tasks = [t for t in today_tasks if t["status"] == "open"]
         done_tasks = [t for t in today_tasks if t["status"] == "completed"]
+
+        if open_tasks:
+            container_tasks.controls.append(
+                ft.Text(
+                    "ĐẾN HẠN HÔM NAY",
+                    size=12,
+                    color=THEME["primary"],
+                    weight="bold",
+                )
+            )
 
         for t in open_tasks:
             container_tasks.controls.append(create_pg_task_item(t, is_backlog=False))
@@ -727,6 +745,7 @@ def main(page: ft.Page):
                     page.open(ft.SnackBar(ft.Text(f"Lỗi: {ex}"), bgcolor="red"))
                     return
                 load_day_view()
+                refresh_calendar_tab()
                 page.update()
             return on_toggle
 
@@ -741,6 +760,7 @@ def main(page: ft.Page):
                         return
                     page.close(dlg)
                     load_day_view()
+                    refresh_calendar_tab()
                     page.update()
 
                 dlg = ft.AlertDialog(
@@ -2635,6 +2655,7 @@ def main(page: ft.Page):
             if close:
                 page.close(dlg_pg)
             load_day_view()
+            refresh_calendar_tab()
             page.update()
 
         dlg_pg = ft.AlertDialog(
@@ -2694,6 +2715,7 @@ def main(page: ft.Page):
     def handle_tab_change(e):
         print(f"handle_tab_change: tabs_control.selected_index={tabs_control.selected_index}, control.selected_index={e.control.selected_index}", flush=True)
         if e.control.selected_index == 1:
+            refresh_calendar_tab()
             if hasattr(tab_calendar_content, "scroll_to_today"):
                 async def do_scroll():
                     import asyncio

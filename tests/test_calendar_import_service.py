@@ -171,6 +171,53 @@ def test_excel_parser():
         assert ev["title"].startswith("[THI]")
         assert ev["event_type"] == "exam"
 
+    expected_dates = {
+        "[THI] Cơ sở dữ liệu phân tán": (2026, 6, 3),
+        "[THI] Lập trình Web": (2026, 6, 7),
+        "[THI] Nhập môn công nghệ phần mềm": (2026, 6, 12),
+    }
+    for title, (year, month, day) in expected_dates.items():
+        event = next(e for e in events if e["title"] == title)
+        assert event["starts_at"].year == year
+        assert event["starts_at"].month == month
+        assert event["starts_at"].day == day
+
+
+def test_import_new_source_creates_visible_source_with_version(db_conn):
+    file_path = "LichThi-QLDT-20252.ics"
+    if not os.path.exists(file_path):
+        pytest.skip(f"Test file {file_path} not found.")
+
+    import_service = CalendarImportService(db_conn)
+    result = import_service.import_new_source(
+        display_name=f"Nguồn test {uuid.uuid4().hex}",
+        file_path=file_path,
+        kind="other",
+        color="#16a34a",
+    )
+
+    assert result["status"] == "active"
+    assert result["version_number"] == 1
+    assert result["parsed_count"] == 8
+
+    with db_conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT kind, color, is_visible, current_version_id
+            FROM calendar_sources
+            WHERE id = %s
+            """,
+            (result["source_id"],),
+        )
+        source_row = cur.fetchone()
+        assert source_row == ("other", "#16a34a", True, result["version_id"])
+
+        cur.execute(
+            "SELECT COUNT(*) FROM calendar_events WHERE source_id = %s AND source_version_id = %s",
+            (result["source_id"], result["version_id"]),
+        )
+        assert cur.fetchone()[0] == 8
+
 
 def test_calendar_import_service_workflow(db_conn):
     """
