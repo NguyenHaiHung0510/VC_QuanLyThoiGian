@@ -1200,15 +1200,6 @@ def build_continuous_calendar_tab(
         expand=True,
     )
 
-    # Scroll initially to today's week
-    # Run slightly deferred so ListView finishes initial layout
-    async def scroll_init():
-        import asyncio
-        await asyncio.sleep(0.5)
-        _scroll_to_today()
-
-    page.run_task(scroll_init)
-
     # Attach helper to trigger scroll from parent tabs container
     root.scroll_to_today = _scroll_to_today
     root.refresh_calendar = _refresh_calendar

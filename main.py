@@ -184,7 +184,8 @@ def main(page: ft.Page):
         load_day_view()      # WS6: now calls PostgreSQL v2 implementation
         if refresh_calendar:
             refresh_calendar_tab()
-        load_notes_view()
+        if tabs_control.selected_index == 2:
+            load_notes_view()
         page.update()
 
     def go_to_today(e):
@@ -2717,12 +2718,6 @@ def main(page: ft.Page):
         print(f"handle_tab_change: tabs_control.selected_index={tabs_control.selected_index}, control.selected_index={e.control.selected_index}", flush=True)
         if e.control.selected_index == 1:
             refresh_calendar_tab()
-            if hasattr(tab_calendar_content, "scroll_to_today"):
-                async def do_scroll():
-                    import asyncio
-                    await asyncio.sleep(0.1)
-                    tab_calendar_content.scroll_to_today()
-                page.run_task(do_scroll)
         elif e.control.selected_index == 2:
             load_notes_view()
 
