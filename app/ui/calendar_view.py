@@ -60,8 +60,10 @@ def build_continuous_calendar_tab(
     """
     today = date.today()
 
-    # Generate complete list of months from today - 2 years to today + 2 years
-    start_year = today.year - 2
+    # Generate the visible continuous list from the current month forward.
+    # Older months are still fetched for services/export paths, but rendering
+    # them before the current month made Flet's initial scroll target unreliable.
+    start_year = today.year
     end_year = today.year + 2
     start_month = today.month
     end_month = today.month
@@ -169,9 +171,9 @@ def build_continuous_calendar_tab(
     # Prefetch events from PG for visible range (±2 years)               #
     # ------------------------------------------------------------------ #
     def _reload_events():
-        range_start_d = date(start_year, start_month, 1)
+        range_start_d = date(today.year - 2, today.month, 1)
         next_m = end_month + 1
-        next_y = end_year
+        next_y = today.year + 2
         if next_m > 12:
             next_m = 1
             next_y += 1
@@ -409,8 +411,15 @@ def build_continuous_calendar_tab(
         tooltip_str = "\n".join(tooltip_lines) if total_evs > 0 else f"📅 {d.strftime('%d/%m/%Y')}\n(Không có lịch)"
 
         def on_day_cell_click(e):
+            state["selected_date"] = d
             if on_day_click:
-                on_day_click(d)
+                try:
+                    on_day_click(d)
+                except Exception as ex:
+                    print(f"[CalendarView] Day click callback error: {ex}")
+                    page.open(ft.SnackBar(ft.Text(f"Không mở được ngày đã chọn: {ex}"), bgcolor="red"))
+                    if root.page:
+                        page.update()
 
         # Return a single Container with the native tooltip
         return ft.Container(
@@ -477,12 +486,12 @@ def build_continuous_calendar_tab(
             })
             current_offset += 100.0 + spacing
 
-    # Helper to find week offset by date
-    def _get_week_offset(d: date) -> float:
+    # Helper to find week row by date
+    def _get_week_key(d: date) -> str | None:
         for item in item_offsets:
             if item["type"] == "week" and d in item["dates"]:
-                return item["offset"]
-        return 0.0
+                return item["key"]
+        return None
 
     # ------------------------------------------------------------------ #
     # Scroll handling & Mini-Nav Sync                                      #
@@ -605,32 +614,22 @@ def build_continuous_calendar_tab(
     def _rebuild_calendar():
         _reload_events()
         _fill_calendar_list_view()
-        if calendar_list_view.page:
-            calendar_list_view.update()
+        if root.page:
+            page.update()
 
     def _refresh_calendar(e=None):
         _reload_sources()
         _build_sources_col()
         _reload_events()
         _fill_calendar_list_view()
-        if sources_col.page:
-            sources_col.update()
-        if calendar_list_view.page:
-            calendar_list_view.update()
-        page.update()
+        if root.page:
+            page.update()
 
     # ------------------------------------------------------------------ #
     # Scroll to today                                                      #
     # ------------------------------------------------------------------ #
     def _scroll_to_today(e=None):
-        offset = _get_week_offset(today)
-        try:
-            calendar_list_view.scroll_to(offset=offset, duration=300)
-        except Exception as ex:
-            print(f"[CalendarView] Scroll to today error: {ex}")
-        header_label.value = _visible_range_label(today)
-        header_label.update()
-        page.update()
+        _scroll_to_date(today)
 
     # ------------------------------------------------------------------ #
     # Mini month navigator                                                 #
@@ -647,12 +646,12 @@ def build_continuous_calendar_tab(
         # Determine unique visible months chronologically, always maintaining exactly 2 months
         if not visible_dates:
             main_y, main_m = state["mini_nav_month"].year, state["mini_nav_month"].month
-            prev_y = main_y
-            prev_m = main_m - 1
-            if prev_m < 1:
-                prev_m = 12
-                prev_y -= 1
-            visible_months = [(prev_y, prev_m), (main_y, main_m)]
+            next_y = main_y
+            next_m = main_m + 1
+            if next_m > 12:
+                next_m = 1
+                next_y += 1
+            visible_months = [(main_y, main_m), (next_y, next_m)]
         else:
             unique_months = sorted(list(set(
                 (d.year, d.month) for d in visible_dates
@@ -736,26 +735,7 @@ def build_continuous_calendar_tab(
 
                         def make_click(clicked_date=d):
                             def on_click(e):
-                                state["selected_date"] = clicked_date
-                                # Scroll main calendar to the week containing clicked_date using offset
-                                offset = _get_week_offset(clicked_date)
-                                try:
-                                    calendar_list_view.scroll_to(offset=offset, duration=300)
-                                except Exception:
-                                    pass
-
-                                # Update visible label and rebuild
-                                header_label.value = _visible_range_label(clicked_date)
-                                if header_label.page:
-                                    header_label.update()
-
-                                state["mini_nav_month"] = datetime(clicked_date.year, clicked_date.month, 1)
-                                _build_mini_nav()
-                                if mini_month_label.page:
-                                    mini_month_label.update()
-                                if mini_navigator_container.page:
-                                    mini_navigator_container.update()
-                                page.update()
+                                _scroll_to_date(clicked_date)
                             return on_click
 
                         week_cells.append(
@@ -794,6 +774,32 @@ def build_continuous_calendar_tab(
                 )
             )
 
+    def _sync_mini_nav_to_date(d: date) -> None:
+        state["selected_date"] = d
+        state["mini_nav_month"] = datetime(d.year, d.month, 1)
+        state["visible_dates"] = {d}
+        _build_mini_nav()
+        if mini_month_label.page:
+            mini_month_label.update()
+        if mini_navigator_container.page:
+            mini_navigator_container.update()
+
+    def _scroll_to_date(d: date, duration: int = 300) -> None:
+        week_key = _get_week_key(d)
+        try:
+            if week_key:
+                calendar_list_view.scroll_to(key=week_key, duration=duration)
+            else:
+                print(f"[CalendarView] No week key found for {d.isoformat()}")
+        except Exception as ex:
+            print(f"[CalendarView] Scroll to date error: {ex}")
+        header_label.value = _visible_range_label(d)
+        if header_label.page:
+            header_label.update()
+        _sync_mini_nav_to_date(d)
+        if root.page:
+            page.update()
+
     _build_mini_nav()
 
     def _prev_mini_month(e):
@@ -802,11 +808,7 @@ def build_continuous_calendar_tab(
         if mo < 1:
             mo, y = 12, y - 1
         target_date = date(y, mo, 1)
-        offset = _get_week_offset(target_date)
-        try:
-            calendar_list_view.scroll_to(offset=offset, duration=300)
-        except Exception as ex:
-            print(f"[CalendarView] Scroll to prev mini month error: {ex}")
+        _scroll_to_date(target_date)
 
     def _next_mini_month(e):
         m = state["mini_nav_month"]
@@ -814,11 +816,7 @@ def build_continuous_calendar_tab(
         if mo > 12:
             mo, y = 1, y + 1
         target_date = date(y, mo, 1)
-        offset = _get_week_offset(target_date)
-        try:
-            calendar_list_view.scroll_to(offset=offset, duration=300)
-        except Exception as ex:
-            print(f"[CalendarView] Scroll to next mini month error: {ex}")
+        _scroll_to_date(target_date)
 
     mini_nav_row = ft.Row(
         [

@@ -175,14 +175,15 @@ def main(page: ft.Page):
         if hasattr(content, "refresh_calendar"):
             content.refresh_calendar()
 
-    def refresh_all():
+    def refresh_all(refresh_calendar=True):
         nonlocal APP_CONFIG
         APP_CONFIG = db.load_settings()  # Settings still uses SQLite via db.load_settings
         page.title = APP_CONFIG.get("app_title", "microSchedule")
         app_bar_title.value = page.title
         app_bar_title.update()
         load_day_view()      # WS6: now calls PostgreSQL v2 implementation
-        refresh_calendar_tab()
+        if refresh_calendar:
+            refresh_calendar_tab()
         load_notes_view()
         page.update()
 
@@ -2744,7 +2745,7 @@ def main(page: ft.Page):
         ],
     )
     page.add(tabs_control)
-    refresh_all()
+    refresh_all(refresh_calendar=False)
 
 
 ft.app(target=main)

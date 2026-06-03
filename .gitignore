@@ -28,3 +28,6 @@ backups/
 /dist
 /build/microSchedule
 /build
+/agent_workflow_doc/tier2_task_specs/db_backups
+/agent_workflow_doc/tier2_task_specs
+/__pycache__
